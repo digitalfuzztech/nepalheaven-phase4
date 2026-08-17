@@ -8,6 +8,7 @@ export * from "./media";
 export * from "./experiences";
 export * from "./blog-engagement";
 export * from "./cms";
+export * from "./cms-foundation";
 export * from "./sessions";
 export * from "./password-reset-tokens";
 export * from "./email-verification-challenges";
