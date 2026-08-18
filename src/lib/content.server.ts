@@ -51,6 +51,7 @@ import type {
 } from "@/lib/content.types";
 
 import {
+  getPublicCmsFooterContent,
   getPublicCmsGlobalSettings,
   getPublicCmsPrimaryNavigation,
 } from "@/lib/public-cms.server";
@@ -615,9 +616,11 @@ export async function getPublicSiteSettings(): Promise<PublicSiteSettings> {
   const [
     cmsGlobal,
     cmsPrimaryNavigation,
+    cmsFooter,
   ] = await Promise.all([
     getPublicCmsGlobalSettings(),
     getPublicCmsPrimaryNavigation(),
+    getPublicCmsFooterContent(),
   ]);
 
   const company:
@@ -733,6 +736,7 @@ export async function getPublicSiteSettings(): Promise<PublicSiteSettings> {
     whyUs,
     images,
     primaryNavigation,
+    footer: cmsFooter,
   };
 }
 
@@ -763,6 +767,9 @@ export async function getShellContent(): Promise<ShellContent> {
 
     primaryNavigation:
     settings.primaryNavigation,
+
+    footer:
+    settings.footer,
 
     destinations:
         destinations.map(

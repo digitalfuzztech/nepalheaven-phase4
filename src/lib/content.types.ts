@@ -120,6 +120,28 @@ export type PublicNavigationItem = {
   openNewTab: boolean;
 };
 
+export type PublicFooterMenus = {
+  company: PublicNavigationItem[];
+
+  destinations: PublicNavigationItem[];
+
+  journal: PublicNavigationItem[];
+
+  legal: PublicNavigationItem[];
+};
+
+export type PublicFooterContent = {
+  companyDescription: string;
+
+  journalDescription: string;
+
+  logoUrl:
+      | string
+      | null;
+
+  menus: PublicFooterMenus;
+};
+
 export type Activity = { name: string; detail: string; icon: string };
 export type ExperienceCategory = {
   slug: string;
@@ -182,6 +204,7 @@ export type PublicSiteSettings = {
   whyUs: WhyUsItem[];
   images: SiteImages;
   primaryNavigation: PublicNavigationItem[];
+  footer: PublicFooterContent | null;
 };
 type LegacyExperienceCategory = { name: string; detail: string; image: string; count?: number };
 
@@ -198,6 +221,8 @@ export type ShellContent = {
   branding: PublicBranding;
   primaryNavigation:
       PublicNavigationItem[];
+  footer:
+      PublicFooterContent | null;
 
   destinations: Pick<
       Destination,

@@ -11,6 +11,7 @@ import {
     cmsGeneralSettings,
     cmsNavigationItems,
     cmsNavigationMenus,
+    cmsFooterSettings,
 } from "@/db/schema/cms-foundation";
 
 import {
@@ -21,6 +22,7 @@ import type {
     Company,
     PublicBranding,
     PublicNavigationItem,
+    PublicFooterContent,
 } from "@/lib/content.types";
 
 
@@ -434,4 +436,276 @@ export async function getPublicCmsPrimaryNavigation():
     }
 
     return items;
+}
+export async function getPublicCmsFooterContent():
+    Promise<
+        PublicFooterContent | null
+    > {
+    if (!db) {
+        throw new Error(
+            "Database connection is not configured.",
+        );
+    }
+
+    /*
+     * Footer settings
+     */
+    const [footer] =
+        await db
+            .select({
+                companyDescription:
+                cmsFooterSettings.companyDescription,
+
+                journalDescription:
+                cmsFooterSettings.journalDescription,
+
+                logoMediaId:
+                cmsFooterSettings.logoMediaId,
+            })
+            .from(
+                cmsFooterSettings,
+            )
+            .where(
+                eq(
+                    cmsFooterSettings.key,
+                    "footer",
+                ),
+            )
+            .limit(1);
+
+    /*
+     * If the canonical Footer row does not
+     * exist, the React Footer will keep
+     * using its Phase 3 fallback content.
+     */
+    if (!footer) {
+        return null;
+    }
+
+    /*
+     * Resolve Footer-specific logo.
+     */
+    let logoUrl:
+        | string
+        | null =
+        null;
+
+    if (
+        footer.logoMediaId
+    ) {
+        const [logo] =
+            await db
+                .select({
+                    url:
+                    media.url,
+                })
+                .from(media)
+                .where(
+                    and(
+                        eq(
+                            media.id,
+                            footer.logoMediaId,
+                        ),
+
+                        eq(
+                            media.type,
+                            "image",
+                        ),
+
+                        eq(
+                            media.lifecycleStatus,
+                            "ready",
+                        ),
+                    ),
+                )
+                .limit(1);
+
+        logoUrl =
+            logo?.url ??
+            null;
+    }
+
+    const footerMenuKeys = [
+        "footer_company",
+        "footer_destinations",
+        "footer_journal",
+        "footer_legal",
+    ];
+
+    /*
+     * Read enabled Footer navigation items.
+     */
+    const rows =
+        await db
+            .select({
+                menuKey:
+                cmsNavigationMenus.key,
+
+                label:
+                cmsNavigationItems.label,
+
+                linkType:
+                cmsNavigationItems.linkType,
+
+                path:
+                cmsNavigationItems.path,
+
+                url:
+                cmsNavigationItems.url,
+
+                openNewTab:
+                cmsNavigationItems.openNewTab,
+
+                sortOrder:
+                cmsNavigationItems.sortOrder,
+            })
+            .from(
+                cmsNavigationItems,
+            )
+            .innerJoin(
+                cmsNavigationMenus,
+                eq(
+                    cmsNavigationItems.menuId,
+                    cmsNavigationMenus.id,
+                ),
+            )
+            .where(
+                and(
+                    inArray(
+                        cmsNavigationMenus.key,
+                        footerMenuKeys,
+                    ),
+
+                    eq(
+                        cmsNavigationItems.enabled,
+                        true,
+                    ),
+                ),
+            )
+            .orderBy(
+                asc(
+                    cmsNavigationMenus.key,
+                ),
+
+                asc(
+                    cmsNavigationItems.sortOrder,
+                ),
+            );
+
+    const menus:
+        PublicFooterContent["menus"] =
+        {
+            company: [],
+            destinations: [],
+            journal: [],
+            legal: [],
+        };
+
+    for (
+        const row of rows
+        ) {
+        let href:
+            | string
+            | null =
+            null;
+
+        let external =
+            false;
+
+        if (
+            row.linkType ===
+            "internal"
+        ) {
+            const path =
+                row.path?.trim();
+
+            if (
+                path &&
+                path.startsWith("/")
+            ) {
+                href =
+                    path;
+            }
+        } else {
+            const url =
+                row.url?.trim();
+
+            if (
+                url &&
+                validExternalUrl(
+                    url,
+                )
+            ) {
+                href =
+                    url;
+
+                external =
+                    true;
+            }
+        }
+
+        /*
+         * Skip malformed navigation rows
+         * rather than exposing bad links.
+         */
+        if (!href) {
+            continue;
+        }
+
+        const item:
+            PublicNavigationItem =
+            {
+                label:
+                row.label,
+
+                href,
+
+                external,
+
+                openNewTab:
+                row.openNewTab,
+            };
+
+        switch (
+            row.menuKey
+            ) {
+            case "footer_company":
+                menus.company.push(
+                    item,
+                );
+                break;
+
+            case "footer_destinations":
+                menus.destinations.push(
+                    item,
+                );
+                break;
+
+            case "footer_journal":
+                menus.journal.push(
+                    item,
+                );
+                break;
+
+            case "footer_legal":
+                menus.legal.push(
+                    item,
+                );
+                break;
+        }
+    }
+
+    return {
+        companyDescription:
+            footer.companyDescription ??
+            "",
+
+        journalDescription:
+            footer.journalDescription ??
+            "",
+
+        logoUrl,
+
+        menus,
+    };
 }
