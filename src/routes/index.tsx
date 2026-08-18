@@ -59,28 +59,79 @@ const iconMap: Record<string, LucideIcon> = {
 
 export const Route = createFileRoute("/")({
   loader: () => getHomeContentFn(),
-  head: () => ({
-    meta: [
-      { title: "Nepal Heaven — Heaven on Earth Awaits | Luxury Nepal Travel" },
-      {
-        name: "description",
-        content:
-          "Discover unforgettable adventures across Nepal with expertly crafted journeys — Everest, Annapurna, Mustang, Chitwan and beyond.",
-      },
-      {
-        property: "og:title",
-        content: "Nepal Heaven — Heaven on Earth Awaits",
-      },
-      {
-        property: "og:description",
-        content: "Expertly crafted private journeys across the Nepal Himalaya.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-      { property: "og:url", content: "/" },
-    ],
-    links: [{ rel: "canonical", href: "/" }],
-  }),
+
+  head: ({ loaderData }) => {
+    const title =
+        loaderData?.branding.defaultSeoTitle ||
+        "Nepal Heaven — Heaven on Earth Awaits | Luxury Nepal Travel";
+
+    const description =
+        loaderData?.branding.defaultSeoDescription ||
+        "Discover unforgettable adventures across Nepal with expertly crafted journeys — Everest, Annapurna, Mustang, Chitwan and beyond.";
+
+    const ogImage =
+        loaderData?.branding.defaultOgImageUrl;
+
+    return {
+      meta: [
+        {
+          title,
+        },
+
+        {
+          name: "description",
+          content: description,
+        },
+
+        {
+          property: "og:title",
+          content: title,
+        },
+
+        {
+          property: "og:description",
+          content: description,
+        },
+
+        {
+          property: "og:type",
+          content: "website",
+        },
+
+        {
+          name: "twitter:card",
+          content: "summary_large_image",
+        },
+
+        {
+          property: "og:url",
+          content: "/",
+        },
+
+        ...(ogImage
+            ? [
+              {
+                property: "og:image",
+                content: ogImage,
+              },
+
+              {
+                name: "twitter:image",
+                content: ogImage,
+              },
+            ]
+            : []),
+      ],
+
+      links: [
+        {
+          rel: "canonical",
+          href: "/",
+        },
+      ],
+    };
+  },
+
   component: Home,
 });
 
@@ -128,7 +179,7 @@ function NewsletterBand() {
 }
 
 function Hero() {
-  const { images } = Route.useLoaderData();
+  const { images , company } = Route.useLoaderData();
   const [offset, setOffset] = useState(0);
 
   useEffect(() => {

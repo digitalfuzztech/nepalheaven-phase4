@@ -75,6 +75,41 @@ export type Company = {
   hours: { day: string; time: string }[];
 };
 
+export type PublicBranding = {
+  companyName: string;
+
+  mainLogoUrl:
+      | string
+      | null;
+
+  lightLogoUrl:
+      | string
+      | null;
+
+  faviconUrl:
+      | string
+      | null;
+
+  defaultOgImageUrl:
+      | string
+      | null;
+
+  defaultSeoTitle: string;
+
+  defaultSeoDescription: string;
+
+  copyrightText: string;
+
+  socialLinks: {
+    facebook: string;
+    instagram: string;
+    youtube: string;
+    tiktok: string;
+    linkedin: string;
+    x: string;
+  };
+};
+
 export type Activity = { name: string; detail: string; icon: string };
 export type ExperienceCategory = {
   slug: string;
@@ -125,6 +160,7 @@ export type SiteImages = {
 
 export type PublicSiteSettings = {
   company: Company;
+  branding: PublicBranding;
   activities: Activity[];
   experienceCategories: LegacyExperienceCategory[];
   stats: Stat[];
@@ -147,6 +183,16 @@ export type HomeContent = PublicSiteSettings & {
 
 export type ShellContent = {
   company: Company;
-  destinations: Pick<Destination, "slug" | "name">[];
-  packages: Pick<Package, "slug" | "title">[];
+
+  branding: PublicBranding;
+
+  destinations: Pick<
+      Destination,
+      "slug" | "name"
+  >[];
+
+  packages: Pick<
+      Package,
+      "slug" | "title"
+  >[];
 };

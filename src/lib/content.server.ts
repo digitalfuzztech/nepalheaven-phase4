@@ -38,6 +38,7 @@ import type {
   Milestone,
   Package,
   Post,
+  PublicBranding,
   PublicSiteSettings,
   ShellContent,
   SiteImages,
@@ -47,6 +48,9 @@ import type {
   WhyUsItem,
   PublicSearchResults,
 } from "@/lib/content.types";
+import {
+  getPublicCmsGlobalSettings,
+} from "@/lib/public-cms.server";
 
 const publicSettingKeys = [
   "company.profile",
@@ -439,6 +443,49 @@ export async function getFaqs(): Promise<FaqGroup[]> {
   return [...groups.values()];
 }
 
+const legacyDefaultSeoTitle =
+    "Nepal Heaven — Luxury Himalayan Travel & Trekking";
+
+const legacyDefaultSeoDescription =
+    "Private, expertly crafted journeys across Nepal — Everest, Annapurna, Mustang and beyond. Heaven on Earth Awaits.";
+
+function legacyBranding(): PublicBranding {
+  return {
+    companyName:
+        "Nepal Heaven Travels & Tours Pvt. Ltd.",
+
+    mainLogoUrl:
+        null,
+
+    lightLogoUrl:
+        null,
+
+    faviconUrl:
+        null,
+
+    defaultOgImageUrl:
+        null,
+
+    defaultSeoTitle:
+    legacyDefaultSeoTitle,
+
+    defaultSeoDescription:
+    legacyDefaultSeoDescription,
+
+    copyrightText:
+        "Nepal Heaven Travels & Tours Pvt. Ltd. All rights reserved.",
+
+    socialLinks: {
+      facebook: "",
+      instagram: "",
+      youtube: "",
+      tiktok: "",
+      linkedin: "",
+      x: "",
+    },
+  };
+}
+
 export async function getPublicSiteSettings(): Promise<PublicSiteSettings> {
   const database = requireDb();
   const rows = await database
@@ -459,7 +506,7 @@ export async function getPublicSiteSettings(): Promise<PublicSiteSettings> {
     [],
     isArray,
   );
-  const company: Company = {
+  const legacyCompany: Company = {
     name:
       typeof companyProfile["name"] === "string"
         ? companyProfile["name"]
@@ -486,6 +533,27 @@ export async function getPublicSiteSettings(): Promise<PublicSiteSettings> {
         : "",
     hours: companyHours,
   };
+
+  const cmsGlobal =
+      await getPublicCmsGlobalSettings();
+
+  const company:
+      Company =
+      cmsGlobal
+          ? {
+            ...cmsGlobal.company,
+
+            hours:
+                cmsGlobal.company.hours.length >
+                0
+                    ? cmsGlobal.company.hours
+                    : legacyCompany.hours,
+          }
+          : legacyCompany;
+
+  const branding =
+      cmsGlobal?.branding ??
+      legacyBranding();
 
   const activities = parseJsonSetting<Activity[]>(
     values,
@@ -563,6 +631,7 @@ export async function getPublicSiteSettings(): Promise<PublicSiteSettings> {
 
   return {
     company,
+    branding,
     activities,
     experienceCategories,
     stats,
@@ -595,8 +664,32 @@ export async function getShellContent(): Promise<ShellContent> {
     getPublicSiteSettings(),
   ]);
   return {
-    company: settings.company,
-    destinations: destinations.map(({ slug, name }) => ({ slug, name })),
-    packages: packages.map(({ slug, title }) => ({ slug, title })),
+    company:
+    settings.company,
+
+    branding:
+    settings.branding,
+
+    destinations:
+        destinations.map(
+            ({
+               slug,
+               name,
+             }) => ({
+              slug,
+              name,
+            }),
+        ),
+
+    packages:
+        packages.map(
+            ({
+               slug,
+               title,
+             }) => ({
+              slug,
+              title,
+            }),
+        ),
   };
 }

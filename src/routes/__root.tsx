@@ -115,54 +115,221 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   {
     loader: ({ location }) =>
       isMinimalShellPath(location.pathname) ? null : getShellContentFn(),
-    head: ({ loaderData }) => ({
-      meta: [
-        { charSet: "utf-8" },
-        { name: "viewport", content: "width=device-width, initial-scale=1" },
-        { title: "Nepal Heaven — Luxury Himalayan Travel & Trekking" },
-        {
-          name: "description",
-          content:
-            "Private, expertly crafted journeys across Nepal — Everest, Annapurna, Mustang and beyond. Heaven on Earth Awaits.",
-        },
-        { name: "author", content: "Nepal Heaven" },
-        { property: "og:site_name", content: "Nepal Heaven" },
-        { property: "og:type", content: "website" },
-        { name: "twitter:card", content: "summary_large_image" },
-        { name: "theme-color", content: "#123B66" },
-      ],
-      links: [
-        { rel: "stylesheet", href: appCss },
-        { rel: "preconnect", href: "https://fonts.googleapis.com" },
-        {
-          rel: "preconnect",
-          href: "https://fonts.gstatic.com",
-          crossOrigin: "anonymous",
-        },
-        {
-          rel: "stylesheet",
-          href: "https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Manrope:wght@400;500;600;700;800&display=swap",
-        },
-        { rel: "icon", href: "/favicon.png", type: "image/x-icon" },
-      ],
-      scripts: loaderData
-        ? [
-            {
-              type: "application/ld+json",
-              children: JSON.stringify({
-                "@context": "https://schema.org",
-                "@type": "TravelAgency",
-                name: loaderData.company.name,
-                slogan: loaderData.company.tagline,
-                url: "https://nepalheaven.com",
-                telephone: loaderData.company.phone,
-                email: loaderData.company.email,
-                address: loaderData.company.address,
-              }),
-            },
-          ]
-        : [],
-    }),
+    head: ({ loaderData }) => {
+      const title =
+          loaderData?.branding
+              .defaultSeoTitle ||
+          "Nepal Heaven — Luxury Himalayan Travel & Trekking";
+
+      const description =
+          loaderData?.branding
+              .defaultSeoDescription ||
+          "Private, expertly crafted journeys across Nepal — Everest, Annapurna, Mustang and beyond. Heaven on Earth Awaits.";
+
+      const favicon =
+          loaderData?.branding
+              .faviconUrl ||
+          "/favicon.png";
+
+      const ogImage =
+          loaderData?.branding
+              .defaultOgImageUrl;
+
+      const company =
+          loaderData?.company;
+
+      return {
+        meta: [
+          {
+            charSet:
+                "utf-8",
+          },
+
+          {
+            name:
+                "viewport",
+
+            content:
+                "width=device-width, initial-scale=1",
+          },
+
+          {
+            title,
+          },
+
+          {
+            name:
+                "description",
+
+            content:
+            description,
+          },
+
+          {
+            name:
+                "author",
+
+            content:
+                company?.name ??
+                "Nepal Heaven",
+          },
+
+          {
+            property:
+                "og:site_name",
+
+            content:
+                company?.name ??
+                "Nepal Heaven",
+          },
+
+          {
+            property:
+                "og:type",
+
+            content:
+                "website",
+          },
+
+          {
+            property:
+                "og:title",
+
+            content:
+            title,
+          },
+
+          {
+            property:
+                "og:description",
+
+            content:
+            description,
+          },
+
+          ...(ogImage
+              ? [
+                {
+                  property:
+                      "og:image",
+
+                  content:
+                  ogImage,
+                },
+              ]
+              : []),
+
+          {
+            name:
+                "twitter:card",
+
+            content:
+                "summary_large_image",
+          },
+
+          ...(ogImage
+              ? [
+                {
+                  name:
+                      "twitter:image",
+
+                  content:
+                  ogImage,
+                },
+              ]
+              : []),
+
+          {
+            name:
+                "theme-color",
+
+            content:
+                "#123B66",
+          },
+        ],
+
+        links: [
+          {
+            rel:
+                "stylesheet",
+
+            href:
+            appCss,
+          },
+
+          {
+            rel:
+                "preconnect",
+
+            href:
+                "https://fonts.googleapis.com",
+          },
+
+          {
+            rel:
+                "preconnect",
+
+            href:
+                "https://fonts.gstatic.com",
+
+            crossOrigin:
+                "anonymous",
+          },
+
+          {
+            rel:
+                "stylesheet",
+
+            href:
+                "https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Manrope:wght@400;500;600;700;800&display=swap",
+          },
+
+          {
+            rel:
+                "icon",
+
+            href:
+            favicon,
+          },
+        ],
+
+        scripts: loaderData
+            ? [
+              {
+                type:
+                    "application/ld+json",
+
+                children:
+                    JSON.stringify({
+                      "@context":
+                          "https://schema.org",
+
+                      "@type":
+                          "TravelAgency",
+
+                      name:
+                      loaderData.company.name,
+
+                      slogan:
+                      loaderData.company.tagline,
+
+                      url:
+                          "https://nepalheaven.com",
+
+                      telephone:
+                      loaderData.company.phone,
+
+                      email:
+                      loaderData.company.email,
+
+                      address:
+                      loaderData.company.address,
+                    }),
+              },
+            ]
+            : [],
+      };
+    },
     shellComponent: RootShell,
     component: RootComponent,
     notFoundComponent: NotFoundComponent,
