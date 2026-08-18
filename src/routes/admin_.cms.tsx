@@ -189,7 +189,7 @@ function AdminCmsPage() {
       icon: Mail,
       value: overview.emailTemplates,
       valueLabel: "templates",
-      to: null,
+      to: "/admin/cms/email-templates" as const,
     },
 
     {

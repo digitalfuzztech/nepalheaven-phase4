@@ -44,7 +44,9 @@ import { Route as ExperiencesSlugRouteImport } from './routes/experiences.$slug'
 import { Route as PackagesIndexRouteImport } from './routes/packages.index'
 import { Route as PackagesSlugRouteImport } from './routes/packages.$slug'
 import { Route as AccountBookingsReferenceRouteImport } from './routes/account_.bookings.$reference'
+import { Route as AdminCmsEmailTemplatesRouteImport } from './routes/admin_.cms_.email-templates'
 import { Route as AdminCmsGeneralRouteImport } from './routes/admin_.cms_.general'
+import { Route as AdminCmsEmailTemplatesKeyRouteImport } from './routes/admin_.cms_.email-templates_.$key'
 import { Route as AdminCrmBookingsCancelledReferenceRouteImport } from './routes/admin_.crm.bookings.cancelled.$reference'
 import { Route as AdminCrmBookingsConfirmedReferenceRouteImport } from './routes/admin_.crm.bookings.confirmed.$reference'
 
@@ -224,11 +226,22 @@ const AccountBookingsReferenceRoute =
     path: '/account/bookings/$reference',
     getParentRoute: () => rootRouteImport,
   } as any)
+const AdminCmsEmailTemplatesRoute = AdminCmsEmailTemplatesRouteImport.update({
+  id: '/admin_/cms_/email-templates',
+  path: '/admin/cms/email-templates',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminCmsGeneralRoute = AdminCmsGeneralRouteImport.update({
   id: '/admin_/cms_/general',
   path: '/admin/cms/general',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminCmsEmailTemplatesKeyRoute =
+  AdminCmsEmailTemplatesKeyRouteImport.update({
+    id: '/admin_/cms_/email-templates_/$key',
+    path: '/admin/cms/email-templates/$key',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AdminCrmBookingsCancelledReferenceRoute =
   AdminCrmBookingsCancelledReferenceRouteImport.update({
     id: '/bookings/cancelled/$reference',
@@ -278,7 +291,9 @@ export interface FileRoutesByFullPath {
   '/destinations/': typeof DestinationsIndexRoute
   '/packages/': typeof PackagesIndexRoute
   '/account/bookings/$reference': typeof AccountBookingsReferenceRoute
+  '/admin/cms/email-templates': typeof AdminCmsEmailTemplatesRoute
   '/admin/cms/general': typeof AdminCmsGeneralRoute
+  '/admin/cms/email-templates/$key': typeof AdminCmsEmailTemplatesKeyRoute
   '/admin/crm/bookings/cancelled/$reference': typeof AdminCrmBookingsCancelledReferenceRoute
   '/admin/crm/bookings/confirmed/$reference': typeof AdminCrmBookingsConfirmedReferenceRoute
 }
@@ -318,7 +333,9 @@ export interface FileRoutesByTo {
   '/destinations': typeof DestinationsIndexRoute
   '/packages': typeof PackagesIndexRoute
   '/account/bookings/$reference': typeof AccountBookingsReferenceRoute
+  '/admin/cms/email-templates': typeof AdminCmsEmailTemplatesRoute
   '/admin/cms/general': typeof AdminCmsGeneralRoute
+  '/admin/cms/email-templates/$key': typeof AdminCmsEmailTemplatesKeyRoute
   '/admin/crm/bookings/cancelled/$reference': typeof AdminCrmBookingsCancelledReferenceRoute
   '/admin/crm/bookings/confirmed/$reference': typeof AdminCrmBookingsConfirmedReferenceRoute
 }
@@ -359,7 +376,9 @@ export interface FileRoutesById {
   '/destinations/': typeof DestinationsIndexRoute
   '/packages/': typeof PackagesIndexRoute
   '/account_/bookings/$reference': typeof AccountBookingsReferenceRoute
+  '/admin_/cms_/email-templates': typeof AdminCmsEmailTemplatesRoute
   '/admin_/cms_/general': typeof AdminCmsGeneralRoute
+  '/admin_/cms_/email-templates_/$key': typeof AdminCmsEmailTemplatesKeyRoute
   '/admin_/crm/bookings/cancelled/$reference': typeof AdminCrmBookingsCancelledReferenceRoute
   '/admin_/crm/bookings/confirmed/$reference': typeof AdminCrmBookingsConfirmedReferenceRoute
 }
@@ -401,7 +420,9 @@ export interface FileRouteTypes {
     | '/destinations/'
     | '/packages/'
     | '/account/bookings/$reference'
+    | '/admin/cms/email-templates'
     | '/admin/cms/general'
+    | '/admin/cms/email-templates/$key'
     | '/admin/crm/bookings/cancelled/$reference'
     | '/admin/crm/bookings/confirmed/$reference'
   fileRoutesByTo: FileRoutesByTo
@@ -441,7 +462,9 @@ export interface FileRouteTypes {
     | '/destinations'
     | '/packages'
     | '/account/bookings/$reference'
+    | '/admin/cms/email-templates'
     | '/admin/cms/general'
+    | '/admin/cms/email-templates/$key'
     | '/admin/crm/bookings/cancelled/$reference'
     | '/admin/crm/bookings/confirmed/$reference'
   id:
@@ -481,7 +504,9 @@ export interface FileRouteTypes {
     | '/destinations/'
     | '/packages/'
     | '/account_/bookings/$reference'
+    | '/admin_/cms_/email-templates'
     | '/admin_/cms_/general'
+    | '/admin_/cms_/email-templates_/$key'
     | '/admin_/crm/bookings/cancelled/$reference'
     | '/admin_/crm/bookings/confirmed/$reference'
   fileRoutesById: FileRoutesById
@@ -521,7 +546,9 @@ export interface RootRouteChildren {
   DestinationsIndexRoute: typeof DestinationsIndexRoute
   PackagesIndexRoute: typeof PackagesIndexRoute
   AccountBookingsReferenceRoute: typeof AccountBookingsReferenceRoute
+  AdminCmsEmailTemplatesRoute: typeof AdminCmsEmailTemplatesRoute
   AdminCmsGeneralRoute: typeof AdminCmsGeneralRoute
+  AdminCmsEmailTemplatesKeyRoute: typeof AdminCmsEmailTemplatesKeyRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -771,11 +798,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AccountBookingsReferenceRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin_/cms_/email-templates': {
+      id: '/admin_/cms_/email-templates'
+      path: '/admin/cms/email-templates'
+      fullPath: '/admin/cms/email-templates'
+      preLoaderRoute: typeof AdminCmsEmailTemplatesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin_/cms_/general': {
       id: '/admin_/cms_/general'
       path: '/admin/cms/general'
       fullPath: '/admin/cms/general'
       preLoaderRoute: typeof AdminCmsGeneralRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin_/cms_/email-templates_/$key': {
+      id: '/admin_/cms_/email-templates_/$key'
+      path: '/admin/cms/email-templates/$key'
+      fullPath: '/admin/cms/email-templates/$key'
+      preLoaderRoute: typeof AdminCmsEmailTemplatesKeyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin_/crm/bookings/cancelled/$reference': {
@@ -858,7 +899,9 @@ const rootRouteChildren: RootRouteChildren = {
   DestinationsIndexRoute: DestinationsIndexRoute,
   PackagesIndexRoute: PackagesIndexRoute,
   AccountBookingsReferenceRoute: AccountBookingsReferenceRoute,
+  AdminCmsEmailTemplatesRoute: AdminCmsEmailTemplatesRoute,
   AdminCmsGeneralRoute: AdminCmsGeneralRoute,
+  AdminCmsEmailTemplatesKeyRoute: AdminCmsEmailTemplatesKeyRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
