@@ -45,11 +45,14 @@ import { Route as MediaSplatRouteImport } from './routes/media.$'
 import { Route as PackagesIndexRouteImport } from './routes/packages.index'
 import { Route as PackagesSlugRouteImport } from './routes/packages.$slug'
 import { Route as AccountBookingsReferenceRouteImport } from './routes/account_.bookings.$reference'
+import { Route as AdminCmsDestinationsRouteImport } from './routes/admin_.cms_.destinations'
 import { Route as AdminCmsEmailTemplatesRouteImport } from './routes/admin_.cms_.email-templates'
 import { Route as AdminCmsFooterRouteImport } from './routes/admin_.cms_.footer'
 import { Route as AdminCmsGeneralRouteImport } from './routes/admin_.cms_.general'
 import { Route as AdminCmsMediaRouteImport } from './routes/admin_.cms_.media'
 import { Route as AdminCmsNavigationRouteImport } from './routes/admin_.cms_.navigation'
+import { Route as AdminCmsDestinationsIdRouteImport } from './routes/admin_.cms_.destinations_.$id'
+import { Route as AdminCmsDestinationsNewRouteImport } from './routes/admin_.cms_.destinations_.new'
 import { Route as AdminCmsEmailTemplatesKeyRouteImport } from './routes/admin_.cms_.email-templates_.$key'
 import { Route as AdminCmsMediaIdRouteImport } from './routes/admin_.cms_.media_.$id'
 import { Route as AdminCmsNavigationKeyRouteImport } from './routes/admin_.cms_.navigation_.$key'
@@ -237,6 +240,11 @@ const AccountBookingsReferenceRoute =
     path: '/account/bookings/$reference',
     getParentRoute: () => rootRouteImport,
   } as any)
+const AdminCmsDestinationsRoute = AdminCmsDestinationsRouteImport.update({
+  id: '/admin_/cms_/destinations',
+  path: '/admin/cms/destinations',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminCmsEmailTemplatesRoute = AdminCmsEmailTemplatesRouteImport.update({
   id: '/admin_/cms_/email-templates',
   path: '/admin/cms/email-templates',
@@ -260,6 +268,16 @@ const AdminCmsMediaRoute = AdminCmsMediaRouteImport.update({
 const AdminCmsNavigationRoute = AdminCmsNavigationRouteImport.update({
   id: '/admin_/cms_/navigation',
   path: '/admin/cms/navigation',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminCmsDestinationsIdRoute = AdminCmsDestinationsIdRouteImport.update({
+  id: '/admin_/cms_/destinations_/$id',
+  path: '/admin/cms/destinations/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminCmsDestinationsNewRoute = AdminCmsDestinationsNewRouteImport.update({
+  id: '/admin_/cms_/destinations_/new',
+  path: '/admin/cms/destinations/new',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminCmsEmailTemplatesKeyRoute =
@@ -328,11 +346,14 @@ export interface FileRoutesByFullPath {
   '/destinations/': typeof DestinationsIndexRoute
   '/packages/': typeof PackagesIndexRoute
   '/account/bookings/$reference': typeof AccountBookingsReferenceRoute
+  '/admin/cms/destinations': typeof AdminCmsDestinationsRoute
   '/admin/cms/email-templates': typeof AdminCmsEmailTemplatesRoute
   '/admin/cms/footer': typeof AdminCmsFooterRoute
   '/admin/cms/general': typeof AdminCmsGeneralRoute
   '/admin/cms/media': typeof AdminCmsMediaRoute
   '/admin/cms/navigation': typeof AdminCmsNavigationRoute
+  '/admin/cms/destinations/$id': typeof AdminCmsDestinationsIdRoute
+  '/admin/cms/destinations/new': typeof AdminCmsDestinationsNewRoute
   '/admin/cms/email-templates/$key': typeof AdminCmsEmailTemplatesKeyRoute
   '/admin/cms/media/$id': typeof AdminCmsMediaIdRoute
   '/admin/cms/navigation/$key': typeof AdminCmsNavigationKeyRoute
@@ -376,11 +397,14 @@ export interface FileRoutesByTo {
   '/destinations': typeof DestinationsIndexRoute
   '/packages': typeof PackagesIndexRoute
   '/account/bookings/$reference': typeof AccountBookingsReferenceRoute
+  '/admin/cms/destinations': typeof AdminCmsDestinationsRoute
   '/admin/cms/email-templates': typeof AdminCmsEmailTemplatesRoute
   '/admin/cms/footer': typeof AdminCmsFooterRoute
   '/admin/cms/general': typeof AdminCmsGeneralRoute
   '/admin/cms/media': typeof AdminCmsMediaRoute
   '/admin/cms/navigation': typeof AdminCmsNavigationRoute
+  '/admin/cms/destinations/$id': typeof AdminCmsDestinationsIdRoute
+  '/admin/cms/destinations/new': typeof AdminCmsDestinationsNewRoute
   '/admin/cms/email-templates/$key': typeof AdminCmsEmailTemplatesKeyRoute
   '/admin/cms/media/$id': typeof AdminCmsMediaIdRoute
   '/admin/cms/navigation/$key': typeof AdminCmsNavigationKeyRoute
@@ -425,11 +449,14 @@ export interface FileRoutesById {
   '/destinations/': typeof DestinationsIndexRoute
   '/packages/': typeof PackagesIndexRoute
   '/account_/bookings/$reference': typeof AccountBookingsReferenceRoute
+  '/admin_/cms_/destinations': typeof AdminCmsDestinationsRoute
   '/admin_/cms_/email-templates': typeof AdminCmsEmailTemplatesRoute
   '/admin_/cms_/footer': typeof AdminCmsFooterRoute
   '/admin_/cms_/general': typeof AdminCmsGeneralRoute
   '/admin_/cms_/media': typeof AdminCmsMediaRoute
   '/admin_/cms_/navigation': typeof AdminCmsNavigationRoute
+  '/admin_/cms_/destinations_/$id': typeof AdminCmsDestinationsIdRoute
+  '/admin_/cms_/destinations_/new': typeof AdminCmsDestinationsNewRoute
   '/admin_/cms_/email-templates_/$key': typeof AdminCmsEmailTemplatesKeyRoute
   '/admin_/cms_/media_/$id': typeof AdminCmsMediaIdRoute
   '/admin_/cms_/navigation_/$key': typeof AdminCmsNavigationKeyRoute
@@ -475,11 +502,14 @@ export interface FileRouteTypes {
     | '/destinations/'
     | '/packages/'
     | '/account/bookings/$reference'
+    | '/admin/cms/destinations'
     | '/admin/cms/email-templates'
     | '/admin/cms/footer'
     | '/admin/cms/general'
     | '/admin/cms/media'
     | '/admin/cms/navigation'
+    | '/admin/cms/destinations/$id'
+    | '/admin/cms/destinations/new'
     | '/admin/cms/email-templates/$key'
     | '/admin/cms/media/$id'
     | '/admin/cms/navigation/$key'
@@ -523,11 +553,14 @@ export interface FileRouteTypes {
     | '/destinations'
     | '/packages'
     | '/account/bookings/$reference'
+    | '/admin/cms/destinations'
     | '/admin/cms/email-templates'
     | '/admin/cms/footer'
     | '/admin/cms/general'
     | '/admin/cms/media'
     | '/admin/cms/navigation'
+    | '/admin/cms/destinations/$id'
+    | '/admin/cms/destinations/new'
     | '/admin/cms/email-templates/$key'
     | '/admin/cms/media/$id'
     | '/admin/cms/navigation/$key'
@@ -571,11 +604,14 @@ export interface FileRouteTypes {
     | '/destinations/'
     | '/packages/'
     | '/account_/bookings/$reference'
+    | '/admin_/cms_/destinations'
     | '/admin_/cms_/email-templates'
     | '/admin_/cms_/footer'
     | '/admin_/cms_/general'
     | '/admin_/cms_/media'
     | '/admin_/cms_/navigation'
+    | '/admin_/cms_/destinations_/$id'
+    | '/admin_/cms_/destinations_/new'
     | '/admin_/cms_/email-templates_/$key'
     | '/admin_/cms_/media_/$id'
     | '/admin_/cms_/navigation_/$key'
@@ -619,11 +655,14 @@ export interface RootRouteChildren {
   DestinationsIndexRoute: typeof DestinationsIndexRoute
   PackagesIndexRoute: typeof PackagesIndexRoute
   AccountBookingsReferenceRoute: typeof AccountBookingsReferenceRoute
+  AdminCmsDestinationsRoute: typeof AdminCmsDestinationsRoute
   AdminCmsEmailTemplatesRoute: typeof AdminCmsEmailTemplatesRoute
   AdminCmsFooterRoute: typeof AdminCmsFooterRoute
   AdminCmsGeneralRoute: typeof AdminCmsGeneralRoute
   AdminCmsMediaRoute: typeof AdminCmsMediaRoute
   AdminCmsNavigationRoute: typeof AdminCmsNavigationRoute
+  AdminCmsDestinationsIdRoute: typeof AdminCmsDestinationsIdRoute
+  AdminCmsDestinationsNewRoute: typeof AdminCmsDestinationsNewRoute
   AdminCmsEmailTemplatesKeyRoute: typeof AdminCmsEmailTemplatesKeyRoute
   AdminCmsMediaIdRoute: typeof AdminCmsMediaIdRoute
   AdminCmsNavigationKeyRoute: typeof AdminCmsNavigationKeyRoute
@@ -883,6 +922,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AccountBookingsReferenceRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin_/cms_/destinations': {
+      id: '/admin_/cms_/destinations'
+      path: '/admin/cms/destinations'
+      fullPath: '/admin/cms/destinations'
+      preLoaderRoute: typeof AdminCmsDestinationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin_/cms_/email-templates': {
       id: '/admin_/cms_/email-templates'
       path: '/admin/cms/email-templates'
@@ -916,6 +962,20 @@ declare module '@tanstack/react-router' {
       path: '/admin/cms/navigation'
       fullPath: '/admin/cms/navigation'
       preLoaderRoute: typeof AdminCmsNavigationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin_/cms_/destinations_/$id': {
+      id: '/admin_/cms_/destinations_/$id'
+      path: '/admin/cms/destinations/$id'
+      fullPath: '/admin/cms/destinations/$id'
+      preLoaderRoute: typeof AdminCmsDestinationsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin_/cms_/destinations_/new': {
+      id: '/admin_/cms_/destinations_/new'
+      path: '/admin/cms/destinations/new'
+      fullPath: '/admin/cms/destinations/new'
+      preLoaderRoute: typeof AdminCmsDestinationsNewRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin_/cms_/email-templates_/$key': {
@@ -1020,11 +1080,14 @@ const rootRouteChildren: RootRouteChildren = {
   DestinationsIndexRoute: DestinationsIndexRoute,
   PackagesIndexRoute: PackagesIndexRoute,
   AccountBookingsReferenceRoute: AccountBookingsReferenceRoute,
+  AdminCmsDestinationsRoute: AdminCmsDestinationsRoute,
   AdminCmsEmailTemplatesRoute: AdminCmsEmailTemplatesRoute,
   AdminCmsFooterRoute: AdminCmsFooterRoute,
   AdminCmsGeneralRoute: AdminCmsGeneralRoute,
   AdminCmsMediaRoute: AdminCmsMediaRoute,
   AdminCmsNavigationRoute: AdminCmsNavigationRoute,
+  AdminCmsDestinationsIdRoute: AdminCmsDestinationsIdRoute,
+  AdminCmsDestinationsNewRoute: AdminCmsDestinationsNewRoute,
   AdminCmsEmailTemplatesKeyRoute: AdminCmsEmailTemplatesKeyRoute,
   AdminCmsMediaIdRoute: AdminCmsMediaIdRoute,
   AdminCmsNavigationKeyRoute: AdminCmsNavigationKeyRoute,

@@ -119,7 +119,7 @@ function AdminCmsPage() {
       icon: Map,
       value: overview.destinations,
       valueLabel: "destinations",
-      to: null,
+      to: "/admin/cms/destinations" as const,
     },
 
     {
