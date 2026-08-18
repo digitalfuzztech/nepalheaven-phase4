@@ -159,7 +159,7 @@ function AdminCmsPage() {
       icon: GalleryHorizontalEnd,
       value: overview.media,
       valueLabel: "media records",
-      to: null,
+      to: "/admin/cms/media" as const,
     },
 
     {
