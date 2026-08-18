@@ -99,7 +99,7 @@ function AdminCmsPage() {
           overview.footerSettings === 1
               ? "configured record"
               : "records",
-      to: null,
+      to: "/admin/cms/footer" as const,
     },
 
     {

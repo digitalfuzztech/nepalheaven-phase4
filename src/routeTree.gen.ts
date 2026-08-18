@@ -45,6 +45,7 @@ import { Route as PackagesIndexRouteImport } from './routes/packages.index'
 import { Route as PackagesSlugRouteImport } from './routes/packages.$slug'
 import { Route as AccountBookingsReferenceRouteImport } from './routes/account_.bookings.$reference'
 import { Route as AdminCmsEmailTemplatesRouteImport } from './routes/admin_.cms_.email-templates'
+import { Route as AdminCmsFooterRouteImport } from './routes/admin_.cms_.footer'
 import { Route as AdminCmsGeneralRouteImport } from './routes/admin_.cms_.general'
 import { Route as AdminCmsNavigationRouteImport } from './routes/admin_.cms_.navigation'
 import { Route as AdminCmsEmailTemplatesKeyRouteImport } from './routes/admin_.cms_.email-templates_.$key'
@@ -233,6 +234,11 @@ const AdminCmsEmailTemplatesRoute = AdminCmsEmailTemplatesRouteImport.update({
   path: '/admin/cms/email-templates',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminCmsFooterRoute = AdminCmsFooterRouteImport.update({
+  id: '/admin_/cms_/footer',
+  path: '/admin/cms/footer',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminCmsGeneralRoute = AdminCmsGeneralRouteImport.update({
   id: '/admin_/cms_/general',
   path: '/admin/cms/general',
@@ -304,6 +310,7 @@ export interface FileRoutesByFullPath {
   '/packages/': typeof PackagesIndexRoute
   '/account/bookings/$reference': typeof AccountBookingsReferenceRoute
   '/admin/cms/email-templates': typeof AdminCmsEmailTemplatesRoute
+  '/admin/cms/footer': typeof AdminCmsFooterRoute
   '/admin/cms/general': typeof AdminCmsGeneralRoute
   '/admin/cms/navigation': typeof AdminCmsNavigationRoute
   '/admin/cms/email-templates/$key': typeof AdminCmsEmailTemplatesKeyRoute
@@ -348,6 +355,7 @@ export interface FileRoutesByTo {
   '/packages': typeof PackagesIndexRoute
   '/account/bookings/$reference': typeof AccountBookingsReferenceRoute
   '/admin/cms/email-templates': typeof AdminCmsEmailTemplatesRoute
+  '/admin/cms/footer': typeof AdminCmsFooterRoute
   '/admin/cms/general': typeof AdminCmsGeneralRoute
   '/admin/cms/navigation': typeof AdminCmsNavigationRoute
   '/admin/cms/email-templates/$key': typeof AdminCmsEmailTemplatesKeyRoute
@@ -393,6 +401,7 @@ export interface FileRoutesById {
   '/packages/': typeof PackagesIndexRoute
   '/account_/bookings/$reference': typeof AccountBookingsReferenceRoute
   '/admin_/cms_/email-templates': typeof AdminCmsEmailTemplatesRoute
+  '/admin_/cms_/footer': typeof AdminCmsFooterRoute
   '/admin_/cms_/general': typeof AdminCmsGeneralRoute
   '/admin_/cms_/navigation': typeof AdminCmsNavigationRoute
   '/admin_/cms_/email-templates_/$key': typeof AdminCmsEmailTemplatesKeyRoute
@@ -439,6 +448,7 @@ export interface FileRouteTypes {
     | '/packages/'
     | '/account/bookings/$reference'
     | '/admin/cms/email-templates'
+    | '/admin/cms/footer'
     | '/admin/cms/general'
     | '/admin/cms/navigation'
     | '/admin/cms/email-templates/$key'
@@ -483,6 +493,7 @@ export interface FileRouteTypes {
     | '/packages'
     | '/account/bookings/$reference'
     | '/admin/cms/email-templates'
+    | '/admin/cms/footer'
     | '/admin/cms/general'
     | '/admin/cms/navigation'
     | '/admin/cms/email-templates/$key'
@@ -527,6 +538,7 @@ export interface FileRouteTypes {
     | '/packages/'
     | '/account_/bookings/$reference'
     | '/admin_/cms_/email-templates'
+    | '/admin_/cms_/footer'
     | '/admin_/cms_/general'
     | '/admin_/cms_/navigation'
     | '/admin_/cms_/email-templates_/$key'
@@ -571,6 +583,7 @@ export interface RootRouteChildren {
   PackagesIndexRoute: typeof PackagesIndexRoute
   AccountBookingsReferenceRoute: typeof AccountBookingsReferenceRoute
   AdminCmsEmailTemplatesRoute: typeof AdminCmsEmailTemplatesRoute
+  AdminCmsFooterRoute: typeof AdminCmsFooterRoute
   AdminCmsGeneralRoute: typeof AdminCmsGeneralRoute
   AdminCmsNavigationRoute: typeof AdminCmsNavigationRoute
   AdminCmsEmailTemplatesKeyRoute: typeof AdminCmsEmailTemplatesKeyRoute
@@ -831,6 +844,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminCmsEmailTemplatesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin_/cms_/footer': {
+      id: '/admin_/cms_/footer'
+      path: '/admin/cms/footer'
+      fullPath: '/admin/cms/footer'
+      preLoaderRoute: typeof AdminCmsFooterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin_/cms_/general': {
       id: '/admin_/cms_/general'
       path: '/admin/cms/general'
@@ -940,6 +960,7 @@ const rootRouteChildren: RootRouteChildren = {
   PackagesIndexRoute: PackagesIndexRoute,
   AccountBookingsReferenceRoute: AccountBookingsReferenceRoute,
   AdminCmsEmailTemplatesRoute: AdminCmsEmailTemplatesRoute,
+  AdminCmsFooterRoute: AdminCmsFooterRoute,
   AdminCmsGeneralRoute: AdminCmsGeneralRoute,
   AdminCmsNavigationRoute: AdminCmsNavigationRoute,
   AdminCmsEmailTemplatesKeyRoute: AdminCmsEmailTemplatesKeyRoute,
