@@ -63,3 +63,38 @@ export const updateCmsMediaMetadataFn =
                 );
             },
         );
+
+export const uploadCmsMediaFn =
+    createServerFn({
+        method: "POST",
+    })
+        .validator(
+            (data) => {
+                if (
+                    !(
+                        data instanceof
+                        FormData
+                    )
+                ) {
+                    throw new Error(
+                        "Expected media upload form data.",
+                    );
+                }
+
+                return data;
+            },
+        )
+        .handler(
+            async ({
+                       data,
+                   }) => {
+                const server =
+                    await import(
+                        "@/lib/cms-media-upload.server"
+                        );
+
+                return server.uploadCmsMedia(
+                    data,
+                );
+            },
+        );

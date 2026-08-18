@@ -41,6 +41,7 @@ import { Route as BookingSuccessRouteImport } from './routes/booking.success'
 import { Route as DestinationsIndexRouteImport } from './routes/destinations.index'
 import { Route as DestinationsSlugRouteImport } from './routes/destinations.$slug'
 import { Route as ExperiencesSlugRouteImport } from './routes/experiences.$slug'
+import { Route as MediaSplatRouteImport } from './routes/media.$'
 import { Route as PackagesIndexRouteImport } from './routes/packages.index'
 import { Route as PackagesSlugRouteImport } from './routes/packages.$slug'
 import { Route as AccountBookingsReferenceRouteImport } from './routes/account_.bookings.$reference'
@@ -215,6 +216,11 @@ const ExperiencesSlugRoute = ExperiencesSlugRouteImport.update({
   path: '/$slug',
   getParentRoute: () => ExperiencesRoute,
 } as any)
+const MediaSplatRoute = MediaSplatRouteImport.update({
+  id: '/media/$',
+  path: '/media/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PackagesIndexRoute = PackagesIndexRouteImport.update({
   id: '/packages/',
   path: '/packages/',
@@ -316,6 +322,7 @@ export interface FileRoutesByFullPath {
   '/booking/success': typeof BookingSuccessRoute
   '/destinations/$slug': typeof DestinationsSlugRoute
   '/experiences/$slug': typeof ExperiencesSlugRoute
+  '/media/$': typeof MediaSplatRoute
   '/packages/$slug': typeof PackagesSlugRoute
   '/blog/': typeof BlogIndexRoute
   '/destinations/': typeof DestinationsIndexRoute
@@ -363,6 +370,7 @@ export interface FileRoutesByTo {
   '/booking/success': typeof BookingSuccessRoute
   '/destinations/$slug': typeof DestinationsSlugRoute
   '/experiences/$slug': typeof ExperiencesSlugRoute
+  '/media/$': typeof MediaSplatRoute
   '/packages/$slug': typeof PackagesSlugRoute
   '/blog': typeof BlogIndexRoute
   '/destinations': typeof DestinationsIndexRoute
@@ -411,6 +419,7 @@ export interface FileRoutesById {
   '/booking/success': typeof BookingSuccessRoute
   '/destinations/$slug': typeof DestinationsSlugRoute
   '/experiences/$slug': typeof ExperiencesSlugRoute
+  '/media/$': typeof MediaSplatRoute
   '/packages/$slug': typeof PackagesSlugRoute
   '/blog/': typeof BlogIndexRoute
   '/destinations/': typeof DestinationsIndexRoute
@@ -460,6 +469,7 @@ export interface FileRouteTypes {
     | '/booking/success'
     | '/destinations/$slug'
     | '/experiences/$slug'
+    | '/media/$'
     | '/packages/$slug'
     | '/blog/'
     | '/destinations/'
@@ -507,6 +517,7 @@ export interface FileRouteTypes {
     | '/booking/success'
     | '/destinations/$slug'
     | '/experiences/$slug'
+    | '/media/$'
     | '/packages/$slug'
     | '/blog'
     | '/destinations'
@@ -554,6 +565,7 @@ export interface FileRouteTypes {
     | '/booking/success'
     | '/destinations/$slug'
     | '/experiences/$slug'
+    | '/media/$'
     | '/packages/$slug'
     | '/blog/'
     | '/destinations/'
@@ -601,6 +613,7 @@ export interface RootRouteChildren {
   BookingPaymentRoute: typeof BookingPaymentRoute
   BookingSuccessRoute: typeof BookingSuccessRoute
   DestinationsSlugRoute: typeof DestinationsSlugRoute
+  MediaSplatRoute: typeof MediaSplatRoute
   PackagesSlugRoute: typeof PackagesSlugRoute
   BlogIndexRoute: typeof BlogIndexRoute
   DestinationsIndexRoute: typeof DestinationsIndexRoute
@@ -842,6 +855,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ExperiencesSlugRouteImport
       parentRoute: typeof ExperiencesRoute
     }
+    '/media/$': {
+      id: '/media/$'
+      path: '/media/$'
+      fullPath: '/media/$'
+      preLoaderRoute: typeof MediaSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/packages/': {
       id: '/packages/'
       path: '/packages'
@@ -994,6 +1014,7 @@ const rootRouteChildren: RootRouteChildren = {
   BookingPaymentRoute: BookingPaymentRoute,
   BookingSuccessRoute: BookingSuccessRoute,
   DestinationsSlugRoute: DestinationsSlugRoute,
+  MediaSplatRoute: MediaSplatRoute,
   PackagesSlugRoute: PackagesSlugRoute,
   BlogIndexRoute: BlogIndexRoute,
   DestinationsIndexRoute: DestinationsIndexRoute,

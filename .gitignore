@@ -38,3 +38,5 @@ dist-ssr
 
 # Private uploads
 .private/
+
+/storage/cms-media/
