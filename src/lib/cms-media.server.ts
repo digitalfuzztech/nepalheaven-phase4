@@ -5,7 +5,9 @@ import {
     inArray,
 } from "drizzle-orm";
 
-import { db } from "@/db";
+import {
+    db,
+} from "@/db";
 
 import {
     media,
@@ -21,23 +23,33 @@ import {
     type CmsMediaMetadataUpdateInput,
 } from "@/lib/cms-media.schema";
 
+import {
+    resolveCmsMediaClassification,
+} from "@/lib/cms-media-classification.server";
+
 function emptyToNull(
-    value: string,
+    value:
+    string,
 ) {
     const trimmed =
         value.trim();
 
-    return trimmed.length > 0
+    return trimmed.length >
+    0
         ? trimmed
         : null;
 }
 
 function serializeDate(
-    value: Date | string,
+    value:
+        Date | string,
 ) {
-    return value instanceof Date
+    return value instanceof
+    Date
         ? value.toISOString()
-        : String(value);
+        : String(
+            value,
+        );
 }
 
 /*
@@ -49,7 +61,9 @@ function serializeDate(
 export async function getCmsMediaList() {
     await requireAdmin();
 
-    if (!db) {
+    if (
+        !db
+    ) {
         throw new Error(
             "Database connection is not configured.",
         );
@@ -106,6 +120,21 @@ export async function getCmsMediaList() {
                 category:
                 media.category,
 
+                categoryOptionId:
+                media.categoryOptionId,
+
+                associatedDestinationId:
+                media.associatedDestinationId,
+
+                associatedPackageId:
+                media.associatedPackageId,
+
+                associatedExperienceId:
+                media.associatedExperienceId,
+
+                generalSettingsTypeOptionId:
+                media.generalSettingsTypeOptionId,
+
                 lifecycleStatus:
                 media.lifecycleStatus,
 
@@ -115,7 +144,9 @@ export async function getCmsMediaList() {
                 updatedAt:
                 media.updatedAt,
             })
-            .from(media)
+            .from(
+                media,
+            )
             .orderBy(
                 desc(
                     media.createdAt,
@@ -123,7 +154,9 @@ export async function getCmsMediaList() {
             );
 
     return rows.map(
-        (row) => ({
+        (
+            row,
+        ) => ({
             ...row,
 
             createdAt:
@@ -146,11 +179,14 @@ export async function getCmsMediaList() {
 */
 
 export async function getCmsMedia(
-    inputId: string,
+    inputId:
+    string,
 ) {
     await requireAdmin();
 
-    if (!db) {
+    if (
+        !db
+    ) {
         throw new Error(
             "Database connection is not configured.",
         );
@@ -161,19 +197,27 @@ export async function getCmsMedia(
             inputId,
         );
 
-    const [record] =
+    const [
+        record,
+    ] =
         await db
             .select()
-            .from(media)
+            .from(
+                media,
+            )
             .where(
                 eq(
                     media.id,
                     id,
                 ),
             )
-            .limit(1);
+            .limit(
+                1,
+            );
 
-    if (!record) {
+    if (
+        !record
+    ) {
         throw new Error(
             "Media record was not found.",
         );
@@ -183,16 +227,20 @@ export async function getCmsMedia(
         ...record,
 
         title:
-            record.title ?? "",
+            record.title ??
+            "",
 
         altText:
-            record.altText ?? "",
+            record.altText ??
+            "",
 
         caption:
-            record.caption ?? "",
+            record.caption ??
+            "",
 
         category:
-            record.category ?? "",
+            record.category ??
+            "",
 
         createdAt:
             serializeDate(
@@ -208,7 +256,7 @@ export async function getCmsMedia(
 
 /*
 |--------------------------------------------------------------------------
-| Metadata update
+| Update
 |--------------------------------------------------------------------------
 */
 
@@ -218,7 +266,9 @@ export async function updateCmsMediaMetadata(
 ) {
     await requireAdmin();
 
-    if (!db) {
+    if (
+        !db
+    ) {
         throw new Error(
             "Database connection is not configured.",
         );
@@ -229,29 +279,45 @@ export async function updateCmsMediaMetadata(
             input,
         );
 
-    const [record] =
+    const [
+        record,
+    ] =
         await db
             .select({
                 id:
                 media.id,
             })
-            .from(media)
+            .from(
+                media,
+            )
             .where(
                 eq(
                     media.id,
                     data.id,
                 ),
             )
-            .limit(1);
+            .limit(
+                1,
+            );
 
-    if (!record) {
+    if (
+        !record
+    ) {
         throw new Error(
             "Media record was not found.",
         );
     }
 
+    const classification =
+        await resolveCmsMediaClassification(
+            data.categoryOptionId,
+            data.associatedToId,
+        );
+
     await db
-        .update(media)
+        .update(
+            media,
+        )
         .set({
             title:
                 emptyToNull(
@@ -269,9 +335,22 @@ export async function updateCmsMediaMetadata(
                 ),
 
             category:
-                emptyToNull(
-                    data.category,
-                ),
+            classification.categoryName,
+
+            categoryOptionId:
+            classification.categoryOptionId,
+
+            associatedDestinationId:
+            classification.associatedDestinationId,
+
+            associatedPackageId:
+            classification.associatedPackageId,
+
+            associatedExperienceId:
+            classification.associatedExperienceId,
+
+            generalSettingsTypeOptionId:
+            classification.generalSettingsTypeOptionId,
 
             updatedAt:
                 new Date(),
@@ -290,14 +369,19 @@ export async function updateCmsMediaMetadata(
 
 /*
 |--------------------------------------------------------------------------
-| Selectable CMS images
+| Selectable images
 |--------------------------------------------------------------------------
+|
+| Leave the picker itself unchanged until M3.
+|
 */
 
 export async function getCmsSelectableImages() {
     await requireAdmin();
 
-    if (!db) {
+    if (
+        !db
+    ) {
         throw new Error(
             "Database connection is not configured.",
         );
@@ -305,9 +389,11 @@ export async function getCmsSelectableImages() {
 
     return db
         .select({
-            id: media.id,
+            id:
+            media.id,
 
-            url: media.url,
+            url:
+            media.url,
 
             thumbnailUrl:
             media.thumbnailUrl,
@@ -324,13 +410,30 @@ export async function getCmsSelectableImages() {
             category:
             media.category,
 
+            categoryOptionId:
+            media.categoryOptionId,
+
+            associatedDestinationId:
+            media.associatedDestinationId,
+
+            associatedPackageId:
+            media.associatedPackageId,
+
+            associatedExperienceId:
+            media.associatedExperienceId,
+
+            generalSettingsTypeOptionId:
+            media.generalSettingsTypeOptionId,
+
             width:
             media.width,
 
             height:
             media.height,
         })
-        .from(media)
+        .from(
+            media,
+        )
         .where(
             and(
                 eq(
@@ -351,21 +454,17 @@ export async function getCmsSelectableImages() {
         );
 }
 
-/*
-|--------------------------------------------------------------------------
-| Validate selected image references
-|--------------------------------------------------------------------------
-|
-| Caller must already be an authenticated CMS operation.
-|
-*/
-
 export async function validateCmsSelectableImageIds(
-    ids: Array<
-        string | null | undefined
+    ids:
+    Array<
+        string |
+        null |
+        undefined
     >,
 ) {
-    if (!db) {
+    if (
+        !db
+    ) {
         throw new Error(
             "Database connection is not configured.",
         );
@@ -377,13 +476,16 @@ export async function validateCmsSelectableImageIds(
                 (
                     id,
                 ): id is string =>
-                    Boolean(id),
+                    Boolean(
+                        id,
+                    ),
             ),
         ),
     ];
 
     if (
-        uniqueIds.length === 0
+        uniqueIds.length ===
+        0
     ) {
         return;
     }
@@ -394,7 +496,9 @@ export async function validateCmsSelectableImageIds(
                 id:
                 media.id,
             })
-            .from(media)
+            .from(
+                media,
+            )
             .where(
                 and(
                     inArray(

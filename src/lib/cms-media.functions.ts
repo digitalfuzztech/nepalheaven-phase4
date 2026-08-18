@@ -2,7 +2,9 @@ import {
     createServerFn,
 } from "@tanstack/react-start";
 
-import { z } from "zod";
+import {
+    z,
+} from "zod";
 
 import {
     cmsMediaIdSchema,
@@ -11,19 +13,24 @@ import {
 
 export const getCmsMediaListFn =
     createServerFn({
-        method: "GET",
-    }).handler(async () => {
-        const server =
-            await import(
-                "@/lib/cms-media.server"
-                );
+        method:
+            "GET",
+    }).handler(
+        async () => {
+            const server =
+                await import(
+                    "@/lib/cms-media.server"
+                    );
 
-        return server.getCmsMediaList();
-    });
+            return server
+                .getCmsMediaList();
+        },
+    );
 
 export const getCmsMediaFn =
     createServerFn({
-        method: "GET",
+        method:
+            "GET",
     })
         .validator(
             z.object({
@@ -32,44 +39,54 @@ export const getCmsMediaFn =
             }),
         )
         .handler(
-            async ({ data }) => {
+            async ({
+                       data,
+                   }) => {
                 const server =
                     await import(
                         "@/lib/cms-media.server"
                         );
 
-                return server.getCmsMedia(
-                    data.id,
-                );
+                return server
+                    .getCmsMedia(
+                        data.id,
+                    );
             },
         );
 
 export const updateCmsMediaMetadataFn =
     createServerFn({
-        method: "POST",
+        method:
+            "POST",
     })
         .validator(
             cmsMediaMetadataUpdateSchema,
         )
         .handler(
-            async ({ data }) => {
+            async ({
+                       data,
+                   }) => {
                 const server =
                     await import(
                         "@/lib/cms-media.server"
                         );
 
-                return server.updateCmsMediaMetadata(
-                    data,
-                );
+                return server
+                    .updateCmsMediaMetadata(
+                        data,
+                    );
             },
         );
 
 export const uploadCmsMediaFn =
     createServerFn({
-        method: "POST",
+        method:
+            "POST",
     })
         .validator(
-            (data) => {
+            (
+                data,
+            ) => {
                 if (
                     !(
                         data instanceof
@@ -93,19 +110,80 @@ export const uploadCmsMediaFn =
                         "@/lib/cms-media-upload.server"
                         );
 
-                return server.uploadCmsMedia(
-                    data,
-                );
+                return server
+                    .uploadCmsMedia(
+                        data,
+                    );
             },
         );
+
 export const getCmsSelectableImagesFn =
     createServerFn({
-        method: "GET",
-    }).handler(async () => {
-        const server =
-            await import(
-                "@/lib/cms-media.server"
-                );
+        method:
+            "GET",
+    }).handler(
+        async () => {
+            const server =
+                await import(
+                    "@/lib/cms-media.server"
+                    );
 
-        return server.getCmsSelectableImages();
-    });
+            return server
+                .getCmsSelectableImages();
+        },
+    );
+
+/*
+|--------------------------------------------------------------------------
+| Media classification options
+|--------------------------------------------------------------------------
+*/
+
+export const getCmsMediaClassificationOptionsFn =
+    createServerFn({
+        method:
+            "GET",
+    }).handler(
+        async () => {
+            const server =
+                await import(
+                    "@/lib/cms-media-classification.server"
+                    );
+
+            return server
+                .getCmsMediaClassificationOptions();
+        },
+    );
+
+/*
+|--------------------------------------------------------------------------
+| Delete Media
+|--------------------------------------------------------------------------
+*/
+
+export const deleteCmsMediaFn =
+    createServerFn({
+        method:
+            "POST",
+    })
+        .validator(
+            z.object({
+                id:
+                cmsMediaIdSchema,
+            }),
+        )
+        .handler(
+            async ({
+                       data,
+                   }) => {
+                const server =
+                    await import(
+                        "@/lib/cms-media-delete.server"
+                        );
+
+                return server
+                    .deleteCmsMedia(
+                        data.id,
+                    );
+            },
+        );

@@ -1,13 +1,22 @@
-import { z } from "zod";
+import {
+    z,
+} from "zod";
 
 export const cmsMediaIdSchema =
     z.string().uuid(
         "Invalid media ID.",
     );
 
+const nullableMediaReferenceSchema =
+    z
+        .string()
+        .uuid()
+        .nullable();
+
 export const cmsMediaMetadataUpdateSchema =
     z.object({
-        id: cmsMediaIdSchema,
+        id:
+        cmsMediaIdSchema,
 
         title: z
             .string()
@@ -33,13 +42,11 @@ export const cmsMediaMetadataUpdateSchema =
                 "Caption must be 2,000 characters or fewer.",
             ),
 
-        category: z
-            .string()
-            .trim()
-            .max(
-                100,
-                "Category must be 100 characters or fewer.",
-            ),
+        categoryOptionId:
+        nullableMediaReferenceSchema,
+
+        associatedToId:
+        nullableMediaReferenceSchema,
     });
 
 export const cmsMediaUploadMetadataSchema =
@@ -68,13 +75,11 @@ export const cmsMediaUploadMetadataSchema =
                 "Caption must be 2,000 characters or fewer.",
             ),
 
-        category: z
-            .string()
-            .trim()
-            .max(
-                100,
-                "Category must be 100 characters or fewer.",
-            ),
+        categoryOptionId:
+        nullableMediaReferenceSchema,
+
+        associatedToId:
+        nullableMediaReferenceSchema,
     });
 
 export type CmsMediaUploadMetadata =

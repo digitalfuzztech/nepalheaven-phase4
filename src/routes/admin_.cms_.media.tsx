@@ -2,16 +2,22 @@ import {
     createFileRoute,
     Link,
     redirect,
+    useRouter,
 } from "@tanstack/react-router";
 
 import {
     FileImage,
     Film,
     Pencil,
+    Search,
+    SlidersHorizontal,
+    Trash2,
     Upload,
 } from "lucide-react";
 
 import {
+    useEffect,
+    useMemo,
     useState,
     type FormEvent,
 } from "react";
@@ -21,13 +27,28 @@ import {
 } from "@/components/admin/AdminShell";
 
 import {
+    CmsMediaClassificationFields,
+} from "@/components/admin/CmsMediaClassificationFields";
+
+import {
+    CmsMediaDeleteDialog,
+} from "@/components/admin/CmsMediaDeleteDialog";
+
+import {
     getAdminSessionFn,
 } from "@/lib/auth.functions";
 
 import {
+    deleteCmsMediaFn,
+    getCmsMediaClassificationOptionsFn,
     getCmsMediaListFn,
     uploadCmsMediaFn,
 } from "@/lib/cms-media.functions";
+
+import {
+    getCmsMediaAssociatedOptions,
+    type CmsMediaClassificationOptions,
+} from "@/lib/cms-media-classification";
 
 export const Route =
     createFileRoute(
@@ -37,9 +58,12 @@ export const Route =
             const admin =
                 await getAdminSessionFn();
 
-            if (!admin) {
+            if (
+                !admin
+            ) {
                 throw redirect({
-                    to: "/admin",
+                    to:
+                        "/admin",
 
                     search: {
                         redirect:
@@ -48,12 +72,20 @@ export const Route =
                 });
             }
 
-            const media =
-                await getCmsMediaListFn();
+            const [
+                media,
+                classificationOptions,
+            ] =
+                await Promise.all([
+                    getCmsMediaListFn(),
+
+                    getCmsMediaClassificationOptionsFn(),
+                ]);
 
             return {
                 admin,
                 media,
+                classificationOptions,
             };
         },
 
@@ -62,18 +94,52 @@ export const Route =
     });
 
 function MediaLibraryPage() {
+    const router =
+        useRouter();
+
     const {
         media,
-    } = Route.useLoaderData();
+        classificationOptions,
+    } =
+        Route.useLoaderData();
 
     const [
         items,
         setItems,
-    ] = useState(
-        media,
+    ] =
+        useState(
+            media,
+        );
+
+    /*
+    |--------------------------------------------------------------------------
+    | Keep local Media state synchronized with loader data
+    |--------------------------------------------------------------------------
+    |
+    | Upload/delete updates local state immediately for responsive UI.
+    |
+    | router.invalidate() refreshes the authoritative loader data.
+    |
+    | When that loader data changes, synchronize it back into local state so
+    | SPA navigation never resurrects stale Media records.
+    |
+    */
+
+    useEffect(
+        () => {
+            setItems(
+                media,
+            );
+        },
+        [
+            media,
+        ],
     );
 
-    const [file, setFile] =
+    const [
+        file,
+        setFile,
+    ] =
         useState<File | null>(
             null,
         );
@@ -82,9 +148,14 @@ function MediaLibraryPage() {
         fileInputKey,
         setFileInputKey,
     ] =
-        useState(0);
+        useState(
+            0,
+        );
 
-    const [title, setTitle] =
+    const [
+        title,
+        setTitle,
+    ] =
         useState("");
 
     const [
@@ -94,14 +165,20 @@ function MediaLibraryPage() {
         useState("");
 
     const [
-        category,
-        setCategory,
+        caption,
+        setCaption,
     ] =
         useState("");
 
     const [
-        caption,
-        setCaption,
+        categoryOptionId,
+        setCategoryOptionId,
+    ] =
+        useState("");
+
+    const [
+        associatedToId,
+        setAssociatedToId,
     ] =
         useState("");
 
@@ -123,19 +200,159 @@ function MediaLibraryPage() {
     ] =
         useState("");
 
+    const [
+        libraryNotice,
+        setLibraryNotice,
+    ] =
+        useState("");
+
+    /*
+     * Live library filters
+     */
+
+    const [
+        query,
+        setQuery,
+    ] =
+        useState("");
+
+    const [
+        categoryFilter,
+        setCategoryFilter,
+    ] =
+        useState("");
+
+    const [
+        associatedFilter,
+        setAssociatedFilter,
+    ] =
+        useState("");
+
+    /*
+     * Delete dialog
+     */
+
+    const [
+        deleteTarget,
+        setDeleteTarget,
+    ] =
+        useState<
+            MediaListItem |
+            null
+        >(
+            null,
+        );
+
+    const [
+        deleting,
+        setDeleting,
+    ] =
+        useState(false);
+
+    const [
+        deleteError,
+        setDeleteError,
+    ] =
+        useState("");
+
     const imageCount =
         items.filter(
-            (item) =>
+            (
+                item,
+            ) =>
                 item.type ===
                 "image",
         ).length;
 
     const videoCount =
         items.filter(
-            (item) =>
+            (
+                item,
+            ) =>
                 item.type ===
                 "video",
         ).length;
+
+    const filterAssociation =
+        categoryFilter &&
+        categoryFilter !==
+        "__uncategorized__"
+            ? getCmsMediaAssociatedOptions(
+                classificationOptions,
+                categoryFilter,
+            )
+            : null;
+
+    const filteredItems =
+        useMemo(
+            () => {
+                const normalizedQuery =
+                    query
+                        .trim()
+                        .toLowerCase();
+
+                return items.filter(
+                    (
+                        item,
+                    ) => {
+                        const presentation =
+                            getMediaPresentation(
+                                item,
+                                classificationOptions,
+                            );
+
+                        const matchesText =
+                            !normalizedQuery ||
+                            [
+                                item.title,
+                                item.altText,
+                                item.caption,
+                                item.originalFilename,
+                                presentation.categoryName,
+                                presentation.associatedToName,
+                            ]
+                                .filter(
+                                    Boolean,
+                                )
+                                .join(
+                                    " ",
+                                )
+                                .toLowerCase()
+                                .includes(
+                                    normalizedQuery,
+                                );
+
+                        const matchesCategory =
+                            !categoryFilter ||
+                            (
+                                categoryFilter ===
+                                "__uncategorized__"
+                                    ? !presentation.categoryOptionId
+                                    : presentation.categoryOptionId ===
+                                    categoryFilter
+                            );
+
+                        const matchesAssociation =
+                            !associatedFilter ||
+                            presentation.associatedToId ===
+                            associatedFilter;
+
+                        return (
+                            matchesText &&
+                            matchesCategory &&
+                            matchesAssociation
+                        );
+                    },
+                );
+            },
+            [
+                items,
+                classificationOptions,
+                query,
+                categoryFilter,
+                associatedFilter,
+            ],
+        );
 
     async function uploadMedia(
         event:
@@ -145,8 +362,11 @@ function MediaLibraryPage() {
 
         setUploadError("");
         setUploadSuccess("");
+        setLibraryNotice("");
 
-        if (!file) {
+        if (
+            !file
+        ) {
             setUploadError(
                 "Select an image or video first.",
             );
@@ -173,13 +393,18 @@ function MediaLibraryPage() {
         );
 
         data.set(
-            "category",
-            category,
+            "caption",
+            caption,
         );
 
         data.set(
-            "caption",
-            caption,
+            "categoryOptionId",
+            categoryOptionId,
+        );
+
+        data.set(
+            "associatedToId",
+            associatedToId,
         );
 
         setUploading(
@@ -188,96 +413,58 @@ function MediaLibraryPage() {
 
         try {
             const uploaded =
-                await uploadCmsMediaFn(
-                    {
-                        data,
-                    },
-                );
+                await uploadCmsMediaFn({
+                    data,
+                });
 
             /*
-             * Convert detail result into the
-             * list-row shape.
+             * Update immediately so the user sees the new
+             * Media item without waiting for a loader refresh.
              */
             setItems(
-                (current) => [
-                    {
-                        id:
-                        uploaded.id,
-
-                        type:
-                        uploaded.type,
-
-                        url:
-                        uploaded.url,
-
-                        thumbnailUrl:
-                        uploaded.thumbnailUrl,
-
-                        altText:
-                        uploaded.altText,
-
-                        title:
-                        uploaded.title,
-
-                        caption:
-                        uploaded.caption,
-
-                        provider:
-                        uploaded.provider,
-
-                        originalFilename:
-                        uploaded.originalFilename,
-
-                        storageProvider:
-                        uploaded.storageProvider,
-
-                        mimeType:
-                        uploaded.mimeType,
-
-                        fileSizeBytes:
-                        uploaded.fileSizeBytes,
-
-                        width:
-                        uploaded.width,
-
-                        height:
-                        uploaded.height,
-
-                        durationSeconds:
-                        uploaded.durationSeconds,
-
-                        category:
-                        uploaded.category,
-
-                        lifecycleStatus:
-                        uploaded.lifecycleStatus,
-
-                        createdAt:
-                        uploaded.createdAt,
-
-                        updatedAt:
-                        uploaded.updatedAt,
-                    },
-
+                (
+                    current,
+                ) => [
+                    uploaded,
                     ...current,
                 ],
             );
 
             setTitle("");
             setAltText("");
-            setCategory("");
             setCaption("");
+            setCategoryOptionId("");
+            setAssociatedToId("");
             setFile(null);
 
             setFileInputKey(
-                (current) =>
-                    current + 1,
+                (
+                    current,
+                ) =>
+                    current +
+                    1,
             );
+
+            /*
+            |--------------------------------------------------------------------------
+            | CRITICAL:
+            | Refresh TanStack Router's loader cache.
+            |--------------------------------------------------------------------------
+            |
+            | Without this, SPA navigation can reuse the old /admin/cms/media
+            | loader result even though the database has already changed.
+            |
+            */
+
+            await router.invalidate({
+                sync:
+                    true,
+            });
 
             setUploadSuccess(
                 "Media uploaded successfully.",
             );
-        } catch (
+        }catch (
             uploadFailure
             ) {
             console.error(
@@ -293,6 +480,90 @@ function MediaLibraryPage() {
             );
         } finally {
             setUploading(
+                false,
+            );
+        }
+    }
+
+    async function confirmDelete() {
+        if (
+            !deleteTarget ||
+            deleting
+        ) {
+            return;
+        }
+
+        setDeleting(
+            true,
+        );
+
+        setDeleteError("");
+        setLibraryNotice("");
+
+        try {
+            const deletingId =
+                deleteTarget.id;
+
+            const result =
+                await deleteCmsMediaFn({
+                    data: {
+                        id:
+                        deletingId,
+                    },
+                });
+
+            /*
+             * Remove immediately from the current UI.
+             */
+            setItems(
+                (
+                    current,
+                ) =>
+                    current.filter(
+                        (
+                            item,
+                        ) =>
+                            item.id !==
+                            deletingId,
+                    ),
+            );
+
+            setDeleteTarget(
+                null,
+            );
+
+            /*
+            |--------------------------------------------------------------------------
+            | CRITICAL:
+            | Remove stale Media loader data from the router.
+            |--------------------------------------------------------------------------
+            */
+
+            await router.invalidate({
+                sync:
+                    true,
+            });
+
+            setLibraryNotice(
+                result.fileCleanupWarning ??
+                "Media deleted successfully.",
+            );
+        } catch (
+            failure
+            ) {
+            console.error(
+                "Media deletion failed",
+                failure,
+            );
+
+            setDeleteError(
+                failure instanceof
+                Error
+                    ? failure.message
+                    : "Media could not be deleted.",
+            );
+        } finally {
+            setDeleting(
                 false,
             );
         }
@@ -319,11 +590,11 @@ function MediaLibraryPage() {
                         </h1>
 
                         <p className="mt-2 max-w-3xl text-sm leading-relaxed text-muted-foreground">
-                            Upload and manage reusable
-                            Nepal Heaven images and
-                            videos for website content,
-                            logos, journeys, articles
-                            and galleries.
+                            Upload, classify,
+                            search and manage
+                            reusable Nepal
+                            Heaven images and
+                            videos.
                         </p>
                     </div>
 
@@ -344,6 +615,7 @@ function MediaLibraryPage() {
                     </div>
                 </div>
 
+                {/* Upload */}
                 <form
                     onSubmit={
                         uploadMedia
@@ -360,31 +632,39 @@ function MediaLibraryPage() {
                         </h2>
 
                         <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-                            JPEG, PNG, WebP, GIF,
-                            MP4 and WebM are
-                            supported. Default limits
-                            are 20 MB for images and
-                            100 MB for videos.
+                            Category options
+                            come from CMS →
+                            Other Settings.
+                            Associated To
+                            changes automatically
+                            from the selected
+                            category.
                         </p>
                     </div>
 
                     {uploadError ? (
-                        <div className="mt-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                            {uploadError}
-                        </div>
+                        <Message
+                            tone="error"
+                            text={
+                                uploadError
+                            }
+                        />
                     ) : null}
 
                     {uploadSuccess ? (
-                        <div className="mt-5 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-                            {uploadSuccess}
-                        </div>
+                        <Message
+                            tone="success"
+                            text={
+                                uploadSuccess
+                            }
+                        />
                     ) : null}
 
                     <div className="mt-6 grid gap-5 md:grid-cols-2">
                         <label className="grid gap-2 md:col-span-2">
-              <span className="text-sm font-semibold text-[#0c1724]">
-                File
-              </span>
+                            <span className="text-sm font-semibold text-[#0c1724]">
+                                File
+                            </span>
 
                             <input
                                 key={
@@ -397,7 +677,8 @@ function MediaLibraryPage() {
                                     event,
                                 ) =>
                                     setFile(
-                                        event.target
+                                        event
+                                            .target
                                             .files?.[0] ??
                                         null,
                                     )
@@ -407,7 +688,7 @@ function MediaLibraryPage() {
 
                             {file ? (
                                 <span className="text-xs text-muted-foreground">
-                  Selected:{" "}
+                                    Selected:{" "}
                                     {
                                         file.name
                                     }{" "}
@@ -416,7 +697,7 @@ function MediaLibraryPage() {
                                         file.size,
                                     )}
                                     )
-                </span>
+                                </span>
                             ) : null}
                         </label>
 
@@ -425,20 +706,27 @@ function MediaLibraryPage() {
                             value={
                                 title
                             }
-                            placeholder="Everest Base Camp sunrise"
+                            placeholder="Everest sunrise"
                             onChange={
                                 setTitle
                             }
                         />
 
-                        <UploadField
-                            label="Category"
-                            value={
-                                category
+                        <CmsMediaClassificationFields
+                            options={
+                                classificationOptions
                             }
-                            placeholder="destinations"
-                            onChange={
-                                setCategory
+                            categoryOptionId={
+                                categoryOptionId
+                            }
+                            associatedToId={
+                                associatedToId
+                            }
+                            onCategoryChange={
+                                setCategoryOptionId
+                            }
+                            onAssociatedToChange={
+                                setAssociatedToId
                             }
                         />
 
@@ -448,8 +736,10 @@ function MediaLibraryPage() {
                                 value={
                                     altText
                                 }
-                                rows={3}
-                                placeholder="Describe the image for accessibility."
+                                rows={
+                                    3
+                                }
+                                placeholder="Describe the media for accessibility."
                                 onChange={
                                     setAltText
                                 }
@@ -462,7 +752,9 @@ function MediaLibraryPage() {
                                 value={
                                     caption
                                 }
-                                rows={4}
+                                rows={
+                                    4
+                                }
                                 placeholder="Optional editorial caption."
                                 onChange={
                                     setCaption
@@ -488,13 +780,188 @@ function MediaLibraryPage() {
                     </div>
                 </form>
 
-                {items.length ===
+                {/* Search / filters */}
+                <section className="mt-8 rounded-2xl border border-black/10 bg-white p-5 shadow-sm lg:p-6">
+                    <div className="flex items-center gap-2">
+                        <SlidersHorizontal className="h-5 w-5 text-gold" />
+
+                        <h2 className="font-semibold text-[#0c1724]">
+                            Search & Filters
+                        </h2>
+                    </div>
+
+                    <div className="mt-5 grid gap-4 lg:grid-cols-[minmax(0,1fr)_260px_260px]">
+                        <label className="relative block">
+                            <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+
+                            <input
+                                type="search"
+                                value={
+                                    query
+                                }
+                                onChange={(
+                                    event,
+                                ) =>
+                                    setQuery(
+                                        event
+                                            .target
+                                            .value,
+                                    )
+                                }
+                                placeholder="Search title, alt text, caption, destination, package..."
+                                className="h-11 w-full rounded-xl border border-black/10 bg-[#faf9f6] pl-11 pr-4 text-sm text-[#0c1724] outline-none transition placeholder:text-muted-foreground focus:border-gold"
+                            />
+                        </label>
+
+                        <label className="grid gap-1.5">
+                            <span className="text-xs font-semibold text-[#0c1724]">
+                                Category
+                            </span>
+
+                            <select
+                                value={
+                                    categoryFilter
+                                }
+                                onChange={(
+                                    event,
+                                ) => {
+                                    setCategoryFilter(
+                                        event
+                                            .target
+                                            .value,
+                                    );
+
+                                    setAssociatedFilter(
+                                        "",
+                                    );
+                                }}
+                                className="h-11 rounded-xl border border-black/10 bg-white px-3 text-sm text-[#0c1724] outline-none focus:border-gold"
+                            >
+                                <option value="">
+                                    All Categories
+                                </option>
+
+                                <option value="__uncategorized__">
+                                    Uncategorized
+                                </option>
+
+                                {classificationOptions
+                                    .categories
+                                    .map(
+                                        (
+                                            category,
+                                        ) => (
+                                            <option
+                                                key={
+                                                    category.id
+                                                }
+                                                value={
+                                                    category.id
+                                                }
+                                            >
+                                                {
+                                                    category.name
+                                                }
+                                            </option>
+                                        ),
+                                    )}
+                            </select>
+                        </label>
+
+                        <label className="grid gap-1.5">
+                            <span className="text-xs font-semibold text-[#0c1724]">
+                                Associated To
+                            </span>
+
+                            <select
+                                value={
+                                    associatedFilter
+                                }
+                                disabled={
+                                    !filterAssociation ||
+                                    filterAssociation.kind ===
+                                    "none"
+                                }
+                                onChange={(
+                                    event,
+                                ) =>
+                                    setAssociatedFilter(
+                                        event
+                                            .target
+                                            .value,
+                                    )
+                                }
+                                className="h-11 rounded-xl border border-black/10 bg-white px-3 text-sm text-[#0c1724] outline-none focus:border-gold disabled:cursor-not-allowed disabled:bg-black/[0.03] disabled:text-muted-foreground"
+                            >
+                                <option value="">
+                                    {!filterAssociation ||
+                                    filterAssociation.kind ===
+                                    "none"
+                                        ? "All / Not applicable"
+                                        : `All ${filterAssociation.label}`}
+                                </option>
+
+                                {filterAssociation
+                                    ?.options
+                                    .map(
+                                        (
+                                            item,
+                                        ) => (
+                                            <option
+                                                key={
+                                                    item.id
+                                                }
+                                                value={
+                                                    item.id
+                                                }
+                                            >
+                                                {
+                                                    item.name
+                                                }
+                                            </option>
+                                        ),
+                                    )}
+                            </select>
+                        </label>
+                    </div>
+
+                    <p className="mt-4 text-xs text-muted-foreground">
+                        Showing{" "}
+                        {
+                            filteredItems.length
+                        }{" "}
+                        of{" "}
+                        {
+                            items.length
+                        }{" "}
+                        media items.
+                        Results update live.
+                    </p>
+                </section>
+
+                {libraryNotice ? (
+                    <Message
+                        tone="success"
+                        text={
+                            libraryNotice
+                        }
+                    />
+                ) : null}
+
+                {filteredItems.length ===
                 0 ? (
-                    <EmptyLibrary />
+                    <EmptyLibrary
+                        filtered={
+                            items.length >
+                            0
+                        }
+                    />
                 ) : (
                     <div className="mt-8 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-                        {items.map(
-                            (item) => (
+                        {filteredItems.map(
+                            (
+                                item,
+                            ) => (
                                 <MediaCard
                                     key={
                                         item.id
@@ -502,12 +969,61 @@ function MediaLibraryPage() {
                                     item={
                                         item
                                     }
+                                    classificationOptions={
+                                        classificationOptions
+                                    }
+                                    onDelete={() => {
+                                        setDeleteError(
+                                            "",
+                                        );
+
+                                        setDeleteTarget(
+                                            item,
+                                        );
+                                    }}
                                 />
                             ),
                         )}
                     </div>
                 )}
             </div>
+
+            <CmsMediaDeleteDialog
+                open={
+                    Boolean(
+                        deleteTarget,
+                    )
+                }
+                itemName={
+                    deleteTarget
+                        ?.title ||
+                    deleteTarget
+                        ?.originalFilename ||
+                    "this media item"
+                }
+                busy={
+                    deleting
+                }
+                error={
+                    deleteError
+                }
+                onNo={() => {
+                    if (
+                        !deleting
+                    ) {
+                        setDeleteTarget(
+                            null,
+                        );
+
+                        setDeleteError(
+                            "",
+                        );
+                    }
+                }}
+                onYes={
+                    confirmDelete
+                }
+            />
         </AdminShell>
     );
 }
@@ -519,13 +1035,27 @@ type MediaListItem =
 
 function MediaCard({
                        item,
+                       classificationOptions,
+                       onDelete,
                    }: {
     item:
         MediaListItem;
+
+    classificationOptions:
+        CmsMediaClassificationOptions;
+
+    onDelete:
+        () => void;
 }) {
     const previewUrl =
         item.thumbnailUrl ??
         item.url;
+
+    const presentation =
+        getMediaPresentation(
+            item,
+            classificationOptions,
+        );
 
     return (
         <section className="overflow-hidden rounded-2xl border border-black/10 bg-white shadow-sm">
@@ -569,7 +1099,9 @@ function MediaCard({
                         </h2>
 
                         <p className="mt-1 text-xs uppercase tracking-[0.08em] text-muted-foreground">
-                            {item.type}
+                            {
+                                item.type
+                            }
                             {" · "}
                             {
                                 item.lifecycleStatus
@@ -585,30 +1117,236 @@ function MediaCard({
                     )}
                 </div>
 
-                {item.category ? (
-                    <p className="mt-3 text-xs text-muted-foreground">
-                        Category:{" "}
-                        {item.category}
-                    </p>
-                ) : null}
+                <dl className="mt-4 grid gap-2 text-xs">
+                    <div className="flex gap-2">
+                        <dt className="font-semibold text-[#0c1724]">
+                            Category:
+                        </dt>
 
-                <Link
-                    to="/admin/cms/media/$id"
-                    params={{
-                        id:
-                        item.id,
-                    }}
-                    className="mt-5 inline-flex items-center gap-2 rounded-full bg-[#0c1724] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[#16283b]"
-                >
-                    <Pencil className="h-4 w-4" />
-                    Edit metadata
-                </Link>
+                        <dd className="text-muted-foreground">
+                            {
+                                presentation.categoryName
+                            }
+                        </dd>
+                    </div>
+
+                    <div className="flex gap-2">
+                        <dt className="font-semibold text-[#0c1724]">
+                            Associated to:
+                        </dt>
+
+                        <dd className="text-muted-foreground">
+                            {presentation.associatedToName ||
+                                "None"}
+                        </dd>
+                    </div>
+
+                    <div className="flex gap-2">
+                        <dt className="font-semibold text-[#0c1724]">
+                            Uploaded:
+                        </dt>
+
+                        <dd className="text-muted-foreground">
+                            {formatDate(
+                                item.createdAt,
+                            )}
+                        </dd>
+                    </div>
+                </dl>
+
+                <div className="mt-5 flex flex-wrap gap-2">
+                    <Link
+                        to="/admin/cms/media/$id"
+                        params={{
+                            id:
+                            item.id,
+                        }}
+                        className="inline-flex items-center gap-2 rounded-full bg-[#0c1724] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[#16283b]"
+                    >
+                        <Pencil className="h-4 w-4" />
+
+                        Edit
+                    </Link>
+
+                    <button
+                        type="button"
+                        onClick={
+                            onDelete
+                        }
+                        className="inline-flex items-center gap-2 rounded-full border border-red-200 bg-white px-4 py-2 text-xs font-semibold text-red-600 transition hover:bg-red-50"
+                    >
+                        <Trash2 className="h-4 w-4" />
+
+                        Delete
+                    </button>
+                </div>
             </div>
         </section>
     );
 }
 
-function EmptyLibrary() {
+function getMediaPresentation(
+    item:
+    MediaListItem,
+
+    options:
+    CmsMediaClassificationOptions,
+) {
+    const category =
+        resolveMediaCategory(
+            item,
+            options,
+        );
+
+    const destination =
+        item.associatedDestinationId
+            ? options.destinations.find(
+                (
+                    entry,
+                ) =>
+                    entry.id ===
+                    item.associatedDestinationId,
+            )
+            : null;
+
+    const packageItem =
+        item.associatedPackageId
+            ? options.packages.find(
+                (
+                    entry,
+                ) =>
+                    entry.id ===
+                    item.associatedPackageId,
+            )
+            : null;
+
+    const experience =
+        item.associatedExperienceId
+            ? options.experiences.find(
+                (
+                    entry,
+                ) =>
+                    entry.id ===
+                    item.associatedExperienceId,
+            )
+            : null;
+
+    const generalType =
+        item.generalSettingsTypeOptionId
+            ? options.generalSettingsTypes.find(
+                (
+                    entry,
+                ) =>
+                    entry.id ===
+                    item.generalSettingsTypeOptionId,
+            )
+            : null;
+
+    return {
+        categoryOptionId:
+            category?.id ??
+            null,
+
+        categoryName:
+            category?.name ??
+            item.category ??
+            "Uncategorized",
+
+        associatedToId:
+            destination?.id ??
+            packageItem?.id ??
+            experience?.id ??
+            generalType?.id ??
+            null,
+
+        associatedToName:
+            destination?.name ??
+            packageItem?.name ??
+            experience?.name ??
+            generalType?.name ??
+            null,
+    };
+}
+
+function resolveMediaCategory(
+    item:
+    MediaListItem,
+
+    options:
+    CmsMediaClassificationOptions,
+) {
+    if (
+        item.categoryOptionId
+    ) {
+        return (
+            options.categories.find(
+                (
+                    entry,
+                ) =>
+                    entry.id ===
+                    item.categoryOptionId,
+            ) ?? null
+        );
+    }
+
+    const legacy =
+        item.category
+            ?.trim()
+            .toLowerCase();
+
+    if (
+        !legacy
+    ) {
+        return null;
+    }
+
+    const legacyValue =
+        legacy
+            .replace(
+                /[^a-z0-9]+/g,
+                "-",
+            )
+            .replace(
+                /^-+|-+$/g,
+                "",
+            );
+
+    return (
+        options.categories.find(
+            (
+                entry,
+            ) =>
+                entry.value ===
+                legacyValue ||
+                entry.value.replace(
+                    /s$/,
+                    "",
+                ) ===
+                legacyValue.replace(
+                    /s$/,
+                    "",
+                ) ||
+                entry.name
+                    .trim()
+                    .toLowerCase()
+                    .replace(
+                        /s$/,
+                        "",
+                    ) ===
+                legacy.replace(
+                    /s$/,
+                    "",
+                ),
+        ) ?? null
+    );
+}
+
+function EmptyLibrary({
+                          filtered,
+                      }: {
+    filtered:
+        boolean;
+}) {
     return (
         <section className="mt-8 rounded-2xl border border-dashed border-black/15 bg-white px-6 py-14 text-center">
             <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#0c1724] text-gold">
@@ -616,13 +1354,15 @@ function EmptyLibrary() {
             </div>
 
             <h2 className="mt-5 text-lg font-semibold text-[#0c1724]">
-                No media yet
+                {filtered
+                    ? "No media matches these filters"
+                    : "No media yet"}
             </h2>
 
             <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
-                Upload the first Nepal
-                Heaven image or video using
-                the form above.
+                {filtered
+                    ? "Change the search text or filters to see more media."
+                    : "Upload the first Nepal Heaven image or video using the form above."}
             </p>
         </section>
     );
@@ -634,22 +1374,31 @@ function UploadField({
                          placeholder,
                          onChange,
                      }: {
-    label: string;
-    value: string;
-    placeholder?: string;
+    label:
+        string;
 
-    onChange: (
-        value: string,
-    ) => void;
+    value:
+        string;
+
+    placeholder?:
+        string;
+
+    onChange:
+        (
+            value:
+            string,
+        ) => void;
 }) {
     return (
         <label className="grid gap-2">
-      <span className="text-sm font-semibold text-[#0c1724]">
-        {label}
-      </span>
+            <span className="text-sm font-semibold text-[#0c1724]">
+                {label}
+            </span>
 
             <input
-                value={value}
+                value={
+                    value
+                }
                 placeholder={
                     placeholder
                 }
@@ -657,7 +1406,9 @@ function UploadField({
                     event,
                 ) =>
                     onChange(
-                        event.target.value,
+                        event
+                            .target
+                            .value,
                     )
                 }
                 className="h-11 rounded-xl border border-black/10 bg-white px-4 text-sm text-[#0c1724] outline-none transition placeholder:text-muted-foreground focus:border-gold"
@@ -673,24 +1424,37 @@ function UploadTextarea({
                             placeholder,
                             onChange,
                         }: {
-    label: string;
-    value: string;
-    rows: number;
-    placeholder?: string;
+    label:
+        string;
 
-    onChange: (
-        value: string,
-    ) => void;
+    value:
+        string;
+
+    rows:
+        number;
+
+    placeholder?:
+        string;
+
+    onChange:
+        (
+            value:
+            string,
+        ) => void;
 }) {
     return (
         <label className="grid gap-2">
-      <span className="text-sm font-semibold text-[#0c1724]">
-        {label}
-      </span>
+            <span className="text-sm font-semibold text-[#0c1724]">
+                {label}
+            </span>
 
             <textarea
-                value={value}
-                rows={rows}
+                value={
+                    value
+                }
+                rows={
+                    rows
+                }
                 placeholder={
                     placeholder
                 }
@@ -698,7 +1462,9 @@ function UploadTextarea({
                     event,
                 ) =>
                     onChange(
-                        event.target.value,
+                        event
+                            .target
+                            .value,
                     )
                 }
                 className="resize-y rounded-xl border border-black/10 bg-white px-4 py-3 text-sm leading-relaxed text-[#0c1724] outline-none transition placeholder:text-muted-foreground focus:border-gold"
@@ -711,8 +1477,11 @@ function Stat({
                   label,
                   value,
               }: {
-    label: string;
-    value: number;
+    label:
+        string;
+
+    value:
+        number;
 }) {
     return (
         <div className="min-w-24 rounded-xl border border-black/10 bg-white px-4 py-3 text-right shadow-sm">
@@ -727,27 +1496,98 @@ function Stat({
     );
 }
 
+function Message({
+                     tone,
+                     text,
+                 }: {
+    tone:
+        "success" |
+        "error";
+
+    text:
+        string;
+}) {
+    return (
+        <div
+            className={[
+                "mt-5 rounded-xl border px-4 py-3 text-sm",
+
+                tone ===
+                "success"
+                    ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                    : "border-red-200 bg-red-50 text-red-700",
+            ].join(
+                " ",
+            )}
+        >
+            {text}
+        </div>
+    );
+}
+
 function formatBytes(
-    value: number,
+    value:
+    number,
 ) {
     if (
-        value < 1024
+        value <
+        1024
     ) {
         return `${value} B`;
     }
 
     if (
         value <
-        1024 * 1024
+        1024 *
+        1024
     ) {
         return `${(
             value /
             1024
-        ).toFixed(1)} KB`;
+        ).toFixed(
+            1,
+        )} KB`;
     }
 
     return `${(
         value /
-        (1024 * 1024)
-    ).toFixed(1)} MB`;
+        (
+            1024 *
+            1024
+        )
+    ).toFixed(
+        1,
+    )} MB`;
+}
+
+function formatDate(
+    value:
+    string,
+) {
+    const date =
+        new Date(
+            value,
+        );
+
+    if (
+        Number.isNaN(
+            date.getTime(),
+        )
+    ) {
+        return value;
+    }
+
+    return date.toLocaleDateString(
+        undefined,
+        {
+            year:
+                "numeric",
+
+            month:
+                "short",
+
+            day:
+                "numeric",
+        },
+    );
 }

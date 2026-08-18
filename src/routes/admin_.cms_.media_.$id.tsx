@@ -2,15 +2,19 @@ import {
     createFileRoute,
     Link,
     redirect,
+    useNavigate,
+    useRouter,
 } from "@tanstack/react-router";
 
 import {
-    Film,
     FileImage,
+    Film,
     Save,
+    Trash2,
 } from "lucide-react";
 
 import {
+    useMemo,
     useState,
     type FormEvent,
     type ReactNode,
@@ -21,18 +25,31 @@ import {
 } from "@/components/admin/AdminShell";
 
 import {
+    CmsMediaClassificationFields,
+} from "@/components/admin/CmsMediaClassificationFields";
+
+import {
+    CmsMediaDeleteDialog,
+} from "@/components/admin/CmsMediaDeleteDialog";
+
+import {
     getAdminSessionFn,
 } from "@/lib/auth.functions";
 
 import {
+    deleteCmsMediaFn,
+    getCmsMediaClassificationOptionsFn,
     getCmsMediaFn,
     updateCmsMediaMetadataFn,
 } from "@/lib/cms-media.functions";
 
 import {
     cmsMediaMetadataUpdateSchema,
-    type CmsMediaMetadataUpdateInput,
 } from "@/lib/cms-media.schema";
+
+import type {
+    CmsMediaClassificationOptions,
+} from "@/lib/cms-media-classification";
 
 export const Route =
     createFileRoute(
@@ -44,9 +61,12 @@ export const Route =
             const admin =
                 await getAdminSessionFn();
 
-            if (!admin) {
+            if (
+                !admin
+            ) {
                 throw redirect({
-                    to: "/admin",
+                    to:
+                        "/admin",
 
                     search: {
                         redirect:
@@ -55,17 +75,25 @@ export const Route =
                 });
             }
 
-            const media =
-                await getCmsMediaFn({
-                    data: {
-                        id:
-                        params.id,
-                    },
-                });
+            const [
+                media,
+                classificationOptions,
+            ] =
+                await Promise.all([
+                    getCmsMediaFn({
+                        data: {
+                            id:
+                            params.id,
+                        },
+                    }),
+
+                    getCmsMediaClassificationOptionsFn(),
+                ]);
 
             return {
                 admin,
                 media,
+                classificationOptions,
             };
         },
 
@@ -74,60 +102,118 @@ export const Route =
     });
 
 function MediaEditorPage() {
+    const navigate =
+        useNavigate();
+
+    const router =
+        useRouter();
+
     const {
         media,
-    } = Route.useLoaderData();
+        classificationOptions,
+    } =
+        Route.useLoaderData();
 
-    const [form, setForm] =
-        useState<CmsMediaMetadataUpdateInput>(
-            {
-                id:
-                media.id,
-
-                title:
-                media.title,
-
-                altText:
-                media.altText,
-
-                caption:
-                media.caption,
-
-                category:
-                media.category,
-            },
+    const initialCategoryOptionId =
+        useMemo(
+            () =>
+                resolveInitialCategoryOptionId(
+                    media,
+                    classificationOptions,
+                ),
+            [
+                media,
+                classificationOptions,
+            ],
         );
 
-    const [busy, setBusy] =
-        useState(false);
-
-    const [error, setError] =
-        useState("");
-
-    const [success, setSuccess] =
-        useState("");
-
-    function updateField(
-        field:
-        Exclude<
-            keyof CmsMediaMetadataUpdateInput,
-            "id"
-        >,
-
-        value: string,
-    ) {
-        setForm(
-            (current) => ({
-                ...current,
-
-                [field]:
-                value,
-            }),
+    const [
+        title,
+        setTitle,
+    ] =
+        useState(
+            media.title,
         );
-    }
+
+    const [
+        altText,
+        setAltText,
+    ] =
+        useState(
+            media.altText,
+        );
+
+    const [
+        caption,
+        setCaption,
+    ] =
+        useState(
+            media.caption,
+        );
+
+    const [
+        categoryOptionId,
+        setCategoryOptionId,
+    ] =
+        useState(
+            initialCategoryOptionId,
+        );
+
+    const [
+        associatedToId,
+        setAssociatedToId,
+    ] =
+        useState(
+            getExistingAssociatedToId(
+                media,
+            ),
+        );
+
+    const [
+        busy,
+        setBusy,
+    ] =
+        useState(
+            false,
+        );
+
+    const [
+        error,
+        setError,
+    ] =
+        useState("");
+
+    const [
+        success,
+        setSuccess,
+    ] =
+        useState("");
+
+    const [
+        deleteOpen,
+        setDeleteOpen,
+    ] =
+        useState(
+            false,
+        );
+
+    const [
+        deleting,
+        setDeleting,
+    ] =
+        useState(
+            false,
+        );
+
+    const [
+        deleteError,
+        setDeleteError,
+    ] =
+        useState("");
 
     async function save(
-        event: FormEvent,
+        event:
+        FormEvent,
     ) {
         event.preventDefault();
 
@@ -136,12 +222,32 @@ function MediaEditorPage() {
 
         const parsed =
             cmsMediaMetadataUpdateSchema.safeParse(
-                form,
+                {
+                    id:
+                    media.id,
+
+                    title,
+
+                    altText,
+
+                    caption,
+
+                    categoryOptionId:
+                        categoryOptionId ||
+                        null,
+
+                    associatedToId:
+                        associatedToId ||
+                        null,
+                },
             );
 
-        if (!parsed.success) {
+        if (
+            !parsed.success
+        ) {
             setError(
-                parsed.error.issues[0]
+                parsed.error
+                    .issues[0]
                     ?.message ??
                 "Check the media metadata and try again.",
             );
@@ -149,57 +255,142 @@ function MediaEditorPage() {
             return;
         }
 
-        setBusy(true);
+        setBusy(
+            true,
+        );
 
         try {
             const updated =
-                await updateCmsMediaMetadataFn(
-                    {
-                        data:
-                        parsed.data,
-                    },
-                );
+                await updateCmsMediaMetadataFn({
+                    data:
+                    parsed.data,
+                });
 
-            setForm({
-                id:
-                updated.id,
-
-                title:
+            setTitle(
                 updated.title,
+            );
 
-                altText:
+            setAltText(
                 updated.altText,
+            );
 
-                caption:
+            setCaption(
                 updated.caption,
+            );
 
-                category:
-                updated.category,
+            setCategoryOptionId(
+                updated.categoryOptionId ??
+                "",
+            );
+
+            setAssociatedToId(
+                getExistingAssociatedToId(
+                    updated,
+                ),
+            );
+
+            /*
+             * Refresh Media loader caches so returning
+             * to the library immediately shows the
+             * updated metadata.
+             */
+            await router.invalidate({
+                sync:
+                    true,
             });
 
             setSuccess(
                 "Media metadata saved successfully.",
             );
-        } catch (saveError) {
+        } catch (
+            saveError
+            ) {
             console.error(
                 "Media metadata save failed",
                 saveError,
             );
 
             setError(
-                saveError instanceof Error
+                saveError instanceof
+                Error
                     ? saveError.message
                     : "Media metadata could not be saved.",
             );
         } finally {
-            setBusy(false);
+            setBusy(
+                false,
+            );
+        }
+    }
+
+    async function confirmDelete() {
+        if (
+            deleting
+        ) {
+            return;
+        }
+
+        setDeleting(
+            true,
+        );
+
+        setDeleteError("");
+
+        try {
+            await deleteCmsMediaFn({
+                data: {
+                    id:
+                    media.id,
+                },
+            });
+
+            /*
+            |--------------------------------------------------------------------------
+            | Clear cached routes before navigating back.
+            |--------------------------------------------------------------------------
+            |
+            | We do NOT invalidate while still on the deleted Media detail route,
+            | because that route's own loader would try to fetch the Media record
+            | that has just been deleted.
+            |
+            | clearCache() removes the cached Media Library match while leaving the
+            | currently displayed detail route alone until navigation occurs.
+            |
+            */
+
+            router.clearCache();
+
+            await navigate({
+                to:
+                    "/admin/cms/media",
+            });
+        } catch (
+            failure
+            ) {
+            console.error(
+                "Media deletion failed",
+                failure,
+            );
+
+            setDeleteError(
+                failure instanceof
+                Error
+                    ? failure.message
+                    : "Media could not be deleted.",
+            );
+        } finally {
+            setDeleting(
+                false,
+            );
         }
     }
 
     return (
         <AdminShell>
             <form
-                onSubmit={save}
+                onSubmit={
+                    save
+                }
                 className="p-5 lg:p-8"
             >
                 <Link
@@ -222,32 +413,77 @@ function MediaEditorPage() {
                         </h1>
 
                         <code className="mt-2 block break-all text-xs text-muted-foreground">
-                            {media.id}
+                            {
+                                media.id
+                            }
                         </code>
                     </div>
 
-                    <button
-                        type="submit"
-                        disabled={busy}
-                        className="inline-flex w-fit items-center gap-2 rounded-full bg-[#0c1724] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#16283b] disabled:cursor-not-allowed disabled:opacity-60"
-                    >
-                        <Save className="h-4 w-4" />
+                    <div className="flex flex-wrap gap-2">
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setDeleteError(
+                                    "",
+                                );
 
-                        {busy
-                            ? "Saving..."
-                            : "Save Metadata"}
-                    </button>
+                                setDeleteOpen(
+                                    true,
+                                );
+                            }}
+                            className="inline-flex w-fit items-center gap-2 rounded-full border border-red-200 bg-white px-5 py-2.5 text-sm font-semibold text-red-600 transition hover:bg-red-50"
+                        >
+                            <Trash2 className="h-4 w-4" />
+
+                            Delete
+                        </button>
+
+                        <button
+                            type="submit"
+                            disabled={
+                                busy
+                            }
+                            className="inline-flex w-fit items-center gap-2 rounded-full bg-[#0c1724] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#16283b] disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                            <Save className="h-4 w-4" />
+
+                            {busy
+                                ? "Saving..."
+                                : "Save Metadata"}
+                        </button>
+                    </div>
                 </div>
 
                 {error ? (
-                    <div className="mt-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                        {error}
-                    </div>
+                    <Message
+                        tone="error"
+                        text={
+                            error
+                        }
+                    />
                 ) : null}
 
                 {success ? (
-                    <div className="mt-6 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-                        {success}
+                    <Message
+                        tone="success"
+                        text={
+                            success
+                        }
+                    />
+                ) : null}
+
+                {media.category &&
+                !media.categoryOptionId ? (
+                    <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                        This is an older Media
+                        record with legacy
+                        category “
+                        {media.category}”.
+                        Select a Category
+                        below and save once
+                        to move it into the
+                        new Other Settings-backed
+                        classification.
                     </div>
                 ) : null}
 
@@ -255,77 +491,74 @@ function MediaEditorPage() {
                     <div className="grid gap-6">
                         <EditorSection
                             title="Editorial Metadata"
-                            description="This information describes the asset wherever it is reused."
+                            description="Update title, category, association, alt text and caption."
                         >
-                            <div className="grid gap-5">
-                                <CmsField
-                                    label="Title"
-                                    value={
-                                        form.title
+                            <div className="grid gap-5 md:grid-cols-2">
+                                <div className="md:col-span-2">
+                                    <CmsField
+                                        label="Title"
+                                        value={
+                                            title
+                                        }
+                                        onChange={
+                                            setTitle
+                                        }
+                                    />
+                                </div>
+
+                                <CmsMediaClassificationFields
+                                    options={
+                                        classificationOptions
                                     }
-                                    onChange={(
-                                        value,
-                                    ) =>
-                                        updateField(
-                                            "title",
-                                            value,
-                                        )
+                                    categoryOptionId={
+                                        categoryOptionId
+                                    }
+                                    associatedToId={
+                                        associatedToId
+                                    }
+                                    onCategoryChange={
+                                        setCategoryOptionId
+                                    }
+                                    onAssociatedToChange={
+                                        setAssociatedToId
                                     }
                                 />
 
-                                <CmsField
-                                    label="Category"
-                                    value={
-                                        form.category
-                                    }
-                                    placeholder="e.g. destinations"
-                                    onChange={(
-                                        value,
-                                    ) =>
-                                        updateField(
-                                            "category",
-                                            value,
-                                        )
-                                    }
-                                />
+                                <div className="md:col-span-2">
+                                    <CmsTextarea
+                                        label="Alt Text"
+                                        value={
+                                            altText
+                                        }
+                                        rows={
+                                            3
+                                        }
+                                        onChange={
+                                            setAltText
+                                        }
+                                    />
+                                </div>
 
-                                <CmsTextarea
-                                    label="Alt Text"
-                                    value={
-                                        form.altText
-                                    }
-                                    rows={3}
-                                    onChange={(
-                                        value,
-                                    ) =>
-                                        updateField(
-                                            "altText",
-                                            value,
-                                        )
-                                    }
-                                />
-
-                                <CmsTextarea
-                                    label="Caption"
-                                    value={
-                                        form.caption
-                                    }
-                                    rows={5}
-                                    onChange={(
-                                        value,
-                                    ) =>
-                                        updateField(
-                                            "caption",
-                                            value,
-                                        )
-                                    }
-                                />
+                                <div className="md:col-span-2">
+                                    <CmsTextarea
+                                        label="Caption"
+                                        value={
+                                            caption
+                                        }
+                                        rows={
+                                            5
+                                        }
+                                        onChange={
+                                            setCaption
+                                        }
+                                    />
+                                </div>
                             </div>
                         </EditorSection>
 
                         <EditorSection
                             title="Storage Information"
-                            description="Storage metadata is controlled by the upload system and is intentionally read-only."
+                            description="Storage metadata is controlled by the upload system and is read-only."
                         >
                             <div className="grid gap-5 md:grid-cols-2">
                                 <ReadOnlyField
@@ -428,8 +661,8 @@ function MediaEditorPage() {
                                             media.url
                                         }
                                         alt={
-                                            form.altText ||
-                                            form.title
+                                            altText ||
+                                            title
                                         }
                                         className="h-full w-full object-contain"
                                     />
@@ -455,7 +688,9 @@ function MediaEditorPage() {
                                 </div>
 
                                 <p className="mt-3 break-all text-xs leading-relaxed text-muted-foreground">
-                                    {media.url}
+                                    {
+                                        media.url
+                                    }
                                 </p>
                             </div>
                         </section>
@@ -466,7 +701,7 @@ function MediaEditorPage() {
                             </p>
 
                             <p className="mt-3 text-xs text-muted-foreground">
-                                Created
+                                Uploaded
                             </p>
 
                             <p className="mt-1 text-sm text-[#0c1724]">
@@ -488,7 +723,135 @@ function MediaEditorPage() {
                     </aside>
                 </div>
             </form>
+
+            <CmsMediaDeleteDialog
+                open={
+                    deleteOpen
+                }
+                itemName={
+                    media.title ||
+                    media.originalFilename ||
+                    "this media item"
+                }
+                busy={
+                    deleting
+                }
+                error={
+                    deleteError
+                }
+                onNo={() => {
+                    if (
+                        !deleting
+                    ) {
+                        setDeleteOpen(
+                            false,
+                        );
+
+                        setDeleteError(
+                            "",
+                        );
+                    }
+                }}
+                onYes={
+                    confirmDelete
+                }
+            />
         </AdminShell>
+    );
+}
+
+function resolveInitialCategoryOptionId(
+    media: {
+        categoryOptionId:
+            string | null;
+
+        category:
+            string;
+    },
+
+    options:
+    CmsMediaClassificationOptions,
+) {
+    if (
+        media.categoryOptionId
+    ) {
+        return media.categoryOptionId;
+    }
+
+    const legacy =
+        media.category
+            .trim()
+            .toLowerCase();
+
+    if (
+        !legacy
+    ) {
+        return "";
+    }
+
+    const legacyValue =
+        legacy
+            .replace(
+                /[^a-z0-9]+/g,
+                "-",
+            )
+            .replace(
+                /^-+|-+$/g,
+                "",
+            );
+
+    return (
+        options.categories.find(
+            (
+                option,
+            ) =>
+                option.value ===
+                legacyValue ||
+                option.value.replace(
+                    /s$/,
+                    "",
+                ) ===
+                legacyValue.replace(
+                    /s$/,
+                    "",
+                ) ||
+                option.name
+                    .trim()
+                    .toLowerCase()
+                    .replace(
+                        /s$/,
+                        "",
+                    ) ===
+                legacy.replace(
+                    /s$/,
+                    "",
+                ),
+        )?.id ??
+        ""
+    );
+}
+
+function getExistingAssociatedToId(
+    media: {
+        associatedDestinationId:
+            string | null;
+
+        associatedPackageId:
+            string | null;
+
+        associatedExperienceId:
+            string | null;
+
+        generalSettingsTypeOptionId:
+            string | null;
+    },
+) {
+    return (
+        media.associatedDestinationId ??
+        media.associatedPackageId ??
+        media.associatedExperienceId ??
+        media.generalSettingsTypeOptionId ??
+        ""
     );
 }
 
@@ -497,9 +860,14 @@ function EditorSection({
                            description,
                            children,
                        }: {
-    title: string;
-    description: string;
-    children: ReactNode;
+    title:
+        string;
+
+    description:
+        string;
+
+    children:
+        ReactNode;
 }) {
     return (
         <section className="rounded-2xl border border-black/10 bg-white p-6 shadow-sm">
@@ -524,34 +892,39 @@ function CmsField({
                       label,
                       value,
                       onChange,
-                      placeholder,
                   }: {
-    label: string;
-    value: string;
-    onChange: (
-        value: string,
-    ) => void;
-    placeholder?: string;
+    label:
+        string;
+
+    value:
+        string;
+
+    onChange:
+        (
+            value:
+            string,
+        ) => void;
 }) {
     return (
         <label className="grid gap-2">
-      <span className="text-sm font-semibold text-[#0c1724]">
-        {label}
-      </span>
+            <span className="text-sm font-semibold text-[#0c1724]">
+                {label}
+            </span>
 
             <input
-                value={value}
-                placeholder={
-                    placeholder
+                value={
+                    value
                 }
                 onChange={(
                     event,
                 ) =>
                     onChange(
-                        event.target.value,
+                        event
+                            .target
+                            .value,
                     )
                 }
-                className="h-11 rounded-xl border border-black/10 bg-white px-4 text-sm text-[#0c1724] outline-none transition placeholder:text-muted-foreground focus:border-gold"
+                className="h-11 rounded-xl border border-black/10 bg-white px-4 text-sm text-[#0c1724] outline-none transition focus:border-gold"
             />
         </label>
     );
@@ -563,27 +936,41 @@ function CmsTextarea({
                          rows,
                          onChange,
                      }: {
-    label: string;
-    value: string;
-    rows: number;
-    onChange: (
-        value: string,
-    ) => void;
+    label:
+        string;
+
+    value:
+        string;
+
+    rows:
+        number;
+
+    onChange:
+        (
+            value:
+            string,
+        ) => void;
 }) {
     return (
         <label className="grid gap-2">
-      <span className="text-sm font-semibold text-[#0c1724]">
-        {label}
-      </span>
+            <span className="text-sm font-semibold text-[#0c1724]">
+                {label}
+            </span>
 
             <textarea
-                value={value}
-                rows={rows}
+                value={
+                    value
+                }
+                rows={
+                    rows
+                }
                 onChange={(
                     event,
                 ) =>
                     onChange(
-                        event.target.value,
+                        event
+                            .target
+                            .value,
                     )
                 }
                 className="resize-y rounded-xl border border-black/10 bg-white px-4 py-3 text-sm leading-relaxed text-[#0c1724] outline-none transition focus:border-gold"
@@ -596,17 +983,22 @@ function ReadOnlyField({
                            label,
                            value,
                        }: {
-    label: string;
-    value: string;
+    label:
+        string;
+
+    value:
+        string;
 }) {
     return (
         <label className="grid gap-2">
-      <span className="text-sm font-semibold text-[#0c1724]">
-        {label}
-      </span>
+            <span className="text-sm font-semibold text-[#0c1724]">
+                {label}
+            </span>
 
             <input
-                value={value}
+                value={
+                    value
+                }
                 readOnly
                 className="h-11 rounded-xl border border-black/10 bg-black/[0.03] px-4 text-sm text-muted-foreground"
             />
@@ -614,42 +1006,88 @@ function ReadOnlyField({
     );
 }
 
+function Message({
+                     tone,
+                     text,
+                 }: {
+    tone:
+        "success" |
+        "error";
+
+    text:
+        string;
+}) {
+    return (
+        <div
+            className={[
+                "mt-6 rounded-xl border px-4 py-3 text-sm",
+
+                tone ===
+                "success"
+                    ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                    : "border-red-200 bg-red-50 text-red-700",
+            ].join(
+                " ",
+            )}
+        >
+            {text}
+        </div>
+    );
+}
+
 function formatBytes(
     value:
-        | number
-        | null,
+        number |
+        null,
 ) {
     if (
-        value === null ||
-        value === undefined
+        value ===
+        null ||
+        value ===
+        undefined
     ) {
         return "";
     }
 
-    if (value < 1024) {
+    if (
+        value <
+        1024
+    ) {
         return `${value} B`;
     }
 
     if (
         value <
-        1024 * 1024
+        1024 *
+        1024
     ) {
         return `${(
-            value / 1024
-        ).toFixed(1)} KB`;
+            value /
+            1024
+        ).toFixed(
+            1,
+        )} KB`;
     }
 
     return `${(
         value /
-        (1024 * 1024)
-    ).toFixed(1)} MB`;
+        (
+            1024 *
+            1024
+        )
+    ).toFixed(
+        1,
+    )} MB`;
 }
 
 function formatDate(
-    value: string,
+    value:
+    string,
 ) {
     const date =
-        new Date(value);
+        new Date(
+            value,
+        );
 
     if (
         Number.isNaN(

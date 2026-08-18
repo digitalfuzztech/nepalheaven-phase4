@@ -2,7 +2,9 @@ import {
     randomUUID,
 } from "node:crypto";
 
-import { db } from "@/db";
+import {
+    db,
+} from "@/db";
 
 import {
     media,
@@ -21,6 +23,10 @@ import {
 } from "@/lib/cms-media.server";
 
 import {
+    resolveCmsMediaClassification,
+} from "@/lib/cms-media-classification.server";
+
+import {
     removeCmsMediaStoredFile,
     storeCmsMediaUpload,
 } from "@/lib/cms-media-storage.server";
@@ -28,7 +34,9 @@ import {
 function formString(
     formData:
     FormData,
-    key: string,
+
+    key:
+    string,
 ) {
     const value =
         formData.get(
@@ -41,8 +49,27 @@ function formString(
         : "";
 }
 
+function formNullableId(
+    formData:
+    FormData,
+
+    key:
+    string,
+) {
+    const value =
+        formString(
+            formData,
+            key,
+        ).trim();
+
+    return value
+        ? value
+        : null;
+}
+
 function emptyToNull(
-    value: string,
+    value:
+    string,
 ) {
     const trimmed =
         value.trim();
@@ -57,13 +84,14 @@ export async function uploadCmsMedia(
     FormData,
 ) {
     /*
-     * Authorize BEFORE reading and
-     * buffering the uploaded file.
+     * Authorize before file buffering.
      */
     const admin =
         await requireAdmin();
 
-    if (!db) {
+    if (
+        !db
+    ) {
         throw new Error(
             "Database connection is not configured.",
         );
@@ -105,12 +133,28 @@ export async function uploadCmsMedia(
                         "caption",
                     ),
 
-                category:
-                    formString(
+                categoryOptionId:
+                    formNullableId(
                         formData,
-                        "category",
+                        "categoryOptionId",
+                    ),
+
+                associatedToId:
+                    formNullableId(
+                        formData,
+                        "associatedToId",
                     ),
             },
+        );
+
+    /*
+     * Validate category + dependent
+     * association before writing file.
+     */
+    const classification =
+        await resolveCmsMediaClassification(
+            metadata.categoryOptionId,
+            metadata.associatedToId,
         );
 
     const stored =
@@ -123,7 +167,9 @@ export async function uploadCmsMedia(
 
     try {
         await db
-            .insert(media)
+            .insert(
+                media,
+            )
             .values({
                 id,
 
@@ -163,10 +209,27 @@ export async function uploadCmsMedia(
                         metadata.caption,
                     ),
 
+                /*
+                 * Legacy text remains populated
+                 * temporarily for compatibility.
+                 */
                 category:
-                    emptyToNull(
-                        metadata.category,
-                    ),
+                classification.categoryName,
+
+                categoryOptionId:
+                classification.categoryOptionId,
+
+                associatedDestinationId:
+                classification.associatedDestinationId,
+
+                associatedPackageId:
+                classification.associatedPackageId,
+
+                associatedExperienceId:
+                classification.associatedExperienceId,
+
+                generalSettingsTypeOptionId:
+                classification.generalSettingsTypeOptionId,
 
                 lifecycleStatus:
                     "ready",
@@ -181,13 +244,13 @@ export async function uploadCmsMedia(
         error
         ) {
         /*
-         * Avoid orphaning a disk file if
-         * the database insert fails.
+         * Prevent orphaned disk file.
          */
         await removeCmsMediaStoredFile(
             stored.storageKey,
         ).catch(
-            () => undefined,
+            () =>
+                undefined,
         );
 
         throw error;

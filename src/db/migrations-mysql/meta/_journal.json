@@ -57,6 +57,20 @@
       "when": 1786989694550,
       "tag": "0007_phase4_cms_foundation",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "5",
+      "when": 1787074046655,
+      "tag": "0008_damp_galactus",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "5",
+      "when": 1787075841543,
+      "tag": "0009_simple_daredevil",
+      "breakpoints": true
     }
   ]
 }

@@ -13,3 +13,4 @@ export * from "./sessions";
 export * from "./password-reset-tokens";
 export * from "./email-verification-challenges";
 export * from "./identity-documents";
+export * from "./cms-other-settings";
