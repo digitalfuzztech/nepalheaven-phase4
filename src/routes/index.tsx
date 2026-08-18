@@ -100,7 +100,7 @@ function Home() {
       <GalleryPreview />
       <Stories />
       <NewsletterBand />
-      <div className="pb-24">
+      <div className="pt-24">
         <CtaBanner />
       </div>
     </>

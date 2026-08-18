@@ -76,6 +76,7 @@ function AdminCmsPage() {
           overview.generalSettings === 1
               ? "configured record"
               : "records",
+      to: "/admin/cms/general" as const,
     },
 
     {
@@ -85,6 +86,7 @@ function AdminCmsPage() {
       icon: Navigation,
       value: overview.navigationMenus,
       valueLabel: "menus",
+      to: null,
     },
 
     {
@@ -97,6 +99,7 @@ function AdminCmsPage() {
           overview.footerSettings === 1
               ? "configured record"
               : "records",
+      to: null,
     },
 
     {
@@ -106,6 +109,7 @@ function AdminCmsPage() {
       icon: Globe2,
       value: overview.pages,
       valueLabel: "CMS pages available",
+      to: null,
     },
 
     {
@@ -115,6 +119,7 @@ function AdminCmsPage() {
       icon: Map,
       value: overview.destinations,
       valueLabel: "destinations",
+      to: null,
     },
 
     {
@@ -124,6 +129,7 @@ function AdminCmsPage() {
       icon: PackageOpen,
       value: overview.packages,
       valueLabel: "packages",
+      to: null,
     },
 
     {
@@ -133,6 +139,7 @@ function AdminCmsPage() {
       icon: Mountain,
       value: overview.experiences,
       valueLabel: "experiences",
+      to: null,
     },
 
     {
@@ -142,6 +149,7 @@ function AdminCmsPage() {
       icon: FileText,
       value: overview.blogPosts,
       valueLabel: "articles",
+      to: null,
     },
 
     {
@@ -151,6 +159,7 @@ function AdminCmsPage() {
       icon: GalleryHorizontalEnd,
       value: overview.media,
       valueLabel: "media records",
+      to: null,
     },
 
     {
@@ -160,6 +169,7 @@ function AdminCmsPage() {
       icon: Star,
       value: overview.testimonials,
       valueLabel: "testimonials",
+      to: null,
     },
 
     {
@@ -169,6 +179,7 @@ function AdminCmsPage() {
       icon: MessageCircleQuestion,
       value: overview.faqs,
       valueLabel: "FAQs",
+      to: null,
     },
 
     {
@@ -178,6 +189,7 @@ function AdminCmsPage() {
       icon: Mail,
       value: overview.emailTemplates,
       valueLabel: "templates",
+      to: null,
     },
 
     {
@@ -187,6 +199,7 @@ function AdminCmsPage() {
       icon: Image,
       value: overview.pages,
       valueLabel: "page identities",
+      to: null,
     },
   ];
 
@@ -286,9 +299,18 @@ function AdminCmsPage() {
                         </p>
 
                         <div className="mt-5">
-                    <span className="inline-flex rounded-full bg-black/5 px-3 py-1.5 text-xs font-semibold text-muted-foreground">
-                      Editor coming in Phase 4
-                    </span>
+                          {module.to ? (
+                              <Link
+                                  to={module.to}
+                                  className="inline-flex rounded-full bg-[#0c1724] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[#16283b]"
+                              >
+                                Open editor
+                              </Link>
+                          ) : (
+                              <span className="inline-flex rounded-full bg-black/5 px-3 py-1.5 text-xs font-semibold text-muted-foreground">
+      Editor coming in Phase 4
+    </span>
+                          )}
                         </div>
                       </section>
                   );
