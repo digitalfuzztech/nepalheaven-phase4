@@ -1,6 +1,8 @@
 import {
+    and,
     desc,
     eq,
+    inArray,
 } from "drizzle-orm";
 
 import { db } from "@/db";
@@ -284,4 +286,140 @@ export async function updateCmsMediaMetadata(
     return getCmsMedia(
         data.id,
     );
+}
+
+/*
+|--------------------------------------------------------------------------
+| Selectable CMS images
+|--------------------------------------------------------------------------
+*/
+
+export async function getCmsSelectableImages() {
+    await requireAdmin();
+
+    if (!db) {
+        throw new Error(
+            "Database connection is not configured.",
+        );
+    }
+
+    return db
+        .select({
+            id: media.id,
+
+            url: media.url,
+
+            thumbnailUrl:
+            media.thumbnailUrl,
+
+            title:
+            media.title,
+
+            altText:
+            media.altText,
+
+            originalFilename:
+            media.originalFilename,
+
+            category:
+            media.category,
+
+            width:
+            media.width,
+
+            height:
+            media.height,
+        })
+        .from(media)
+        .where(
+            and(
+                eq(
+                    media.type,
+                    "image",
+                ),
+
+                eq(
+                    media.lifecycleStatus,
+                    "ready",
+                ),
+            ),
+        )
+        .orderBy(
+            desc(
+                media.createdAt,
+            ),
+        );
+}
+
+/*
+|--------------------------------------------------------------------------
+| Validate selected image references
+|--------------------------------------------------------------------------
+|
+| Caller must already be an authenticated CMS operation.
+|
+*/
+
+export async function validateCmsSelectableImageIds(
+    ids: Array<
+        string | null | undefined
+    >,
+) {
+    if (!db) {
+        throw new Error(
+            "Database connection is not configured.",
+        );
+    }
+
+    const uniqueIds = [
+        ...new Set(
+            ids.filter(
+                (
+                    id,
+                ): id is string =>
+                    Boolean(id),
+            ),
+        ),
+    ];
+
+    if (
+        uniqueIds.length === 0
+    ) {
+        return;
+    }
+
+    const rows =
+        await db
+            .select({
+                id:
+                media.id,
+            })
+            .from(media)
+            .where(
+                and(
+                    inArray(
+                        media.id,
+                        uniqueIds,
+                    ),
+
+                    eq(
+                        media.type,
+                        "image",
+                    ),
+
+                    eq(
+                        media.lifecycleStatus,
+                        "ready",
+                    ),
+                ),
+            );
+
+    if (
+        rows.length !==
+        uniqueIds.length
+    ) {
+        throw new Error(
+            "One or more selected media assets are unavailable or are not ready images.",
+        );
+    }
 }

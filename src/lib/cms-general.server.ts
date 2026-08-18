@@ -15,6 +15,9 @@ import {
     cmsOfficeHoursSchema,
     type CmsGeneralSettingsInput,
 } from "@/lib/cms-general.schema";
+import {
+    validateCmsSelectableImageIds,
+} from "@/lib/cms-media.server";
 
 function emptyToNull(
     value: string,
@@ -81,6 +84,18 @@ async function readGeneralSettings() {
 
         tagline:
             settings.tagline ?? "",
+
+        mainLogoMediaId:
+        settings.mainLogoMediaId,
+
+        lightLogoMediaId:
+        settings.lightLogoMediaId,
+
+        faviconMediaId:
+        settings.faviconMediaId,
+
+        defaultOgImageMediaId:
+        settings.defaultOgImageMediaId,
 
         address:
             settings.address ?? "",
@@ -168,6 +183,15 @@ export async function updateCmsGeneralSettings(
             input,
         );
 
+    await validateCmsSelectableImageIds(
+        [
+            data.mainLogoMediaId,
+            data.lightLogoMediaId,
+            data.faviconMediaId,
+            data.defaultOgImageMediaId,
+        ],
+    );
+
     const [current] = await db
         .select({
             id: cmsGeneralSettings.id,
@@ -200,6 +224,18 @@ export async function updateCmsGeneralSettings(
                 emptyToNull(
                     data.tagline,
                 ),
+
+            mainLogoMediaId:
+            data.mainLogoMediaId,
+
+            lightLogoMediaId:
+            data.lightLogoMediaId,
+
+            faviconMediaId:
+            data.faviconMediaId,
+
+            defaultOgImageMediaId:
+            data.defaultOgImageMediaId,
 
             address:
                 emptyToNull(

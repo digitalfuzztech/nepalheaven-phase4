@@ -35,6 +35,13 @@ import {
     type CmsGeneralSettingsInput,
 } from "@/lib/cms-general.schema";
 
+import {
+    CmsMediaPicker,
+} from "@/components/admin/CmsMediaPicker";
+import {
+    getCmsSelectableImagesFn,
+} from "@/lib/cms-media.functions";
+
 export const Route =
     createFileRoute(
         "/admin_/cms_/general",
@@ -53,12 +60,18 @@ export const Route =
                 });
             }
 
-            const settings =
-                await getCmsGeneralSettingsFn();
+            const [
+                settings,
+                images,
+            ] = await Promise.all([
+                getCmsGeneralSettingsFn(),
+                getCmsSelectableImagesFn(),
+            ]);
 
             return {
                 admin,
                 settings,
+                images,
             };
         },
 
@@ -69,12 +82,17 @@ export const Route =
 type TextField =
     Exclude<
         keyof CmsGeneralSettingsInput,
-        "officeHours"
+        | "officeHours"
+        | "mainLogoMediaId"
+        | "lightLogoMediaId"
+        | "faviconMediaId"
+        | "defaultOgImageMediaId"
     >;
 
 function GeneralSettingsPage() {
     const {
         settings,
+        images,
     } = Route.useLoaderData();
 
     const [form, setForm] =
@@ -315,28 +333,108 @@ function GeneralSettingsPage() {
                     {/* Media placeholder */}
                     <SettingsSection
                         title="Brand Media"
-                        description="Logo, favicon and default social-sharing imagery will use the shared Media Library."
+                        description="Select reusable ready images from the Media Library. Changing these references does not delete the underlying media asset."
                     >
-                        <div className="rounded-xl border border-dashed border-black/15 bg-black/[0.02] p-5">
-                            <div className="flex gap-3">
-                                <Image className="mt-0.5 h-5 w-5 shrink-0 text-gold" />
+                        <div className="grid gap-5 lg:grid-cols-2">
+                            <CmsMediaPicker
+                                label="Main Logo"
+                                description="Primary logo used on light website surfaces."
+                                value={
+                                    form.mainLogoMediaId
+                                }
+                                images={
+                                    images
+                                }
+                                onChange={(
+                                    id,
+                                ) =>
+                                    setForm(
+                                        (
+                                            current,
+                                        ) => ({
+                                            ...current,
 
-                                <div>
-                                    <p className="text-sm font-semibold text-[#0c1724]">
-                                        Media Library integration comes next
-                                    </p>
+                                            mainLogoMediaId:
+                                            id,
+                                        }),
+                                    )
+                                }
+                            />
 
-                                    <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-                                        Main logo, light logo,
-                                        favicon and default OG
-                                        image already have
-                                        database fields, but we
-                                        will not expose them
-                                        until the reusable Media
-                                        Library picker is ready.
-                                    </p>
-                                </div>
-                            </div>
+                            <CmsMediaPicker
+                                label="Light Logo"
+                                description="Alternative logo intended for dark or photographic backgrounds."
+                                value={
+                                    form.lightLogoMediaId
+                                }
+                                images={
+                                    images
+                                }
+                                onChange={(
+                                    id,
+                                ) =>
+                                    setForm(
+                                        (
+                                            current,
+                                        ) => ({
+                                            ...current,
+
+                                            lightLogoMediaId:
+                                            id,
+                                        }),
+                                    )
+                                }
+                            />
+
+                            <CmsMediaPicker
+                                label="Favicon"
+                                description="Browser/site icon. A square source image is recommended."
+                                value={
+                                    form.faviconMediaId
+                                }
+                                images={
+                                    images
+                                }
+                                onChange={(
+                                    id,
+                                ) =>
+                                    setForm(
+                                        (
+                                            current,
+                                        ) => ({
+                                            ...current,
+
+                                            faviconMediaId:
+                                            id,
+                                        }),
+                                    )
+                                }
+                            />
+
+                            <CmsMediaPicker
+                                label="Default OG Image"
+                                description="Fallback social-sharing image when an individual page has no dedicated OG image."
+                                value={
+                                    form.defaultOgImageMediaId
+                                }
+                                images={
+                                    images
+                                }
+                                onChange={(
+                                    id,
+                                ) =>
+                                    setForm(
+                                        (
+                                            current,
+                                        ) => ({
+                                            ...current,
+
+                                            defaultOgImageMediaId:
+                                            id,
+                                        }),
+                                    )
+                                }
+                            />
                         </div>
                     </SettingsSection>
 

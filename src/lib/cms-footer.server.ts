@@ -14,7 +14,9 @@ import {
     cmsFooterSettingsInputSchema,
     type CmsFooterSettingsInput,
 } from "@/lib/cms-footer.schema";
-
+import {
+    validateCmsSelectableImageIds,
+} from "@/lib/cms-media.server";
 function emptyToNull(
     value: string,
 ) {
@@ -133,7 +135,11 @@ export async function updateCmsFooterSettings(
         cmsFooterSettingsInputSchema.parse(
             input,
         );
-
+    await validateCmsSelectableImageIds(
+        [
+            data.logoMediaId,
+        ],
+    );
     const [footer] =
         await db
             .select({
@@ -177,6 +183,9 @@ export async function updateCmsFooterSettings(
 
             updatedAt:
                 new Date(),
+
+            logoMediaId:
+            data.logoMediaId,
         })
         .where(
             eq(

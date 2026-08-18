@@ -39,6 +39,14 @@ import {
     type CmsFooterSettingsInput,
 } from "@/lib/cms-footer.schema";
 
+import {
+    CmsMediaPicker,
+} from "@/components/admin/CmsMediaPicker";
+
+import {
+    getCmsSelectableImagesFn,
+} from "@/lib/cms-media.functions";
+
 export const Route =
     createFileRoute(
         "/admin_/cms_/footer",
@@ -61,16 +69,19 @@ export const Route =
             const [
                 settings,
                 menus,
+                images,
             ] = await Promise.all([
                 getCmsFooterSettingsFn(),
-
                 getCmsNavigationMenusFn(),
+                getCmsSelectableImagesFn(),
             ]);
 
             return {
                 admin,
 
                 settings,
+
+                images,
 
                 footerMenus:
                     menus.filter(
@@ -90,6 +101,7 @@ function FooterSettingsPage() {
     const {
         settings,
         footerMenus,
+        images,
     } = Route.useLoaderData();
 
     const [form, setForm] =
@@ -100,6 +112,9 @@ function FooterSettingsPage() {
 
                 journalDescription:
                 settings.journalDescription,
+
+                logoMediaId:
+                settings.logoMediaId,
             },
         );
 
@@ -114,7 +129,10 @@ function FooterSettingsPage() {
 
     function updateField(
         field:
-        keyof CmsFooterSettingsInput,
+        Exclude<
+            keyof CmsFooterSettingsInput,
+            "logoMediaId"
+        >,
 
         value: string,
     ) {
@@ -168,6 +186,9 @@ function FooterSettingsPage() {
 
                 journalDescription:
                 updated.journalDescription,
+
+                logoMediaId:
+                updated.logoMediaId,
             });
 
             setSuccess(
@@ -379,37 +400,35 @@ function FooterSettingsPage() {
 
                     <SettingsSection
                         title="Footer Logo"
-                        description="The database already supports a Footer-specific media reference, but selection waits for the reusable Media Library."
+                        description="Choose the Footer-specific logo from the shared Media Library."
                         icon={
                             <Image className="h-5 w-5" />
                         }
                     >
-                        <div className="rounded-xl border border-dashed border-black/15 bg-black/[0.02] p-5">
-                            <p className="text-sm font-semibold text-[#0c1724]">
-                                Media Library integration pending
-                            </p>
+                        <CmsMediaPicker
+                            label="Footer Logo"
+                            description="Used when the Footer requires a different logo from the main global logo."
+                            value={
+                                form.logoMediaId
+                            }
+                            images={
+                                images
+                            }
+                            onChange={(
+                                id,
+                            ) =>
+                                setForm(
+                                    (
+                                        current,
+                                    ) => ({
+                                        ...current,
 
-                            <p className="mt-2 max-w-3xl text-sm leading-relaxed text-muted-foreground">
-                                The existing
-                                cms_footer_settings.logo_media_id
-                                column will eventually
-                                reference a reusable Media
-                                Library asset. We will not
-                                expose manual IDs or fake
-                                upload controls here.
-                            </p>
-
-                            {settings.logoMediaId ? (
-                                <p className="mt-3 text-xs text-muted-foreground">
-                                    Existing media reference:{" "}
-                                    <code>
-                                        {
-                                            settings.logoMediaId
-                                        }
-                                    </code>
-                                </p>
-                            ) : null}
-                        </div>
+                                        logoMediaId:
+                                        id,
+                                    }),
+                                )
+                            }
+                        />
                     </SettingsSection>
 
                     <div className="flex justify-end">

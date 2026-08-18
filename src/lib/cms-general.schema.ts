@@ -1,5 +1,10 @@
 import { z } from "zod";
+import {
+    cmsMediaIdSchema,
+} from "@/lib/cms-media.schema";
 
+const optionalMediaId =
+    cmsMediaIdSchema.nullable();
 function isHttpUrl(value: string) {
     if (!value) return true;
 
@@ -96,6 +101,18 @@ export const cmsGeneralSettingsInputSchema =
 
         tagline: optionalText(300),
 
+        mainLogoMediaId:
+        optionalMediaId,
+
+        lightLogoMediaId:
+        optionalMediaId,
+
+        faviconMediaId:
+        optionalMediaId,
+
+        defaultOgImageMediaId:
+        optionalMediaId,
+
         address: optionalText(500),
 
         country: optionalText(120),
@@ -129,6 +146,7 @@ export const cmsGeneralSettingsInputSchema =
 
         defaultSeoDescription:
             optionalText(500),
+
     });
 
 export type CmsGeneralSettingsInput =

@@ -98,3 +98,14 @@ export const uploadCmsMediaFn =
                 );
             },
         );
+export const getCmsSelectableImagesFn =
+    createServerFn({
+        method: "GET",
+    }).handler(async () => {
+        const server =
+            await import(
+                "@/lib/cms-media.server"
+                );
+
+        return server.getCmsSelectableImages();
+    });
