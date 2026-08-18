@@ -1,22 +1,67 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { Menu, Phone, Search, X, UserRound } from "lucide-react";
-import type { Company } from "@/lib/content.types";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth";
 import lightLogo from "@/assets/logo-light4.png";
 import darkLogo from "@/assets/logo-dark2.png";
+import type {
+  Company,
+  PublicBranding,
+  PublicNavigationItem,
+} from "@/lib/content.types";
 
-const links = [
-  { label: "Home", to: "/" },
-  { label: "Destinations", to: "/destinations" },
-  { label: "Packages", to: "/packages" },
-  { label: "Experiences", to: "/experiences" },
-  { label: "About", to: "/about" },
-  { label: "Blog", to: "/blog" },
-  { label: "Gallery", to: "/gallery" },
-  { label: "Contact", to: "/contact" },
-] as const;
+const legacyLinks: PublicNavigationItem[] = [
+  {
+    label: "Home",
+    href: "/",
+    external: false,
+    openNewTab: false,
+  },
+  {
+    label: "Destinations",
+    href: "/destinations",
+    external: false,
+    openNewTab: false,
+  },
+  {
+    label: "Packages",
+    href: "/packages",
+    external: false,
+    openNewTab: false,
+  },
+  {
+    label: "Experiences",
+    href: "/experiences",
+    external: false,
+    openNewTab: false,
+  },
+  {
+    label: "About",
+    href: "/about",
+    external: false,
+    openNewTab: false,
+  },
+  {
+    label: "Blog",
+    href: "/blog",
+    external: false,
+    openNewTab: false,
+  },
+  {
+    label: "Gallery",
+    href: "/gallery",
+    external: false,
+    openNewTab: false,
+  },
+  {
+    label: "Contact",
+    href: "/contact",
+    external: false,
+    openNewTab: false,
+  },
+];
+
 
 function usesSolidNavbar(pathname: string) {
   return (
@@ -31,8 +76,80 @@ function usesSolidNavbar(pathname: string) {
     pathname.startsWith("/booking/")
   );
 }
+function isNavigationItemActive(
+    pathname: string,
+    item: PublicNavigationItem,
+) {
+  if (item.external) {
+    return false;
+  }
 
-export function Navbar({ company }: { company: Company }) {
+  if (item.href === "/") {
+    return pathname === "/";
+  }
+
+  return (
+      pathname === item.href ||
+      pathname.startsWith(`${item.href}/`)
+  );
+}
+
+function NavigationItemLink({
+                              item,
+                              className,
+                              onClick,
+                            }: {
+  item: PublicNavigationItem;
+  className?: string;
+  onClick?: () => void;
+}) {
+  /*
+   * External CMS links use a normal anchor.
+   */
+  if (item.external) {
+    return (
+        <a
+            href={item.href}
+            target={item.openNewTab ? "_blank" : undefined}
+            rel={item.openNewTab ? "noopener noreferrer" : undefined}
+            onClick={onClick}
+            className={className}
+        >
+          {item.label}
+        </a>
+    );
+  }
+
+  /*
+   * Internal CMS links must use TanStack Link
+   * so navigation remains client-side / SPA.
+   *
+   * CMS paths are dynamic strings rather than
+   * compile-time route literals, hence the cast.
+   */
+  return (
+      <Link
+          to={item.href as never}
+          onClick={onClick}
+          className={className}
+      >
+        {item.label}
+      </Link>
+  );
+}
+export function Navbar({
+                         company,
+                         branding,
+                         primaryNavigation,
+                       }: {
+  company: Company;
+
+  branding:
+      PublicBranding;
+
+  primaryNavigation:
+      PublicNavigationItem[];
+}) {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -42,6 +159,18 @@ export function Navbar({ company }: { company: Company }) {
   const pathname = useLocation().pathname;
   const forceSolid = usesSolidNavbar(pathname);
   const effectiveScrolled = forceSolid || scrolled;
+  const navbarDarkLogo =
+      branding.mainLogoUrl ||
+      darkLogo;
+
+  const navbarLightLogo =
+      branding.lightLogoUrl ||
+      lightLogo;
+  const links =
+      primaryNavigation.length > 0
+          ? primaryNavigation
+          : legacyLinks;
+
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
@@ -76,7 +205,7 @@ export function Navbar({ company }: { company: Company }) {
           aria-label={`${company.name} home`}
         >
           <img
-            src={effectiveScrolled ? darkLogo : lightLogo}
+            src={effectiveScrolled ? navbarDarkLogo : navbarLightLogo}
             alt="Nepal Heaven"
             className={
               effectiveScrolled
@@ -86,28 +215,37 @@ export function Navbar({ company }: { company: Company }) {
           />
         </Link>
         <nav aria-label="Primary" className="hidden xl:block">
-          <ul className="flex items-center gap-1">
-            {links.map((l) => (
-              <li key={l.to}>
-                <Link
-                  to={l.to}
-                  activeOptions={{ exact: l.to === "/" }}
-                  className={cn(
-                    "relative rounded-full px-3.5 py-2 text-sm font-medium transition-colors duration-300",
-                    effectiveScrolled
-                      ? "text-foreground/75 hover:text-foreground"
-                      : "text-primary-foreground/85 hover:text-primary-foreground",
-                    "after:absolute after:inset-x-3.5 after:bottom-1 after:h-px after:origin-right after:scale-x-0 after:bg-gold after:transition-transform after:duration-300 hover:after:origin-left hover:after:scale-x-100",
-                    "data-[status=active]:text-gold",
-                  )}
-                >
-                  {l.label}
-                </Link>
-              </li>
-            ))}
+          <ul className="flex items-center gap-1 whitespace-nowrap">
+            {links.map((item) => {
+              const active = isNavigationItemActive(
+                  pathname,
+                  item,
+              );
+
+              return (
+                  <li
+                      key={`${item.label}-${item.href}`}
+                  >
+                    <NavigationItemLink
+                        item={item}
+                        className={cn(
+                            "relative inline-flex shrink-0 items-center whitespace-nowrap rounded-full px-3.5 py-2 text-sm font-medium transition-colors duration-300",
+
+                            effectiveScrolled
+                                ? "text-foreground/75 hover:text-foreground"
+                                : "text-primary-foreground/85 hover:text-primary-foreground",
+
+                            "after:absolute after:inset-x-3.5 after:bottom-1 after:h-px after:origin-right after:scale-x-0 after:bg-gold after:transition-transform after:duration-300 hover:after:origin-left hover:after:scale-x-100",
+
+                            active &&
+                            "text-gold after:origin-left after:scale-x-100",
+                        )}
+                    />
+                  </li>
+              );
+            })}
           </ul>
         </nav>
-
         <div className="flex items-center gap-2 sm:gap-3">
           <button
             type="button"
@@ -219,18 +357,29 @@ export function Navbar({ company }: { company: Company }) {
       {open ? (
         <nav aria-label="Mobile" className="container-lux mt-3 xl:hidden">
           <ul className="glass-card animate-reveal grid gap-1 rounded-3xl p-3">
-            {links.map((l) => (
-              <li key={l.to}>
-                <Link
-                  to={l.to}
-                  onClick={() => setOpen(false)}
-                  activeOptions={{ exact: l.to === "/" }}
-                  className="block rounded-2xl px-4 py-3 text-sm font-medium text-foreground transition-colors hover:bg-accent data-[status=active]:bg-accent data-[status=active]:text-primary"
-                >
-                  {l.label}
-                </Link>
-              </li>
-            ))}
+            {links.map((item) => {
+              const active = isNavigationItemActive(
+                  pathname,
+                  item,
+              );
+
+              return (
+                  <li
+                      key={`${item.label}-${item.href}`}
+                  >
+                    <NavigationItemLink
+                        item={item}
+                        onClick={() => setOpen(false)}
+                        className={cn(
+                            "block rounded-2xl px-4 py-3 text-sm font-medium text-foreground transition-colors hover:bg-accent",
+
+                            active &&
+                            "bg-accent text-primary",
+                        )}
+                    />
+                  </li>
+              );
+            })}
             <li>
               <Link
                 to={user?.role === "customer" ? "/account" : "/login"}

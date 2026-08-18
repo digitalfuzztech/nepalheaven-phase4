@@ -1,5 +1,6 @@
 import {
     and,
+    asc,
     eq,
     inArray,
 } from "drizzle-orm";
@@ -8,6 +9,8 @@ import { db } from "@/db";
 
 import {
     cmsGeneralSettings,
+    cmsNavigationItems,
+    cmsNavigationMenus,
 } from "@/db/schema/cms-foundation";
 
 import {
@@ -17,7 +20,9 @@ import {
 import type {
     Company,
     PublicBranding,
+    PublicNavigationItem,
 } from "@/lib/content.types";
+
 
 function parseOfficeHours(
     value: string | null,
@@ -272,4 +277,161 @@ export async function getPublicCmsGlobalSettings() {
         company,
         branding,
     };
+}
+function validExternalUrl(
+    value: string,
+) {
+    try {
+        const url =
+            new URL(value);
+
+        return (
+            url.protocol ===
+            "http:" ||
+            url.protocol ===
+            "https:"
+        );
+    } catch {
+        return false;
+    }
+}
+
+export async function getPublicCmsPrimaryNavigation():
+    Promise<
+        PublicNavigationItem[] |
+        null
+    > {
+    if (!db) {
+        throw new Error(
+            "Database connection is not configured.",
+        );
+    }
+
+    const [menu] =
+        await db
+            .select({
+                id:
+                cmsNavigationMenus.id,
+            })
+            .from(
+                cmsNavigationMenus,
+            )
+            .where(
+                eq(
+                    cmsNavigationMenus.key,
+                    "primary",
+                ),
+            )
+            .limit(1);
+
+    if (!menu) {
+        return null;
+    }
+
+    const rows =
+        await db
+            .select({
+                label:
+                cmsNavigationItems.label,
+
+                linkType:
+                cmsNavigationItems.linkType,
+
+                path:
+                cmsNavigationItems.path,
+
+                url:
+                cmsNavigationItems.url,
+
+                openNewTab:
+                cmsNavigationItems.openNewTab,
+            })
+            .from(
+                cmsNavigationItems,
+            )
+            .where(
+                and(
+                    eq(
+                        cmsNavigationItems.menuId,
+                        menu.id,
+                    ),
+
+                    eq(
+                        cmsNavigationItems.enabled,
+                        true,
+                    ),
+                ),
+            )
+            .orderBy(
+                asc(
+                    cmsNavigationItems.sortOrder,
+                ),
+            );
+
+    const items:
+        PublicNavigationItem[] =
+        [];
+
+    for (
+        const row of rows
+        ) {
+        if (
+            row.linkType ===
+            "internal"
+        ) {
+            const path =
+                row.path?.trim();
+
+            if (
+                !path ||
+                !path.startsWith("/")
+            ) {
+                continue;
+            }
+
+            items.push({
+                label:
+                row.label,
+
+                href:
+                path,
+
+                external:
+                    false,
+
+                openNewTab:
+                row.openNewTab,
+            });
+
+            continue;
+        }
+
+        const url =
+            row.url?.trim();
+
+        if (
+            !url ||
+            !validExternalUrl(
+                url,
+            )
+        ) {
+            continue;
+        }
+
+        items.push({
+            label:
+            row.label,
+
+            href:
+            url,
+
+            external:
+                true,
+
+            openNewTab:
+            row.openNewTab,
+        });
+    }
+
+    return items;
 }

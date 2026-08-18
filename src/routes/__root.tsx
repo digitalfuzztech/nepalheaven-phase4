@@ -364,7 +364,19 @@ function RootComponent() {
       <AuthProvider>
         <ComparisonProvider>
           {!minimalShell && shellContent ? (
-            <Navbar company={shellContent.company} />
+              <Navbar
+                  company={
+                    shellContent.company
+                  }
+
+                  branding={
+                    shellContent.branding
+                  }
+
+                  primaryNavigation={
+                    shellContent.primaryNavigation
+                  }
+              />
           ) : null}
           <main>
             <Outlet />

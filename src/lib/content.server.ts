@@ -47,9 +47,12 @@ import type {
   Testimonial,
   WhyUsItem,
   PublicSearchResults,
+  PublicNavigationItem,
 } from "@/lib/content.types";
+
 import {
   getPublicCmsGlobalSettings,
+  getPublicCmsPrimaryNavigation,
 } from "@/lib/public-cms.server";
 
 const publicSettingKeys = [
@@ -486,6 +489,81 @@ function legacyBranding(): PublicBranding {
   };
 }
 
+function legacyPrimaryNavigation():
+    PublicNavigationItem[] {
+  return [
+    {
+      label: "Home",
+      href: "/",
+      external: false,
+      openNewTab: false,
+    },
+
+    {
+      label:
+          "Destinations",
+      href:
+          "/destinations",
+      external: false,
+      openNewTab: false,
+    },
+
+    {
+      label:
+          "Packages",
+      href:
+          "/packages",
+      external: false,
+      openNewTab: false,
+    },
+
+    {
+      label:
+          "Experiences",
+      href:
+          "/experiences",
+      external: false,
+      openNewTab: false,
+    },
+
+    {
+      label:
+          "About",
+      href:
+          "/about",
+      external: false,
+      openNewTab: false,
+    },
+
+    {
+      label:
+          "Blog",
+      href:
+          "/blog",
+      external: false,
+      openNewTab: false,
+    },
+
+    {
+      label:
+          "Gallery",
+      href:
+          "/gallery",
+      external: false,
+      openNewTab: false,
+    },
+
+    {
+      label:
+          "Contact",
+      href:
+          "/contact",
+      external: false,
+      openNewTab: false,
+    },
+  ];
+}
+
 export async function getPublicSiteSettings(): Promise<PublicSiteSettings> {
   const database = requireDb();
   const rows = await database
@@ -534,8 +612,13 @@ export async function getPublicSiteSettings(): Promise<PublicSiteSettings> {
     hours: companyHours,
   };
 
-  const cmsGlobal =
-      await getPublicCmsGlobalSettings();
+  const [
+    cmsGlobal,
+    cmsPrimaryNavigation,
+  ] = await Promise.all([
+    getPublicCmsGlobalSettings(),
+    getPublicCmsPrimaryNavigation(),
+  ]);
 
   const company:
       Company =
@@ -554,6 +637,13 @@ export async function getPublicSiteSettings(): Promise<PublicSiteSettings> {
   const branding =
       cmsGlobal?.branding ??
       legacyBranding();
+
+  const primaryNavigation =
+      cmsPrimaryNavigation &&
+      cmsPrimaryNavigation.length >
+      0
+          ? cmsPrimaryNavigation
+          : legacyPrimaryNavigation();
 
   const activities = parseJsonSetting<Activity[]>(
     values,
@@ -642,6 +732,7 @@ export async function getPublicSiteSettings(): Promise<PublicSiteSettings> {
     partners,
     whyUs,
     images,
+    primaryNavigation,
   };
 }
 
@@ -669,6 +760,9 @@ export async function getShellContent(): Promise<ShellContent> {
 
     branding:
     settings.branding,
+
+    primaryNavigation:
+    settings.primaryNavigation,
 
     destinations:
         destinations.map(

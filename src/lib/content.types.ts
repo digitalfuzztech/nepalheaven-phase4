@@ -110,6 +110,16 @@ export type PublicBranding = {
   };
 };
 
+export type PublicNavigationItem = {
+  label: string;
+
+  href: string;
+
+  external: boolean;
+
+  openNewTab: boolean;
+};
+
 export type Activity = { name: string; detail: string; icon: string };
 export type ExperienceCategory = {
   slug: string;
@@ -171,6 +181,7 @@ export type PublicSiteSettings = {
   partners: string[];
   whyUs: WhyUsItem[];
   images: SiteImages;
+  primaryNavigation: PublicNavigationItem[];
 };
 type LegacyExperienceCategory = { name: string; detail: string; image: string; count?: number };
 
@@ -185,6 +196,8 @@ export type ShellContent = {
   company: Company;
 
   branding: PublicBranding;
+  primaryNavigation:
+      PublicNavigationItem[];
 
   destinations: Pick<
       Destination,
