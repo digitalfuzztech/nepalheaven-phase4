@@ -3,7 +3,7 @@ import {
   Link,
   redirect,
 } from "@tanstack/react-router";
-import { getAdminSessionFn } from "@/lib/auth.functions";
+
 import {
   BookOpen,
   FileText,
@@ -18,119 +18,177 @@ import {
   PackageOpen,
   Settings2,
   Star,
+  PanelBottom,
 } from "lucide-react";
 
-import { AdminShell } from "@/components/admin/AdminShell";
+import {
+  AdminShell,
+} from "@/components/admin/AdminShell";
 
+import {
+  getAdminSessionFn,
+} from "@/lib/auth.functions";
 
-export const Route = createFileRoute("/admin_/cms")({
-  loader: async () => {
-    const admin = await getAdminSessionFn();
+import {
+  getCmsOverviewFn,
+} from "@/lib/admin-overview.functions";
 
-    if (!admin) {
-      throw redirect({
-        to: "/admin",
-        search: {
-          redirect: "/admin/cms",
-        },
-      });
-    }
+export const Route =
+    createFileRoute("/admin_/cms")({
+      loader: async () => {
+        const admin =
+            await getAdminSessionFn();
 
-    return admin;
-  },
+        if (!admin) {
+          throw redirect({
+            to: "/admin",
+            search: {
+              redirect: "/admin/cms",
+            },
+          });
+        }
 
-  component: AdminCmsPage,
-});
+        const overview =
+            await getCmsOverviewFn();
 
-const modules = [
-  {
-    title: "General Settings",
-    description:
-        "Company identity, contact information, logos, social links and global website settings.",
-    icon: Settings2,
-    futurePath: "/admin/cms/general",
-  },
-  {
-    title: "Navigation",
-    description:
-        "Primary navigation and footer menu structure.",
-    icon: Navigation,
-    futurePath: "/admin/cms/navigation",
-  },
-  {
-    title: "Homepage",
-    description:
-        "Hero content, featured destinations, packages, testimonials, journal and homepage sections.",
-    icon: Globe2,
-    futurePath: "/admin/cms/home",
-  },
-  {
-    title: "Destinations",
-    description:
-        "Destination pages, highlights, itineraries, travel information and SEO.",
-    icon: Map,
-    futurePath: "/admin/cms/destinations",
-  },
-  {
-    title: "Packages",
-    description:
-        "Journey packages, pricing tiers, itineraries, inclusions and cancellation policies.",
-    icon: PackageOpen,
-    futurePath: "/admin/cms/packages",
-  },
-  {
-    title: "Experiences",
-    description:
-        "Experience categories and their related journeys.",
-    icon: Mountain,
-    futurePath: "/admin/cms/experiences",
-  },
-  {
-    title: "Blog",
-    description:
-        "Articles, categories, authors and publishing.",
-    icon: FileText,
-    futurePath: "/admin/cms/blog",
-  },
-  {
-    title: "Gallery & Media",
-    description:
-        "Reusable website images, videos, metadata and gallery content.",
-    icon: GalleryHorizontalEnd,
-    futurePath: "/admin/cms/gallery",
-  },
-  {
-    title: "Testimonials",
-    description:
-        "Traveller testimonials and featured reviews.",
-    icon: Star,
-    futurePath: "/admin/cms/testimonials",
-  },
-  {
-    title: "FAQs",
-    description:
-        "Frequently asked questions used throughout the website.",
-    icon: MessageCircleQuestion,
-    futurePath: "/admin/cms/faqs",
-  },
-  {
-    title: "Email Templates",
-    description:
-        "Customer and internal transactional email templates.",
-    icon: Mail,
-    futurePath: "/admin/cms/email-templates",
-  },
-  {
-    title: "SEO",
-    description:
-        "Default metadata and page-level search visibility settings.",
-    icon: Image,
-    futurePath: "/admin/cms/seo",
-  },
-] as const;
+        return {
+          admin,
+          overview,
+        };
+      },
+
+      component: AdminCmsPage,
+    });
 
 function AdminCmsPage() {
+  const {
+    overview,
+  } = Route.useLoaderData();
 
+  const modules = [
+    {
+      title: "General Settings",
+      description:
+          "Company identity, contact information, logos, social links and global website settings.",
+      icon: Settings2,
+      value: overview.generalSettings,
+      valueLabel:
+          overview.generalSettings === 1
+              ? "configured record"
+              : "records",
+    },
+
+    {
+      title: "Navigation",
+      description:
+          "Primary navigation and footer menu structure.",
+      icon: Navigation,
+      value: overview.navigationMenus,
+      valueLabel: "menus",
+    },
+
+    {
+      title: "Footer",
+      description:
+          "Footer-specific copy, menu groups, legal links and featured package references.",
+      icon: PanelBottom,
+      value: overview.footerSettings,
+      valueLabel:
+          overview.footerSettings === 1
+              ? "configured record"
+              : "records",
+    },
+
+    {
+      title: "Homepage",
+      description:
+          "Hero content, featured destinations, packages, testimonials, journal and homepage sections.",
+      icon: Globe2,
+      value: overview.pages,
+      valueLabel: "CMS pages available",
+    },
+
+    {
+      title: "Destinations",
+      description:
+          "Destination pages, highlights, itineraries, travel information and SEO.",
+      icon: Map,
+      value: overview.destinations,
+      valueLabel: "destinations",
+    },
+
+    {
+      title: "Packages",
+      description:
+          "Journey packages, pricing tiers, itineraries, inclusions and cancellation policies.",
+      icon: PackageOpen,
+      value: overview.packages,
+      valueLabel: "packages",
+    },
+
+    {
+      title: "Experiences",
+      description:
+          "Experience categories and their related journeys.",
+      icon: Mountain,
+      value: overview.experiences,
+      valueLabel: "experiences",
+    },
+
+    {
+      title: "Blog",
+      description:
+          "Articles, categories, authors and publishing.",
+      icon: FileText,
+      value: overview.blogPosts,
+      valueLabel: "articles",
+    },
+
+    {
+      title: "Gallery & Media",
+      description:
+          "Reusable website images, videos, metadata and gallery content.",
+      icon: GalleryHorizontalEnd,
+      value: overview.media,
+      valueLabel: "media records",
+    },
+
+    {
+      title: "Testimonials",
+      description:
+          "Traveller testimonials and featured reviews.",
+      icon: Star,
+      value: overview.testimonials,
+      valueLabel: "testimonials",
+    },
+
+    {
+      title: "FAQs",
+      description:
+          "Frequently asked questions used throughout the website.",
+      icon: MessageCircleQuestion,
+      value: overview.faqs,
+      valueLabel: "FAQs",
+    },
+
+    {
+      title: "Email Templates",
+      description:
+          "Customer and internal transactional email templates.",
+      icon: Mail,
+      value: overview.emailTemplates,
+      valueLabel: "templates",
+    },
+
+    {
+      title: "SEO",
+      description:
+          "Default metadata and page-level search visibility settings.",
+      icon: Image,
+      value: overview.pages,
+      valueLabel: "page identities",
+    },
+  ];
 
   return (
       <AdminShell>
@@ -146,9 +204,11 @@ function AdminCmsPage() {
               </h1>
 
               <p className="mt-2 max-w-3xl text-sm leading-relaxed text-muted-foreground">
-                Manage the content displayed across Nepal Heaven.
-                Website design and application logic remain
-                controlled by the codebase.
+                Manage the content displayed
+                across Nepal Heaven. Website
+                design and application logic
+                remain controlled by the
+                codebase.
               </p>
             </div>
 
@@ -167,48 +227,73 @@ function AdminCmsPage() {
 
               <div>
                 <p className="text-sm font-semibold text-[#0c1724]">
-                  Phase 4 CMS
+                  CMS foundation connected
                 </p>
 
                 <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-                  The CMS foundation is being built progressively.
-                  Each module becomes editable only after its
-                  database model, validation and public rendering
-                  path have been verified.
+                  These record counts now come
+                  directly from MariaDB.
+                  Individual editors will be
+                  activated progressively as
+                  each CMS module is built and
+                  verified.
                 </p>
               </div>
             </div>
           </div>
 
           <div className="mt-8 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-            {modules.map((module) => {
-              const Icon = module.icon;
+            {modules.map(
+                (module) => {
+                  const Icon =
+                      module.icon;
 
-              return (
-                  <section
-                      key={module.title}
-                      className="rounded-2xl border border-black/10 bg-white p-6 shadow-sm"
-                  >
-                    <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#0c1724] text-gold">
-                      <Icon className="h-5 w-5" />
-                    </div>
+                  return (
+                      <section
+                          key={module.title}
+                          className="rounded-2xl border border-black/10 bg-white p-6 shadow-sm"
+                      >
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#0c1724] text-gold">
+                            <Icon className="h-5 w-5" />
+                          </div>
 
-                    <h2 className="mt-5 text-lg font-semibold text-[#0c1724]">
-                      {module.title}
-                    </h2>
+                          <div className="text-right">
+                            <p className="text-2xl font-semibold text-[#0c1724]">
+                              {
+                                module.value
+                              }
+                            </p>
 
-                    <p className="mt-2 min-h-16 text-sm leading-relaxed text-muted-foreground">
-                      {module.description}
-                    </p>
+                            <p className="mt-0.5 text-[0.68rem] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
+                              {
+                                module.valueLabel
+                              }
+                            </p>
+                          </div>
+                        </div>
 
-                    <div className="mt-5">
-                  <span className="inline-flex rounded-full bg-black/5 px-3 py-1.5 text-xs font-semibold text-muted-foreground">
-                    Editor coming in Phase 4
-                  </span>
-                    </div>
-                  </section>
-              );
-            })}
+                        <h2 className="mt-5 text-lg font-semibold text-[#0c1724]">
+                          {
+                            module.title
+                          }
+                        </h2>
+
+                        <p className="mt-2 min-h-16 text-sm leading-relaxed text-muted-foreground">
+                          {
+                            module.description
+                          }
+                        </p>
+
+                        <div className="mt-5">
+                    <span className="inline-flex rounded-full bg-black/5 px-3 py-1.5 text-xs font-semibold text-muted-foreground">
+                      Editor coming in Phase 4
+                    </span>
+                        </div>
+                      </section>
+                  );
+                },
+            )}
           </div>
         </div>
       </AdminShell>
