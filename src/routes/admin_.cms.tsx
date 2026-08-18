@@ -86,7 +86,7 @@ function AdminCmsPage() {
       icon: Navigation,
       value: overview.navigationMenus,
       valueLabel: "menus",
-      to: null,
+      to: "/admin/cms/navigation" as const,
     },
 
     {
