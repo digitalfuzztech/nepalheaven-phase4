@@ -1,5 +1,6 @@
 import {
   bigint,
+    foreignKey,
   index,
   int,
   mysqlEnum,
@@ -274,18 +275,10 @@ export const media = mysqlTable(
       |
       */
 
-      generalSettingsTypeOptionId:
-          uuidColumn(
-              "general_settings_type_option_id",
-          ).references(
-              () =>
-                  cmsOtherSettingsOptions.id,
-              {
-                onDelete:
-                    "set null",
-              },
-          ),
-
+        generalSettingsTypeOptionId:
+            uuidColumn(
+                "general_settings_type_option_id",
+            ),
       lifecycleStatus:
           mysqlEnum(
               "lifecycle_status",
@@ -345,6 +338,24 @@ export const media = mysqlTable(
     (
         table,
     ) => [
+        foreignKey({
+            name:
+                "media_general_type_option_fk",
+
+            columns: [
+                table.generalSettingsTypeOptionId,
+            ],
+
+            foreignColumns: [
+                cmsOtherSettingsOptions.id,
+            ],
+        })
+            .onDelete(
+                "set null",
+            )
+            .onUpdate(
+                "no action",
+            ),
       index(
           "media_category_option_idx",
       ).on(

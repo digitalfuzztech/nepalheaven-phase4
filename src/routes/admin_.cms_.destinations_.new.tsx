@@ -15,33 +15,54 @@ import {
     getAdminSessionFn,
 } from "@/lib/auth.functions";
 
-export const Route = createFileRoute(
-    "/admin_/cms_/destinations_/new",
-)({
-    loader: async () => {
-        const admin =
-            await getAdminSessionFn();
+import {
+    getCmsOtherSettingsOptionsFn,
+} from "@/lib/cms-other-settings.functions";
 
-        if (!admin) {
-            throw redirect({
-                to: "/admin",
-            });
-        }
+export const Route =
+    createFileRoute(
+        "/admin_/cms_/destinations_/new",
+    )({
+        loader: async () => {
+            const admin =
+                await getAdminSessionFn();
 
-        return {
-            admin,
-        };
-    },
+            if (
+                !admin
+            ) {
+                throw redirect({
+                    to:
+                        "/admin",
+                });
+            }
 
-    component:
-    AdminCmsDestinationCreatePage,
-});
+            const options =
+                await getCmsOtherSettingsOptionsFn();
+
+            return {
+                admin,
+                options,
+            };
+        },
+
+        component:
+        AdminCmsDestinationCreatePage,
+    });
 
 function AdminCmsDestinationCreatePage() {
+    const {
+        options,
+    } =
+        Route.useLoaderData();
+
     return (
         <AdminShell>
             <div className="p-5 sm:p-7 lg:p-8">
-                <CmsDestinationCreateForm />
+                <CmsDestinationCreateForm
+                    options={
+                        options
+                    }
+                />
             </div>
         </AdminShell>
     );

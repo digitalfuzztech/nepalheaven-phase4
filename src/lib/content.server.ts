@@ -9,6 +9,7 @@ import {
 } from "@/db/schema/cms";
 import {
   destinationExclusions,
+  destinationFaqs,
   destinationHighlights,
   destinationInclusions,
   destinationItineraries,
@@ -133,7 +134,7 @@ export async function getDestinations(): Promise<Destination[]> {
 
   if (rows.length === 0) return [];
   const destinationIds = rows.map((row) => row.id);
-  const [highlights, tips, itineraries, inclusions, exclusions] =
+  const [highlights, tips, itineraries, inclusions, exclusions, destinationFaqRows,] =
     await Promise.all([
       database
         .select()
@@ -160,6 +161,22 @@ export async function getDestinations(): Promise<Destination[]> {
         .from(destinationExclusions)
         .where(inArray(destinationExclusions.destinationId, destinationIds))
         .orderBy(asc(destinationExclusions.sortOrder)),
+      database
+          .select()
+          .from(
+              destinationFaqs,
+          )
+          .where(
+              inArray(
+                  destinationFaqs.destinationId,
+                  destinationIds,
+              ),
+          )
+          .orderBy(
+              asc(
+                  destinationFaqs.sortOrder,
+              ),
+          ),
     ]);
 
   const highlightsByDestination = groupBy(
@@ -179,12 +196,26 @@ export async function getDestinations(): Promise<Destination[]> {
     exclusions,
     (item) => item.destinationId,
   );
+  const faqsByDestination =
+      groupBy(
+          destinationFaqRows,
+          (
+              item,
+          ) =>
+              item.destinationId,
+      );
 
   return rows.map((row) => ({
     slug: row.slug,
     name: row.name,
     region: row.region ?? "",
-    image: resolveAssetReference(row.heroImage),
+    latitude: row.latitude,
+    longitude: row.longitude,
+    image: row.heroImage
+        ? row.heroImage.startsWith("/")
+            ? row.heroImage
+            : resolveAssetReference(row.heroImage) || row.heroImage
+        : "",
     altitude:
       row.altitudeLabel ??
       (row.elevation ? `${row.elevation.toLocaleString()} m` : ""),
@@ -209,6 +240,23 @@ export async function getDestinations(): Promise<Destination[]> {
     excluded: (exclusionsByDestination.get(row.id) ?? []).map(
       (item) => item.item,
     ),
+    faqs:
+        (
+            faqsByDestination.get(
+                row.id,
+            ) ??
+            []
+        ).map(
+            (
+                faq,
+            ) => ({
+              q:
+              faq.question,
+
+              a:
+              faq.answer,
+            }),
+        ),
   }));
 }
 

@@ -72,6 +72,25 @@ function DestinationDetail() {
   const [sent, setSent] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
+  const latitude =
+      d.latitude;
+
+  const longitude =
+      d.longitude;
+
+  const hasMapLocation =
+      latitude !== null &&
+      longitude !== null;
+
+  const mapEmbedUrl =
+      hasMapLocation
+          ? `https://www.openstreetmap.org/export/embed.html?bbox=${longitude - 0.08}%2C${latitude - 0.05}%2C${longitude + 0.08}%2C${latitude + 0.05}&layer=mapnik&marker=${latitude}%2C${longitude}`
+          : null;
+
+  const mapViewUrl =
+      hasMapLocation
+          ? `https://www.openstreetmap.org/?mlat=${latitude}&mlon=${longitude}#map=12/${latitude}/${longitude}`
+          : null;
 
   async function submitItinerary(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -211,18 +230,77 @@ function DestinationDetail() {
           </Reveal>
 
           <Reveal as="section">
-            <h2 className="text-3xl">Where you'll be</h2>
-            <div className="mt-6 grid h-72 place-items-center rounded-3xl border border-dashed border-border bg-sand text-center">
-              <div>
-                <Map className="mx-auto h-8 w-8 text-gold" aria-hidden />
-                <p className="mt-3 font-semibold text-foreground">
-                  {d.name}, {d.region}
-                </p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Interactive route map
-                </p>
-              </div>
-            </div>
+            <h2 className="text-3xl">
+              Where you'll be
+            </h2>
+
+            {mapEmbedUrl &&
+            mapViewUrl ? (
+                <div className="mt-6 overflow-hidden rounded-3xl border border-border bg-card">
+                  <iframe
+                      src={
+                        mapEmbedUrl
+                      }
+                      title={`Map showing ${d.name}`}
+                      loading="lazy"
+                      className="h-80 w-full border-0"
+                  />
+
+                  <div className="flex flex-col gap-3 border-t border-border px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <p className="font-semibold text-foreground">
+                        {d.name}
+                        {d.region
+                            ? `, ${d.region}`
+                            : ""}
+                      </p>
+
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {latitude.toFixed(
+                            6,
+                        )}
+                        ,{" "}
+                        {longitude.toFixed(
+                            6,
+                        )}
+                      </p>
+                    </div>
+
+                    <a
+                        href={
+                          mapViewUrl
+                        }
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-2 text-sm font-semibold text-primary transition-colors hover:text-gold"
+                    >
+                      <Map className="h-4 w-4" />
+
+                      View larger map
+                    </a>
+                  </div>
+                </div>
+            ) : (
+                <div className="mt-6 grid h-72 place-items-center rounded-3xl border border-dashed border-border bg-sand text-center">
+                  <div>
+                    <Map
+                        className="mx-auto h-8 w-8 text-gold"
+                        aria-hidden
+                    />
+
+                    <p className="mt-3 font-semibold text-foreground">
+                      {d.name}
+                      {d.region
+                          ? `, ${d.region}`
+                          : ""}
+                    </p>
+
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Map location has not been added yet.
+                    </p>
+                  </div>
+                </div>
+            )}
           </Reveal>
 
           <Reveal as="section" className="grid gap-8 sm:grid-cols-2">
@@ -276,27 +354,21 @@ function DestinationDetail() {
             </ul>
           </Reveal>
 
-          <Reveal as="section">
-            <h2 className="text-3xl">Frequently asked</h2>
-            <div className="mt-6">
-              <FaqAccordion
-                items={[
-                  {
-                    q: `When is the best time to visit ${d.name}?`,
-                    a: `The most reliable window is ${d.season}. Outside those months we can still operate, but expect changeable weather and reduced views.`,
-                  },
-                  {
-                    q: "How fit do I need to be?",
-                    a: `${d.name} is rated ${d.difficulty.toLowerCase()}. We send a preparation plan twelve weeks before departure tailored to your current fitness.`,
-                  },
-                  {
-                    q: "Can this be made private?",
-                    a: "Yes. Every itinerary can be run privately on your own dates with a dedicated guide and vehicle.",
-                  },
-                ]}
-              />
-            </div>
-          </Reveal>
+          {d.faqs.length ? (
+              <Reveal as="section">
+                <h2 className="text-3xl">
+                  Frequently asked
+                </h2>
+
+                <div className="mt-6">
+                  <FaqAccordion
+                      items={
+                        d.faqs
+                      }
+                  />
+                </div>
+              </Reveal>
+          ) : null}
         </div>
 
         <aside className="lg:sticky lg:top-28 lg:self-start">

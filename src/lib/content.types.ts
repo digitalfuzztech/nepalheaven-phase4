@@ -2,6 +2,8 @@ export type Destination = {
   slug: string;
   name: string;
   region: string;
+  latitude: number | null;
+  longitude: number | null;
   image: string;
   altitude: string;
   season: string;
@@ -15,6 +17,14 @@ export type Destination = {
   excluded: string[];
   itinerary: { day: string; title: string; detail: string }[];
   category: string;
+  faqs:
+      Array<{
+        q:
+            string;
+
+        a:
+            string;
+      }>;
 };
 
 export type Package = {

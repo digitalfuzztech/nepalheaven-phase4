@@ -404,9 +404,17 @@ export async function getCmsSelectableImages() {
             altText:
             media.altText,
 
+            caption:
+            media.caption,
+
             originalFilename:
             media.originalFilename,
 
+            /*
+             * Keep legacy category text because
+             * older Media records may not yet have
+             * categoryOptionId.
+             */
             category:
             media.category,
 
@@ -453,7 +461,6 @@ export async function getCmsSelectableImages() {
             ),
         );
 }
-
 export async function validateCmsSelectableImageIds(
     ids:
     Array<

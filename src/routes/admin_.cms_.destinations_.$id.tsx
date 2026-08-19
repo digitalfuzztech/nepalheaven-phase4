@@ -19,48 +19,67 @@ import {
     getCmsDestinationByIdFn,
 } from "@/lib/cms-destinations.functions";
 
-export const Route = createFileRoute(
-    "/admin_/cms_/destinations_/$id",
-)({
-    loader: async ({
-                       params,
-                   }) => {
-        const admin =
-            await getAdminSessionFn();
+import {
+    getCmsOtherSettingsOptionsFn,
+} from "@/lib/cms-other-settings.functions";
 
-        if (!admin) {
-            throw redirect({
-                to: "/admin",
-            });
-        }
+export const Route =
+    createFileRoute(
+        "/admin_/cms_/destinations_/$id",
+    )({
+        loader: async ({
+                           params,
+                       }) => {
+            const admin =
+                await getAdminSessionFn();
 
-        const detail =
-            await getCmsDestinationByIdFn({
-                data: {
-                    id:
-                    params.id,
-                },
-            });
+            if (
+                !admin
+            ) {
+                throw redirect({
+                    to:
+                        "/admin",
+                });
+            }
 
-        if (!detail) {
-            throw redirect({
-                to:
-                    "/admin/cms/destinations",
-            });
-        }
+            const [
+                detail,
+                options,
+            ] =
+                await Promise.all([
+                    getCmsDestinationByIdFn({
+                        data: {
+                            id:
+                            params.id,
+                        },
+                    }),
 
-        return {
-            detail,
-        };
-    },
+                    getCmsOtherSettingsOptionsFn(),
+                ]);
 
-    component:
-    AdminCmsDestinationEditorPage,
-});
+            if (
+                !detail
+            ) {
+                throw redirect({
+                    to:
+                        "/admin/cms/destinations",
+                });
+            }
+
+            return {
+                detail,
+                options,
+            };
+        },
+
+        component:
+        AdminCmsDestinationEditorPage,
+    });
 
 function AdminCmsDestinationEditorPage() {
     const {
         detail,
+        options,
     } =
         Route.useLoaderData();
 
@@ -70,6 +89,9 @@ function AdminCmsDestinationEditorPage() {
                 <CmsDestinationEditor
                     detail={
                         detail
+                    }
+                    options={
+                        options
                     }
                 />
             </div>

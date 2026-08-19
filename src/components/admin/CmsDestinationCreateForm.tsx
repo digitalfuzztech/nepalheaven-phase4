@@ -1,406 +1,917 @@
 import {
-    useMemo,
-    useState,
-} from "react";
+    ArrowLeft,
+    ImagePlus,
+    Loader2,
+    Plus,
+    Trash2,
+} from "lucide-react";
 
 import {
     Link,
+    useNavigate,
 } from "@tanstack/react-router";
 
 import {
-    Eye,
-    EyeOff,
-    ExternalLink,
-    MapPinned,
-    Pencil,
-    Plus,
-    Search,
-} from "lucide-react";
+    useEffect,
+    useMemo,
+    useState,
+    type FormEvent,
+    type ReactNode,
+} from "react";
 
 import type {
-    CmsDestinationListItem,
-} from "@/lib/cms-destinations.server";
+    CmsOtherSettingsOption,
+} from "@/lib/cms-other-settings.constants";
 
-export function CmsDestinationsList({
-                                        destinations,
-                                    }: {
-    destinations:
-        CmsDestinationListItem[];
+import {
+    createCmsDestinationFn,
+} from "@/lib/cms-destinations.functions";
+
+import {
+    destinationMonthOptions,
+} from "@/lib/cms-destinations.constants";
+
+import {
+    CmsDestinationContentCreateFields,
+} from "@/components/admin/CmsDestinationContentCreateFields";
+
+import {
+    CmsDestinationItineraryCreateFields,
+} from "@/components/admin/CmsDestinationItineraryCreateFields";
+
+import {
+    CmsDestinationMapCreateFields,
+} from "@/components/admin/CmsDestinationMapCreateFields";
+
+import {
+    CmsDestinationFaqCreateFields,
+} from "@/components/admin/CmsDestinationFaqCreateFields";
+
+type SeasonRow = {
+    id:
+        string;
+
+    fromMonth:
+        string;
+
+    toMonth:
+        string;
+};
+
+const inputClass =
+    "w-full rounded-xl border border-black/10 bg-white px-4 py-3 text-sm text-[#0c1724] outline-none transition focus:border-gold";
+
+function makeSlug(
+    value:
+    string,
+) {
+    return value
+        .trim()
+        .toLowerCase()
+        .replace(
+            /[^a-z0-9]+/g,
+            "-",
+        )
+        .replace(
+            /^-+|-+$/g,
+            "",
+        );
+}
+
+export function CmsDestinationCreateForm({
+                                             options,
+                                         }: {
+    options:
+        CmsOtherSettingsOption[];
 }) {
+    const navigate =
+        useNavigate();
+
+    const destinationTypes =
+        useMemo(
+            () =>
+                options.filter(
+                    (option) =>
+                        option.groupKey ===
+                        "destination_type",
+                ),
+            [
+                options,
+            ],
+        );
+
+    const difficulties =
+        useMemo(
+            () =>
+                options.filter(
+                    (option) =>
+                        option.groupKey ===
+                        "difficulty",
+                ),
+            [
+                options,
+            ],
+        );
+
     const [
-        query,
-        setQuery,
+        title,
+        setTitle,
     ] =
         useState("");
 
-    const filtered =
-        useMemo(() => {
-            const normalized =
-                query
-                    .trim()
-                    .toLowerCase();
+    const [
+        slug,
+        setSlug,
+    ] =
+        useState("");
 
+    const [
+        slugTouched,
+        setSlugTouched,
+    ] =
+        useState(false);
+
+    const [
+        mainImage,
+        setMainImage,
+    ] =
+        useState<File | null>(
+            null,
+        );
+
+    const [
+        previewUrl,
+        setPreviewUrl,
+    ] =
+        useState<
+            string | null
+        >(
+            null,
+        );
+
+    const [
+        seasons,
+        setSeasons,
+    ] =
+        useState<
+            SeasonRow[]
+        >([]);
+
+    const [
+        submitting,
+        setSubmitting,
+    ] =
+        useState(false);
+
+    const [
+        error,
+        setError,
+    ] =
+        useState("");
+
+    useEffect(
+        () => {
             if (
-                !normalized
+                !mainImage
             ) {
-                return destinations;
+                setPreviewUrl(
+                    null,
+                );
+
+                return;
             }
 
-            return destinations.filter(
-                (
-                    destination,
-                ) => {
-                    const searchable =
-                        [
-                            destination.name,
-                            destination.slug,
-                            destination.region,
-                            destination.category,
-                            destination.difficulty,
-                            destination.duration,
-                        ]
-                            .filter(
-                                Boolean,
-                            )
-                            .join(
-                                " ",
-                            )
-                            .toLowerCase();
+            const url =
+                URL.createObjectURL(
+                    mainImage,
+                );
 
-                    return searchable.includes(
-                        normalized,
-                    );
-                },
+            setPreviewUrl(
+                url,
             );
-        }, [
-            destinations,
-            query,
-        ]);
 
-    const publishedCount =
-        destinations.filter(
-            (
-                destination,
-            ) =>
-                destination.status,
-        ).length;
+            return () => {
+                URL.revokeObjectURL(
+                    url,
+                );
+            };
+        },
+        [
+            mainImage,
+        ],
+    );
 
-    const unpublishedCount =
-        destinations.length -
-        publishedCount;
+    function addSeason() {
+        setSeasons(
+            (current) => [
+                ...current,
+
+                {
+                    id:
+                        crypto.randomUUID(),
+
+                    fromMonth:
+                        "",
+
+                    toMonth:
+                        "",
+                },
+            ],
+        );
+    }
+
+    function updateSeason(
+        id:
+        string,
+
+        field:
+            "fromMonth" |
+            "toMonth",
+
+        value:
+        string,
+    ) {
+        setSeasons(
+            (current) =>
+                current.map(
+                    (season) =>
+                        season.id ===
+                        id
+                            ? {
+                                ...season,
+                                [field]:
+                                value,
+                            }
+                            : season,
+                ),
+        );
+    }
+
+    function removeSeason(
+        id:
+        string,
+    ) {
+        setSeasons(
+            (current) =>
+                current.filter(
+                    (season) =>
+                        season.id !==
+                        id,
+                ),
+        );
+    }
+
+    async function submit(
+        event:
+        FormEvent<HTMLFormElement>,
+    ) {
+        event.preventDefault();
+
+        if (
+            submitting
+        ) {
+            return;
+        }
+
+        const incompleteSeason =
+            seasons.some(
+                (season) =>
+                    !season.fromMonth ||
+                    !season.toMonth,
+            );
+
+        if (
+            incompleteSeason
+        ) {
+            setError(
+                "Complete both From and To month for every Best Season range.",
+            );
+
+            return;
+        }
+
+        setSubmitting(
+            true,
+        );
+
+        setError("");
+
+        const formData =
+            new FormData(
+                event.currentTarget,
+            );
+
+        formData.set(
+            "name",
+            title,
+        );
+
+        formData.set(
+            "slug",
+            slug,
+        );
+
+        formData.set(
+            "bestSeasons",
+            JSON.stringify(
+                seasons.map(
+                    (season) => ({
+                        fromMonth:
+                            Number(
+                                season.fromMonth,
+                            ),
+
+                        toMonth:
+                            Number(
+                                season.toMonth,
+                            ),
+                    }),
+                ),
+            ),
+        );
+
+        if (
+            mainImage
+        ) {
+            formData.set(
+                "mainImage",
+                mainImage,
+            );
+        }
+
+        try {
+            const result =
+                await createCmsDestinationFn({
+                    data:
+                    formData,
+                });
+
+            await navigate({
+                to:
+                    "/admin/cms/destinations/$id",
+
+                params: {
+                    id:
+                    result.id,
+                },
+            });
+        } catch (
+            caught
+            ) {
+            console.error(
+                "Destination creation failed",
+                caught,
+            );
+
+            setError(
+                caught instanceof
+                Error
+                    ? caught.message
+                    : "Destination could not be created.",
+            );
+        } finally {
+            setSubmitting(
+                false,
+            );
+        }
+    }
 
     return (
-        <div className="space-y-6">
-            <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
-                <div>
-                    <p className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">
-                        Destination CMS
-                    </p>
+        <div className="mx-auto max-w-5xl">
+            <Link
+                to="/admin/cms/destinations"
+                className="inline-flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-[#0c1724]"
+            >
+                <ArrowLeft className="h-4 w-4" />
 
-                    <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[#0c1724]">
-                        Destinations
-                    </h1>
+                Back to destinations
+            </Link>
 
-                    <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-                        Create and manage
-                        Nepal Heaven
-                        destinations,
-                        content and
-                        visibility.
-                    </p>
-                </div>
+            <div className="mt-7">
+                <p className="text-xs font-bold uppercase tracking-[0.18em] text-gold">
+                    Destination CMS
+                </p>
 
-                <Link
-                    to="/admin/cms/destinations/new"
-                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#0c1724] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#14283d]"
+                <h1 className="mt-2 text-3xl font-semibold text-[#0c1724]">
+                    Create Destination
+                </h1>
+
+                <p className="mt-2 text-sm text-muted-foreground">
+                    New destinations remain unpublished until publishing is enabled later.
+                </p>
+            </div>
+
+            <form
+                onSubmit={
+                    submit
+                }
+                className="mt-7 space-y-6"
+            >
+                <Section
+                    title="Destination Identity"
+                    description="Main destination information used throughout the site."
                 >
-                    <Plus
-                        className="h-4 w-4 text-gold"
-                        aria-hidden
-                    />
+                    <div className="grid gap-5 md:grid-cols-2">
+                        <Field
+                            label="Destination Title"
+                            required
+                        >
+                            <input
+                                required
+                                value={
+                                    title
+                                }
+                                onChange={(
+                                    event,
+                                ) => {
+                                    const value =
+                                        event.target.value;
 
-                    Create destination
-                </Link>
-            </div>
+                                    setTitle(
+                                        value,
+                                    );
 
-            <div className="grid gap-4 sm:grid-cols-3">
-                <StatCard
-                    label="Total destinations"
-                    value={
-                        destinations.length
-                    }
-                />
+                                    if (
+                                        !slugTouched
+                                    ) {
+                                        setSlug(
+                                            makeSlug(
+                                                value,
+                                            ),
+                                        );
+                                    }
+                                }}
+                                className={
+                                    inputClass
+                                }
+                            />
+                        </Field>
 
-                <StatCard
-                    label="Published"
-                    value={
-                        publishedCount
-                    }
-                />
+                        <Field
+                            label="Slug"
+                            required
+                        >
+                            <input
+                                required
+                                value={
+                                    slug
+                                }
+                                onChange={(
+                                    event,
+                                ) => {
+                                    setSlugTouched(
+                                        true,
+                                    );
 
-                <StatCard
-                    label="Unpublished"
-                    value={
-                        unpublishedCount
-                    }
-                />
-            </div>
+                                    setSlug(
+                                        makeSlug(
+                                            event.target.value,
+                                        ),
+                                    );
+                                }}
+                                className={
+                                    inputClass
+                                }
+                            />
+                        </Field>
 
-            <div className="rounded-2xl border border-black/10 bg-white p-4">
-                <label className="flex items-center gap-3 rounded-xl border border-black/10 bg-[#f8f8f6] px-4 py-3">
-                    <Search
-                        className="h-4 w-4 shrink-0 text-muted-foreground"
-                        aria-hidden
-                    />
+                        <Field label="Destination Region">
+                            <input
+                                name="region"
+                                placeholder="Solukhumbu"
+                                className={
+                                    inputClass
+                                }
+                            />
+                        </Field>
 
-                    <span className="sr-only">
-                        Search destinations
-                    </span>
+                        <Field label="Destination Type">
+                            <select
+                                name="destinationTypeOptionId"
+                                className={
+                                    inputClass
+                                }
+                            >
+                                <option value="">
+                                    Select destination type
+                                </option>
 
+                                {destinationTypes.map(
+                                    (option) => (
+                                        <option
+                                            key={
+                                                option.id
+                                            }
+                                            value={
+                                                option.id
+                                            }
+                                        >
+                                            {
+                                                option.name
+                                            }
+                                        </option>
+                                    ),
+                                )}
+                            </select>
+                        </Field>
+
+                        <div className="md:col-span-2">
+                            <Field label="Destination Subtitle">
+                                <textarea
+                                    name="subtitle"
+                                    rows={3}
+                                    className={
+                                        inputClass
+                                    }
+                                    placeholder="Short destination subtitle..."
+                                />
+                            </Field>
+                        </div>
+                    </div>
+                </Section>
+
+                <Section
+                    title="Destination Main Image"
+                    description="Direct upload for the individual destination detail page. This is not selected from Media Library."
+                >
                     <input
-                        type="search"
-                        value={
-                            query
-                        }
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp,image/gif"
                         onChange={(
                             event,
                         ) =>
-                            setQuery(
-                                event
-                                    .target
-                                    .value,
+                            setMainImage(
+                                event.target.files?.[0] ??
+                                null,
                             )
                         }
-                        placeholder="Search name, slug, region, category, difficulty..."
-                        className="w-full bg-transparent text-sm text-[#0c1724] outline-none placeholder:text-muted-foreground"
+                        className="w-full rounded-xl border border-dashed border-black/15 bg-[#faf9f6] p-5 text-sm"
                     />
-                </label>
-            </div>
 
-            <div className="overflow-hidden rounded-2xl border border-black/10 bg-white">
-                <div className="overflow-x-auto">
-                    <table className="w-full min-w-[1080px] text-left">
-                        <thead className="border-b border-black/10 bg-[#f8f8f6]">
-                        <tr className="text-[0.68rem] font-bold uppercase tracking-[0.12em] text-muted-foreground">
-                            <th className="px-5 py-4">
-                                Order
-                            </th>
+                    {previewUrl ? (
+                        <div className="mt-4 overflow-hidden rounded-xl border border-black/10">
+                            <img
+                                src={
+                                    previewUrl
+                                }
+                                alt=""
+                                className="max-h-80 w-full object-cover"
+                            />
+                        </div>
+                    ) : (
+                        <div className="mt-4 grid h-40 place-items-center rounded-xl border border-dashed border-black/10 bg-black/[0.02]">
+                            <ImagePlus className="h-8 w-8 text-muted-foreground" />
+                        </div>
+                    )}
+                </Section>
 
-                            <th className="px-5 py-4">
-                                Destination
-                            </th>
+                <Section
+                    title="Travel Information"
+                    description="Altitude, duration, difficulty and best travel seasons."
+                >
+                    <div className="grid gap-5 md:grid-cols-2">
+                        <Field label="Minimum Altitude (m)">
+                            <input
+                                name="minAltitude"
+                                type="number"
+                                step="1"
+                                className={
+                                    inputClass
+                                }
+                            />
+                        </Field>
 
-                            <th className="px-5 py-4">
-                                Region
-                            </th>
+                        <Field label="Maximum Altitude (m)">
+                            <input
+                                name="maxAltitude"
+                                type="number"
+                                step="1"
+                                className={
+                                    inputClass
+                                }
+                            />
+                        </Field>
 
-                            <th className="px-5 py-4">
-                                Category
-                            </th>
+                        <Field label="Minimum Duration (days)">
+                            <input
+                                name="durationMinDays"
+                                type="number"
+                                min="1"
+                                step="1"
+                                placeholder="12"
+                                className={
+                                    inputClass
+                                }
+                            />
+                        </Field>
 
-                            <th className="px-5 py-4">
-                                Difficulty
-                            </th>
+                        <Field label="Maximum Duration (days)">
+                            <input
+                                name="durationMaxDays"
+                                type="number"
+                                min="1"
+                                step="1"
+                                placeholder="14"
+                                className={
+                                    inputClass
+                                }
+                            />
+                        </Field>
 
-                            <th className="px-5 py-4">
-                                Duration
-                            </th>
+                        <Field label="Difficulty">
+                            <select
+                                name="difficultyOptionId"
+                                className={
+                                    inputClass
+                                }
+                            >
+                                <option value="">
+                                    Select difficulty
+                                </option>
 
-                            <th className="px-5 py-4">
-                                Status
-                            </th>
+                                {difficulties.map(
+                                    (option) => (
+                                        <option
+                                            key={
+                                                option.id
+                                            }
+                                            value={
+                                                option.id
+                                            }
+                                        >
+                                            {
+                                                option.name
+                                            }
+                                        </option>
+                                    ),
+                                )}
+                            </select>
+                        </Field>
 
-                            <th className="px-5 py-4 text-right">
-                                Actions
-                            </th>
-                        </tr>
-                        </thead>
+                        <Field label="Display Order">
+                            <input
+                                name="sortOrder"
+                                type="number"
+                                min="0"
+                                step="1"
+                                defaultValue="0"
+                                className={
+                                    inputClass
+                                }
+                            />
+                        </Field>
+                    </div>
 
-                        <tbody className="divide-y divide-black/10">
-                        {filtered.map(
-                            (
-                                destination,
-                            ) => (
-                                <tr
-                                    key={
-                                        destination.id
-                                    }
-                                    className="transition-colors hover:bg-black/[0.02]"
-                                >
-                                    <td className="px-5 py-4">
-                                            <span className="inline-flex min-w-8 justify-center rounded-lg bg-black/5 px-2 py-1 text-xs font-semibold text-[#0c1724]">
-                                                {
-                                                    destination.sortOrder
-                                                }
-                                            </span>
-                                    </td>
+                    <div className="mt-7">
+                        <div className="flex items-center justify-between gap-4">
+                            <div>
+                                <p className="text-sm font-semibold text-[#0c1724]">
+                                    Best Season
+                                </p>
 
-                                    <td className="px-5 py-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#0c1724] text-gold">
-                                                <MapPinned
-                                                    className="h-4 w-4"
-                                                    aria-hidden
-                                                />
-                                            </div>
+                                <p className="mt-1 text-xs text-muted-foreground">
+                                    Add one or more month ranges.
+                                </p>
+                            </div>
 
-                                            <div className="min-w-0">
-                                                <p className="font-semibold text-[#0c1724]">
-                                                    {
-                                                        destination.name
-                                                    }
-                                                </p>
+                            <button
+                                type="button"
+                                onClick={
+                                    addSeason
+                                }
+                                className="inline-flex items-center gap-2 rounded-lg border border-black/10 px-3 py-2 text-xs font-semibold"
+                            >
+                                <Plus className="h-4 w-4" />
 
-                                                <p className="mt-0.5 truncate text-xs text-muted-foreground">
-                                                    /
-                                                    {
-                                                        destination.slug
-                                                    }
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </td>
+                                Add Season
+                            </button>
+                        </div>
 
-                                    <td className="px-5 py-4 text-sm text-muted-foreground">
-                                        {destination.region ||
-                                            "—"}
-                                    </td>
+                        <div className="mt-4 grid gap-3">
+                            {seasons.map(
+                                (season) => (
+                                    <div
+                                        key={
+                                            season.id
+                                        }
+                                        className="grid gap-3 rounded-xl border border-black/10 bg-[#faf9f6] p-4 sm:grid-cols-[1fr_1fr_auto]"
+                                    >
+                                        <select
+                                            value={
+                                                season.fromMonth
+                                            }
+                                            onChange={(
+                                                event,
+                                            ) =>
+                                                updateSeason(
+                                                    season.id,
+                                                    "fromMonth",
+                                                    event.target.value,
+                                                )
+                                            }
+                                            className={
+                                                inputClass
+                                            }
+                                        >
+                                            <option value="">
+                                                From month
+                                            </option>
 
-                                    <td className="px-5 py-4 text-sm text-muted-foreground">
-                                        {destination.category ||
-                                            "—"}
-                                    </td>
+                                            {destinationMonthOptions.map(
+                                                (month) => (
+                                                    <option
+                                                        key={
+                                                            month.value
+                                                        }
+                                                        value={
+                                                            month.value
+                                                        }
+                                                    >
+                                                        {
+                                                            month.label
+                                                        }
+                                                    </option>
+                                                ),
+                                            )}
+                                        </select>
 
-                                    <td className="px-5 py-4 text-sm text-muted-foreground">
-                                        {destination.difficulty ||
-                                            "—"}
-                                    </td>
+                                        <select
+                                            value={
+                                                season.toMonth
+                                            }
+                                            onChange={(
+                                                event,
+                                            ) =>
+                                                updateSeason(
+                                                    season.id,
+                                                    "toMonth",
+                                                    event.target.value,
+                                                )
+                                            }
+                                            className={
+                                                inputClass
+                                            }
+                                        >
+                                            <option value="">
+                                                To month
+                                            </option>
 
-                                    <td className="px-5 py-4 text-sm text-muted-foreground">
-                                        {destination.duration ||
-                                            "—"}
-                                    </td>
+                                            {destinationMonthOptions.map(
+                                                (month) => (
+                                                    <option
+                                                        key={
+                                                            month.value
+                                                        }
+                                                        value={
+                                                            month.value
+                                                        }
+                                                    >
+                                                        {
+                                                            month.label
+                                                        }
+                                                    </option>
+                                                ),
+                                            )}
+                                        </select>
 
-                                    <td className="px-5 py-4">
-                                        {destination.status ? (
-                                            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-3 py-1.5 text-xs font-semibold text-emerald-700">
-                                                    <Eye
-                                                        className="h-3.5 w-3.5"
-                                                        aria-hidden
-                                                    />
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                removeSeason(
+                                                    season.id,
+                                                )
+                                            }
+                                            className="grid h-11 w-11 place-items-center rounded-xl border border-red-200 text-red-600 hover:bg-red-50"
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </button>
+                                    </div>
+                                ),
+                            )}
 
-                                                    Published
-                                                </span>
-                                        ) : (
-                                            <span className="inline-flex items-center gap-1.5 rounded-full bg-black/5 px-3 py-1.5 text-xs font-semibold text-muted-foreground">
-                                                    <EyeOff
-                                                        className="h-3.5 w-3.5"
-                                                        aria-hidden
-                                                    />
+                            {!seasons.length ? (
+                                <p className="rounded-xl border border-dashed border-black/10 p-5 text-sm text-muted-foreground">
+                                    No Best Season ranges added yet.
+                                </p>
+                            ) : null}
+                        </div>
+                    </div>
+                </Section>
 
-                                                    Unpublished
-                                                </span>
-                                        )}
-                                    </td>
+                <Section
+                    title="Overview"
+                    description="Main overview text used on the destination detail page."
+                >
+                    <textarea
+                        name="overview"
+                        rows={10}
+                        className={
+                            inputClass
+                        }
+                        placeholder="Write the destination overview..."
+                    />
+                </Section>
 
-                                    <td className="px-5 py-4">
-                                        <div className="flex items-center justify-end gap-2">
-                                            <Link
-                                                to="/admin/cms/destinations/$id"
-                                                params={{
-                                                    id:
-                                                    destination.id,
-                                                }}
-                                                className="inline-flex items-center gap-1.5 rounded-lg border border-black/10 px-3 py-2 text-xs font-semibold text-[#0c1724] transition hover:bg-black/[0.04]"
-                                            >
-                                                <Pencil
-                                                    className="h-3.5 w-3.5"
-                                                    aria-hidden
-                                                />
+                <CmsDestinationContentCreateFields />
 
-                                                Edit
-                                            </Link>
+                <CmsDestinationItineraryCreateFields />
 
-                                            {destination.status ? (
-                                                <a
-                                                    href={`/destinations/${destination.slug}`}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="inline-flex items-center gap-1.5 rounded-lg border border-black/10 px-3 py-2 text-xs font-semibold text-[#0c1724] transition hover:border-gold hover:text-gold"
-                                                >
-                                                    <ExternalLink
-                                                        className="h-3.5 w-3.5"
-                                                        aria-hidden
-                                                    />
+                <CmsDestinationMapCreateFields />
 
-                                                    View
-                                                </a>
-                                            ) : null}
-                                        </div>
-                                    </td>
-                                </tr>
-                            ),
+                <CmsDestinationFaqCreateFields />
+
+                {error ? (
+                    <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+                        {error}
+                    </div>
+                ) : null}
+
+                <div className="flex justify-end">
+                    <button
+                        type="submit"
+                        disabled={
+                            submitting ||
+                            !title.trim() ||
+                            !slug.trim()
+                        }
+                        className="inline-flex items-center gap-2 rounded-xl bg-[#0c1724] px-6 py-3 text-sm font-semibold text-white disabled:opacity-50"
+                    >
+                        {submitting ? (
+                            <Loader2 className="h-4 w-4 animate-spin text-gold" />
+                        ) : (
+                            <Plus className="h-4 w-4 text-gold" />
                         )}
 
-                        {filtered.length ===
-                        0 ? (
-                            <tr>
-                                <td
-                                    colSpan={
-                                        8
-                                    }
-                                    className="px-6 py-16 text-center"
-                                >
-                                    <p className="font-semibold text-[#0c1724]">
-                                        No
-                                        destinations
-                                        found.
-                                    </p>
-
-                                    <p className="mt-1 text-sm text-muted-foreground">
-                                        Try a
-                                        different
-                                        search term.
-                                    </p>
-                                </td>
-                            </tr>
-                        ) : null}
-                        </tbody>
-                    </table>
+                        {submitting
+                            ? "Creating..."
+                            : "Create Destination"}
+                    </button>
                 </div>
-
-                <div className="border-t border-black/10 px-5 py-4 text-xs text-muted-foreground">
-                    Showing{" "}
-                    {
-                        filtered.length
-                    }{" "}
-                    of{" "}
-                    {
-                        destinations.length
-                    }{" "}
-                    destinations
-                </div>
-            </div>
+            </form>
         </div>
     );
 }
 
-function StatCard({
-                      label,
-                      value,
-                  }: {
-    label: string;
-    value: number;
+function Section({
+                     title,
+                     description,
+                     children,
+                 }: {
+    title:
+        string;
+
+    description:
+        string;
+
+    children:
+        ReactNode;
 }) {
     return (
-        <div className="rounded-2xl border border-black/10 bg-white p-5">
-            <p className="text-[0.68rem] font-bold uppercase tracking-[0.14em] text-muted-foreground">
-                {label}
+        <section className="rounded-2xl border border-black/10 bg-white p-6">
+            <h2 className="text-lg font-semibold text-[#0c1724]">
+                {title}
+            </h2>
+
+            <p className="mt-1 text-sm text-muted-foreground">
+                {description}
             </p>
 
-            <p className="mt-2 text-3xl font-semibold text-[#0c1724]">
-                {value}
-            </p>
-        </div>
+            <div className="mt-6">
+                {children}
+            </div>
+        </section>
+    );
+}
+
+function Field({
+                   label,
+                   required = false,
+                   children,
+               }: {
+    label:
+        string;
+
+    required?:
+        boolean;
+
+    children:
+        ReactNode;
+}) {
+    return (
+        <label className="block">
+            <span className="text-sm font-semibold text-[#0c1724]">
+                {label}
+
+                {required ? (
+                    <span className="ml-1 text-red-600">
+                        *
+                    </span>
+                ) : null}
+            </span>
+
+            <div className="mt-2">
+                {children}
+            </div>
+        </label>
     );
 }

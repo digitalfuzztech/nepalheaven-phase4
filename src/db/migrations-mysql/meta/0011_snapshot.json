@@ -1,8 +1,8 @@
 {
   "version": "5",
   "dialect": "mysql",
-  "id": "c7345efd-e4d7-40c8-8fd6-f34ce1d29e9c",
-  "prevId": "34268704-d351-447d-8ca0-24a17e94758f",
+  "id": "ff422f7d-7251-4e95-8ccf-4e110d3358ec",
+  "prevId": "58be4ea9-0871-4437-bab0-d669400c8f15",
   "tables": {
     "users": {
       "name": "users",
@@ -120,6 +120,73 @@
           ]
         }
       },
+      "checkConstraint": {}
+    },
+    "destination_best_seasons": {
+      "name": "destination_best_seasons",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "varchar(36)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "destination_id": {
+          "name": "destination_id",
+          "type": "varchar(36)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "from_month": {
+          "name": "from_month",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "to_month": {
+          "name": "to_month",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "sort_order": {
+          "name": "sort_order",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "destination_best_seasons_destination_id_destinations_id_fk": {
+          "name": "destination_best_seasons_destination_id_destinations_id_fk",
+          "tableFrom": "destination_best_seasons",
+          "tableTo": "destinations",
+          "columnsFrom": [
+            "destination_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "destination_best_seasons_id": {
+          "name": "destination_best_seasons_id",
+          "columns": [
+            "id"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
       "checkConstraint": {}
     },
     "destination_exclusions": {
@@ -460,6 +527,13 @@
           "notNull": true,
           "autoincrement": false
         },
+        "subtitle": {
+          "name": "subtitle",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
         "short_description": {
           "name": "short_description",
           "type": "text",
@@ -481,9 +555,37 @@
           "notNull": false,
           "autoincrement": false
         },
+        "hero_image_storage_key": {
+          "name": "hero_image_storage_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
         "region": {
           "name": "region",
           "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "latitude": {
+          "name": "latitude",
+          "type": "decimal(10,7)",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "longitude": {
+          "name": "longitude",
+          "type": "decimal(10,7)",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "destination_type_option_id": {
+          "name": "destination_type_option_id",
+          "type": "varchar(36)",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
@@ -495,9 +597,30 @@
           "notNull": false,
           "autoincrement": false
         },
+        "difficulty_option_id": {
+          "name": "difficulty_option_id",
+          "type": "varchar(36)",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
         "difficulty": {
           "name": "difficulty",
           "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "duration_min_days": {
+          "name": "duration_min_days",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "duration_max_days": {
+          "name": "duration_max_days",
+          "type": "int",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
@@ -599,7 +722,34 @@
         }
       },
       "indexes": {},
-      "foreignKeys": {},
+      "foreignKeys": {
+        "destinations_type_option_fk": {
+          "name": "destinations_type_option_fk",
+          "tableFrom": "destinations",
+          "tableTo": "cms_other_settings_options",
+          "columnsFrom": [
+            "destination_type_option_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "destinations_difficulty_option_fk": {
+          "name": "destinations_difficulty_option_fk",
+          "tableFrom": "destinations",
+          "tableTo": "cms_other_settings_options",
+          "columnsFrom": [
+            "difficulty_option_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {
         "destinations_id": {
           "name": "destinations_id",
@@ -3555,12 +3705,12 @@
           "onDelete": "set null",
           "onUpdate": "no action"
         },
-        "media_general_type_option_fk": {
-          "name": "media_general_type_option_fk",
+        "media_created_by_user_id_users_id_fk": {
+          "name": "media_created_by_user_id_users_id_fk",
           "tableFrom": "media",
-          "tableTo": "cms_other_settings_options",
+          "tableTo": "users",
           "columnsFrom": [
-            "general_settings_type_option_id"
+            "created_by_user_id"
           ],
           "columnsTo": [
             "id"
@@ -3568,12 +3718,12 @@
           "onDelete": "set null",
           "onUpdate": "no action"
         },
-        "media_created_by_user_id_users_id_fk": {
-          "name": "media_created_by_user_id_users_id_fk",
+        "media_general_type_option_fk": {
+          "name": "media_general_type_option_fk",
           "tableFrom": "media",
-          "tableTo": "users",
+          "tableTo": "cms_other_settings_options",
           "columnsFrom": [
-            "created_by_user_id"
+            "general_settings_type_option_id"
           ],
           "columnsTo": [
             "id"
