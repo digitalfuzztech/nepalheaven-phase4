@@ -14,7 +14,6 @@ import {
 } from "lucide-react";
 import {
   getDestinationBySlugFn,
-  getDestinationsFn,
   getPackagesFn,
 } from "@/lib/content.functions";
 import { PageHero } from "@/components/PageHero";
@@ -28,13 +27,31 @@ import { WhatsAppLink } from "@/components/WhatsAppLink";
 
 export const Route = createFileRoute("/destinations/$slug")({
   loader: async ({ params }) => {
-    const [destination, destinations, packages] = await Promise.all([
-      getDestinationBySlugFn({ data: { slug: params.slug } }),
-      getDestinationsFn(),
-      getPackagesFn(),
-    ]);
-    if (!destination) throw notFound();
-    return { destination, destinations, packages };
+    const [
+      destination,
+      packages,
+    ] =
+        await Promise.all([
+          getDestinationBySlugFn({
+            data: {
+              slug:
+              params.slug,
+            },
+          }),
+
+          getPackagesFn(),
+        ]);
+
+    if (
+        !destination
+    ) {
+      throw notFound();
+    }
+
+    return {
+      destination,
+      packages,
+    };
   },
   head: ({ loaderData, params }) => {
     if (!loaderData) {
@@ -62,7 +79,7 @@ export const Route = createFileRoute("/destinations/$slug")({
 });
 
 function DestinationDetail() {
-  const { destination: d, destinations, packages } = Route.useLoaderData();
+  const { destination: d, packages } = Route.useLoaderData();
   const { user } = useAuth();
   const related = packages
     .filter((p) =>
@@ -186,30 +203,47 @@ function DestinationDetail() {
             </ul>
           </Reveal>
 
-          <Reveal as="section">
-            <h2 className="text-3xl">Gallery</h2>
-            <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3">
-              {[
-                d.image,
-                ...destinations
-                  .filter((x) => x.slug !== d.slug)
-                  .slice(0, 5)
-                  .map((x) => x.image),
-              ].map((src, i) => (
-                <figure
-                  key={i}
-                  className="zoom-media aspect-[4/3] overflow-hidden rounded-2xl"
-                >
-                  <img
-                    src={src}
-                    alt={`${d.name} gallery image ${i + 1}`}
-                    loading="lazy"
-                    className="h-full w-full object-cover"
-                  />
-                </figure>
-              ))}
-            </div>
-          </Reveal>
+          {d.gallery.length ? (
+              <Reveal as="section">
+                <h2 className="text-3xl">
+                  Gallery
+                </h2>
+
+                <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3">
+                  {d.gallery
+                      .slice(
+                          0,
+                          6,
+                      )
+                      .map(
+                          (
+                              item,
+                          ) => (
+                              <figure
+                                  key={
+                                    item.id
+                                  }
+                                  className="zoom-media overflow-hidden rounded-2xl"
+                              >
+                                <div className="aspect-[4/3] overflow-hidden">
+                                  <img
+                                      src={
+                                        item.image
+                                      }
+                                      alt={
+                                        item.alt
+                                      }
+                                      loading="lazy"
+                                      className="h-full w-full object-cover"
+                                  />
+                                </div>
+
+                              </figure>
+                          ),
+                      )}
+                </div>
+              </Reveal>
+          ) : null}
 
           <Reveal as="section">
             <h2 className="text-3xl">Itinerary</h2>

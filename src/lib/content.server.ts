@@ -1,4 +1,4 @@
-import { asc, eq, inArray } from "drizzle-orm";
+import { and, asc, eq, inArray } from "drizzle-orm";
 import { db } from "@/db";
 import {
   blogCategories,
@@ -134,7 +134,7 @@ export async function getDestinations(): Promise<Destination[]> {
 
   if (rows.length === 0) return [];
   const destinationIds = rows.map((row) => row.id);
-  const [highlights, tips, itineraries, inclusions, exclusions, destinationFaqRows,] =
+  const [highlights, tips, itineraries, inclusions, exclusions, destinationFaqRows, destinationMediaRows,] =
     await Promise.all([
       database
         .select()
@@ -177,6 +177,29 @@ export async function getDestinations(): Promise<Destination[]> {
                   destinationFaqs.sortOrder,
               ),
           ),
+      database
+          .select()
+          .from(
+              media,
+          )
+          .where(
+              and(
+                  eq(
+                      media.type,
+                      "image",
+                  ),
+
+                  inArray(
+                      media.associatedDestinationId,
+                      destinationIds,
+                  ),
+              ),
+          )
+          .orderBy(
+              asc(
+                  media.createdAt,
+              ),
+          ),
     ]);
 
   const highlightsByDestination = groupBy(
@@ -203,6 +226,15 @@ export async function getDestinations(): Promise<Destination[]> {
               item,
           ) =>
               item.destinationId,
+      );
+
+  const mediaByDestination =
+      groupBy(
+          destinationMediaRows,
+          (
+              item,
+          ) =>
+              item.associatedDestinationId,
       );
 
   return rows.map((row) => ({
@@ -255,6 +287,41 @@ export async function getDestinations(): Promise<Destination[]> {
 
               a:
               faq.answer,
+            }),
+        ),
+    gallery:
+        (
+            mediaByDestination.get(
+                row.id,
+            ) ??
+            []
+        ).map(
+            (
+                item,
+            ) => ({
+              id:
+              item.id,
+
+              image:
+                  item.url.startsWith("/")
+                      ? item.url
+                      : resolveAssetReference(
+                          item.url,
+                      ) ||
+                      item.url,
+
+              title:
+                  item.title ??
+                  "",
+
+              alt:
+                  item.altText ??
+                  item.title ??
+                  row.name,
+
+              caption:
+                  item.caption ??
+                  "",
             }),
         ),
   }));

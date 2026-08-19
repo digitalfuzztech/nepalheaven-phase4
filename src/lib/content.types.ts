@@ -25,6 +25,23 @@ export type Destination = {
         a:
             string;
       }>;
+  gallery:
+      Array<{
+        id:
+            string;
+
+        image:
+            string;
+
+        title:
+            string;
+
+        alt:
+            string;
+
+        caption:
+            string;
+      }>;
 };
 
 export type Package = {
