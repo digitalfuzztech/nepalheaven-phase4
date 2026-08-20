@@ -106,6 +106,7 @@ export function CmsMediaPicker({
                                    description,
                                    value,
                                    images,
+                                   websiteMediaOnly = false,
                                    onChange,
                                }: {
     label:
@@ -120,6 +121,9 @@ export function CmsMediaPicker({
 
     images:
         CmsSelectableImage[];
+
+    websiteMediaOnly?:
+        boolean;
 
     onChange: (
         id:
@@ -245,6 +249,17 @@ export function CmsMediaPicker({
         ) ??
         null;
 
+    const eligiblePickerImages = useMemo(() => {
+        if (!websiteMediaOnly || classificationOptions.categories.length === 0) return pickerImages;
+        return pickerImages.filter((image) => {
+            const category = resolveMediaCategory(image, classificationOptions);
+            if (!category) return true;
+            if (!matchesStableOption(category, "general")) return false;
+            const generalType = classificationOptions.generalSettingsTypes.find((option) => option.id === image.generalSettingsTypeOptionId);
+            return generalType ? matchesStableOption(generalType, "website-media") : false;
+        });
+    }, [classificationOptions, pickerImages, websiteMediaOnly]);
+
     /*
     |--------------------------------------------------------------------------
     | Refresh whenever picker opens
@@ -356,7 +371,7 @@ export function CmsMediaPicker({
                         .trim()
                         .toLowerCase();
 
-                return pickerImages.filter(
+                return eligiblePickerImages.filter(
                     (
                         image,
                     ) => {
@@ -411,7 +426,7 @@ export function CmsMediaPicker({
                 );
             },
             [
-                pickerImages,
+                eligiblePickerImages,
                 classificationOptions,
                 search,
                 categoryFilter,
@@ -847,10 +862,10 @@ export function CmsMediaPicker({
                         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-black/10 bg-black/[0.015] px-5 py-4">
                             <p className="text-xs text-muted-foreground">
                                 {
-                                    pickerImages.length
+                                    eligiblePickerImages.length
                                 }{" "}
                                 ready image
-                                {pickerImages.length ===
+                                {eligiblePickerImages.length ===
                                 1
                                     ? ""
                                     : "s"}{" "}
@@ -871,6 +886,20 @@ export function CmsMediaPicker({
             ) : null}
         </>
     );
+}
+
+function matchesStableOption(
+    option: { name: string; value: string },
+    expected: string,
+) {
+    const normalize = (value: string) =>
+        value
+            .trim()
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, "-")
+            .replace(/^-+|-+$/g, "");
+
+    return option.value === expected || normalize(option.name) === expected;
 }
 
 /*

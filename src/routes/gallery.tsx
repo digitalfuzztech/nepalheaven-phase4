@@ -169,6 +169,11 @@ function GalleryPage() {
         );
 
     const [
+        packageType,
+        setPackageType,
+    ] = useState("All Package Types");
+
+    const [
         query,
         setQuery,
     ] =
@@ -422,6 +427,22 @@ function GalleryPage() {
                 galleryItems,
             ],
         );
+
+    const packageTypes =
+        useMemo(
+            () => {
+                const options = new Map<string, string>();
+                for (const item of galleryItems) {
+                    if (item.associatedToKind !== "package" || !item.packageType) {
+                        continue;
+                    }
+                    options.set(packageTypeKey(item), item.packageType);
+                }
+                return Array.from(options, ([value, label]) => ({ value, label }))
+                    .sort((a, b) => a.label.localeCompare(b.label));
+            },
+            [galleryItems],
+        );
     /*
     |--------------------------------------------------------------------------
     | Actual Gallery filtering
@@ -497,6 +518,14 @@ function GalleryPage() {
                             }
                         }
 
+                        if (
+                            packageType !== "All Package Types" &&
+                            (item.associatedToKind !== "package" ||
+                              packageTypeKey(item) !== packageType)
+                        ) {
+                            return false;
+                        }
+
                         /*
                          * CMS Category.
                          */
@@ -555,6 +584,7 @@ function GalleryPage() {
                 galleryItems,
                 mediaFilter,
                 subject,
+                packageType,
                 query,
                 categoryFilter,
                 associatedFilter,
@@ -757,13 +787,15 @@ function GalleryPage() {
                                      * Destination media.
                                      */
                                     if (
-                                        nextCategory &&
-                                        nextCategory !==
-                                        "destination"
+                                        nextCategory !== "destination"
                                     ) {
                                         setSubject(
                                             "All Destination Types",
                                         );
+                                    }
+
+                                    if (nextCategory !== "package") {
+                                        setPackageType("All Package Types");
                                     }
 
                                     setLightbox(
@@ -881,7 +913,8 @@ function GalleryPage() {
                         mediaFilter !==
                         "All" ||
                         subject !==
-                        "All Destination Types" ? (
+                        "All Destination Types" ||
+                        packageType !== "All Package Types" ? (
                             <button
                                 type="button"
                                 onClick={() => {
@@ -905,6 +938,8 @@ function GalleryPage() {
                                         "All Destination Types",
                                     );
 
+                                    setPackageType("All Package Types");
+
                                     setLightbox(
                                         null,
                                     );
@@ -918,8 +953,7 @@ function GalleryPage() {
                 </div>
 
                 {/* Destination Type filter */}
-                {!categoryFilter ||
-                categoryFilter ===
+                {categoryFilter ===
                 "destination" ? (
                     <div
                         className="mt-6 flex flex-wrap items-center justify-center gap-2"
@@ -966,6 +1000,52 @@ function GalleryPage() {
                                 </button>
                             ),
                         )}
+                    </div>
+                ) : null}
+
+                {categoryFilter === "package" ? (
+                    <div
+                        className="mt-6 flex flex-wrap items-center justify-center gap-2"
+                        aria-label="Package type"
+                    >
+                        <span className="mr-2 text-xs font-bold uppercase tracking-[0.16em] text-muted-foreground">
+                            Package Type
+                        </span>
+                        <button
+                            type="button"
+                            aria-pressed={packageType === "All Package Types"}
+                            onClick={() => {
+                                setPackageType("All Package Types");
+                                setLightbox(null);
+                            }}
+                            className={cn(
+                                "rounded-full px-3 py-1.5 text-xs font-semibold",
+                                packageType === "All Package Types"
+                                    ? "bg-accent text-accent-foreground"
+                                    : "text-muted-foreground hover:text-gold",
+                            )}
+                        >
+                            All Package Types
+                        </button>
+                        {packageTypes.map((type) => (
+                            <button
+                                key={type.value}
+                                type="button"
+                                aria-pressed={packageType === type.value}
+                                onClick={() => {
+                                    setPackageType(type.value);
+                                    setLightbox(null);
+                                }}
+                                className={cn(
+                                    "rounded-full px-3 py-1.5 text-xs font-semibold",
+                                    packageType === type.value
+                                        ? "bg-accent text-accent-foreground"
+                                        : "text-muted-foreground hover:text-gold",
+                                )}
+                            >
+                                {type.label}
+                            </button>
+                        ))}
                     </div>
                 ) : null}
 
@@ -1178,6 +1258,14 @@ function GalleryPage() {
             ) : null}
         </>
     );
+}
+
+function packageTypeKey(item: {
+    packageType?: string;
+    packageTypeOptionId?: string;
+}) {
+    if (item.packageTypeOptionId) return item.packageTypeOptionId;
+    return `legacy:${(item.packageType ?? "").trim().toLowerCase()}`;
 }
 
 function VideoPlayer({

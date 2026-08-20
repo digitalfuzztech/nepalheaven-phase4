@@ -52,12 +52,16 @@ import { Route as AdminCmsGeneralRouteImport } from './routes/admin_.cms_.genera
 import { Route as AdminCmsMediaRouteImport } from './routes/admin_.cms_.media'
 import { Route as AdminCmsNavigationRouteImport } from './routes/admin_.cms_.navigation'
 import { Route as AdminCmsOtherSettingsRouteImport } from './routes/admin_.cms_.other-settings'
+import { Route as AdminCmsPackagesRouteImport } from './routes/admin_.cms_.packages'
 import { Route as AdminCmsDestinationsIdRouteImport } from './routes/admin_.cms_.destinations_.$id'
 import { Route as AdminCmsDestinationsListingPageRouteImport } from './routes/admin_.cms_.destinations_.listing-page'
 import { Route as AdminCmsDestinationsNewRouteImport } from './routes/admin_.cms_.destinations_.new'
 import { Route as AdminCmsEmailTemplatesKeyRouteImport } from './routes/admin_.cms_.email-templates_.$key'
 import { Route as AdminCmsMediaIdRouteImport } from './routes/admin_.cms_.media_.$id'
 import { Route as AdminCmsNavigationKeyRouteImport } from './routes/admin_.cms_.navigation_.$key'
+import { Route as AdminCmsPackagesIdRouteImport } from './routes/admin_.cms_.packages_.$id'
+import { Route as AdminCmsPackagesListingPageRouteImport } from './routes/admin_.cms_.packages_.listing-page'
+import { Route as AdminCmsPackagesNewRouteImport } from './routes/admin_.cms_.packages_.new'
 import { Route as AdminCrmBookingsCancelledReferenceRouteImport } from './routes/admin_.crm.bookings.cancelled.$reference'
 import { Route as AdminCrmBookingsConfirmedReferenceRouteImport } from './routes/admin_.crm.bookings.confirmed.$reference'
 
@@ -277,6 +281,11 @@ const AdminCmsOtherSettingsRoute = AdminCmsOtherSettingsRouteImport.update({
   path: '/admin/cms/other-settings',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminCmsPackagesRoute = AdminCmsPackagesRouteImport.update({
+  id: '/admin_/cms_/packages',
+  path: '/admin/cms/packages',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminCmsDestinationsIdRoute = AdminCmsDestinationsIdRouteImport.update({
   id: '/admin_/cms_/destinations_/$id',
   path: '/admin/cms/destinations/$id',
@@ -307,6 +316,22 @@ const AdminCmsMediaIdRoute = AdminCmsMediaIdRouteImport.update({
 const AdminCmsNavigationKeyRoute = AdminCmsNavigationKeyRouteImport.update({
   id: '/admin_/cms_/navigation_/$key',
   path: '/admin/cms/navigation/$key',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminCmsPackagesIdRoute = AdminCmsPackagesIdRouteImport.update({
+  id: '/admin_/cms_/packages_/$id',
+  path: '/admin/cms/packages/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminCmsPackagesListingPageRoute =
+  AdminCmsPackagesListingPageRouteImport.update({
+    id: '/admin_/cms_/packages_/listing-page',
+    path: '/admin/cms/packages/listing-page',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AdminCmsPackagesNewRoute = AdminCmsPackagesNewRouteImport.update({
+  id: '/admin_/cms_/packages_/new',
+  path: '/admin/cms/packages/new',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminCrmBookingsCancelledReferenceRoute =
@@ -366,12 +391,16 @@ export interface FileRoutesByFullPath {
   '/admin/cms/media': typeof AdminCmsMediaRoute
   '/admin/cms/navigation': typeof AdminCmsNavigationRoute
   '/admin/cms/other-settings': typeof AdminCmsOtherSettingsRoute
+  '/admin/cms/packages': typeof AdminCmsPackagesRoute
   '/admin/cms/destinations/$id': typeof AdminCmsDestinationsIdRoute
   '/admin/cms/destinations/listing-page': typeof AdminCmsDestinationsListingPageRoute
   '/admin/cms/destinations/new': typeof AdminCmsDestinationsNewRoute
   '/admin/cms/email-templates/$key': typeof AdminCmsEmailTemplatesKeyRoute
   '/admin/cms/media/$id': typeof AdminCmsMediaIdRoute
   '/admin/cms/navigation/$key': typeof AdminCmsNavigationKeyRoute
+  '/admin/cms/packages/$id': typeof AdminCmsPackagesIdRoute
+  '/admin/cms/packages/listing-page': typeof AdminCmsPackagesListingPageRoute
+  '/admin/cms/packages/new': typeof AdminCmsPackagesNewRoute
   '/admin/crm/bookings/cancelled/$reference': typeof AdminCrmBookingsCancelledReferenceRoute
   '/admin/crm/bookings/confirmed/$reference': typeof AdminCrmBookingsConfirmedReferenceRoute
 }
@@ -419,12 +448,16 @@ export interface FileRoutesByTo {
   '/admin/cms/media': typeof AdminCmsMediaRoute
   '/admin/cms/navigation': typeof AdminCmsNavigationRoute
   '/admin/cms/other-settings': typeof AdminCmsOtherSettingsRoute
+  '/admin/cms/packages': typeof AdminCmsPackagesRoute
   '/admin/cms/destinations/$id': typeof AdminCmsDestinationsIdRoute
   '/admin/cms/destinations/listing-page': typeof AdminCmsDestinationsListingPageRoute
   '/admin/cms/destinations/new': typeof AdminCmsDestinationsNewRoute
   '/admin/cms/email-templates/$key': typeof AdminCmsEmailTemplatesKeyRoute
   '/admin/cms/media/$id': typeof AdminCmsMediaIdRoute
   '/admin/cms/navigation/$key': typeof AdminCmsNavigationKeyRoute
+  '/admin/cms/packages/$id': typeof AdminCmsPackagesIdRoute
+  '/admin/cms/packages/listing-page': typeof AdminCmsPackagesListingPageRoute
+  '/admin/cms/packages/new': typeof AdminCmsPackagesNewRoute
   '/admin/crm/bookings/cancelled/$reference': typeof AdminCrmBookingsCancelledReferenceRoute
   '/admin/crm/bookings/confirmed/$reference': typeof AdminCrmBookingsConfirmedReferenceRoute
 }
@@ -473,12 +506,16 @@ export interface FileRoutesById {
   '/admin_/cms_/media': typeof AdminCmsMediaRoute
   '/admin_/cms_/navigation': typeof AdminCmsNavigationRoute
   '/admin_/cms_/other-settings': typeof AdminCmsOtherSettingsRoute
+  '/admin_/cms_/packages': typeof AdminCmsPackagesRoute
   '/admin_/cms_/destinations_/$id': typeof AdminCmsDestinationsIdRoute
   '/admin_/cms_/destinations_/listing-page': typeof AdminCmsDestinationsListingPageRoute
   '/admin_/cms_/destinations_/new': typeof AdminCmsDestinationsNewRoute
   '/admin_/cms_/email-templates_/$key': typeof AdminCmsEmailTemplatesKeyRoute
   '/admin_/cms_/media_/$id': typeof AdminCmsMediaIdRoute
   '/admin_/cms_/navigation_/$key': typeof AdminCmsNavigationKeyRoute
+  '/admin_/cms_/packages_/$id': typeof AdminCmsPackagesIdRoute
+  '/admin_/cms_/packages_/listing-page': typeof AdminCmsPackagesListingPageRoute
+  '/admin_/cms_/packages_/new': typeof AdminCmsPackagesNewRoute
   '/admin_/crm/bookings/cancelled/$reference': typeof AdminCrmBookingsCancelledReferenceRoute
   '/admin_/crm/bookings/confirmed/$reference': typeof AdminCrmBookingsConfirmedReferenceRoute
 }
@@ -528,12 +565,16 @@ export interface FileRouteTypes {
     | '/admin/cms/media'
     | '/admin/cms/navigation'
     | '/admin/cms/other-settings'
+    | '/admin/cms/packages'
     | '/admin/cms/destinations/$id'
     | '/admin/cms/destinations/listing-page'
     | '/admin/cms/destinations/new'
     | '/admin/cms/email-templates/$key'
     | '/admin/cms/media/$id'
     | '/admin/cms/navigation/$key'
+    | '/admin/cms/packages/$id'
+    | '/admin/cms/packages/listing-page'
+    | '/admin/cms/packages/new'
     | '/admin/crm/bookings/cancelled/$reference'
     | '/admin/crm/bookings/confirmed/$reference'
   fileRoutesByTo: FileRoutesByTo
@@ -581,12 +622,16 @@ export interface FileRouteTypes {
     | '/admin/cms/media'
     | '/admin/cms/navigation'
     | '/admin/cms/other-settings'
+    | '/admin/cms/packages'
     | '/admin/cms/destinations/$id'
     | '/admin/cms/destinations/listing-page'
     | '/admin/cms/destinations/new'
     | '/admin/cms/email-templates/$key'
     | '/admin/cms/media/$id'
     | '/admin/cms/navigation/$key'
+    | '/admin/cms/packages/$id'
+    | '/admin/cms/packages/listing-page'
+    | '/admin/cms/packages/new'
     | '/admin/crm/bookings/cancelled/$reference'
     | '/admin/crm/bookings/confirmed/$reference'
   id:
@@ -634,12 +679,16 @@ export interface FileRouteTypes {
     | '/admin_/cms_/media'
     | '/admin_/cms_/navigation'
     | '/admin_/cms_/other-settings'
+    | '/admin_/cms_/packages'
     | '/admin_/cms_/destinations_/$id'
     | '/admin_/cms_/destinations_/listing-page'
     | '/admin_/cms_/destinations_/new'
     | '/admin_/cms_/email-templates_/$key'
     | '/admin_/cms_/media_/$id'
     | '/admin_/cms_/navigation_/$key'
+    | '/admin_/cms_/packages_/$id'
+    | '/admin_/cms_/packages_/listing-page'
+    | '/admin_/cms_/packages_/new'
     | '/admin_/crm/bookings/cancelled/$reference'
     | '/admin_/crm/bookings/confirmed/$reference'
   fileRoutesById: FileRoutesById
@@ -687,12 +736,16 @@ export interface RootRouteChildren {
   AdminCmsMediaRoute: typeof AdminCmsMediaRoute
   AdminCmsNavigationRoute: typeof AdminCmsNavigationRoute
   AdminCmsOtherSettingsRoute: typeof AdminCmsOtherSettingsRoute
+  AdminCmsPackagesRoute: typeof AdminCmsPackagesRoute
   AdminCmsDestinationsIdRoute: typeof AdminCmsDestinationsIdRoute
   AdminCmsDestinationsListingPageRoute: typeof AdminCmsDestinationsListingPageRoute
   AdminCmsDestinationsNewRoute: typeof AdminCmsDestinationsNewRoute
   AdminCmsEmailTemplatesKeyRoute: typeof AdminCmsEmailTemplatesKeyRoute
   AdminCmsMediaIdRoute: typeof AdminCmsMediaIdRoute
   AdminCmsNavigationKeyRoute: typeof AdminCmsNavigationKeyRoute
+  AdminCmsPackagesIdRoute: typeof AdminCmsPackagesIdRoute
+  AdminCmsPackagesListingPageRoute: typeof AdminCmsPackagesListingPageRoute
+  AdminCmsPackagesNewRoute: typeof AdminCmsPackagesNewRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -998,6 +1051,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminCmsOtherSettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin_/cms_/packages': {
+      id: '/admin_/cms_/packages'
+      path: '/admin/cms/packages'
+      fullPath: '/admin/cms/packages'
+      preLoaderRoute: typeof AdminCmsPackagesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin_/cms_/destinations_/$id': {
       id: '/admin_/cms_/destinations_/$id'
       path: '/admin/cms/destinations/$id'
@@ -1038,6 +1098,27 @@ declare module '@tanstack/react-router' {
       path: '/admin/cms/navigation/$key'
       fullPath: '/admin/cms/navigation/$key'
       preLoaderRoute: typeof AdminCmsNavigationKeyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin_/cms_/packages_/$id': {
+      id: '/admin_/cms_/packages_/$id'
+      path: '/admin/cms/packages/$id'
+      fullPath: '/admin/cms/packages/$id'
+      preLoaderRoute: typeof AdminCmsPackagesIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin_/cms_/packages_/listing-page': {
+      id: '/admin_/cms_/packages_/listing-page'
+      path: '/admin/cms/packages/listing-page'
+      fullPath: '/admin/cms/packages/listing-page'
+      preLoaderRoute: typeof AdminCmsPackagesListingPageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin_/cms_/packages_/new': {
+      id: '/admin_/cms_/packages_/new'
+      path: '/admin/cms/packages/new'
+      fullPath: '/admin/cms/packages/new'
+      preLoaderRoute: typeof AdminCmsPackagesNewRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin_/crm/bookings/cancelled/$reference': {
@@ -1128,12 +1209,16 @@ const rootRouteChildren: RootRouteChildren = {
   AdminCmsMediaRoute: AdminCmsMediaRoute,
   AdminCmsNavigationRoute: AdminCmsNavigationRoute,
   AdminCmsOtherSettingsRoute: AdminCmsOtherSettingsRoute,
+  AdminCmsPackagesRoute: AdminCmsPackagesRoute,
   AdminCmsDestinationsIdRoute: AdminCmsDestinationsIdRoute,
   AdminCmsDestinationsListingPageRoute: AdminCmsDestinationsListingPageRoute,
   AdminCmsDestinationsNewRoute: AdminCmsDestinationsNewRoute,
   AdminCmsEmailTemplatesKeyRoute: AdminCmsEmailTemplatesKeyRoute,
   AdminCmsMediaIdRoute: AdminCmsMediaIdRoute,
   AdminCmsNavigationKeyRoute: AdminCmsNavigationKeyRoute,
+  AdminCmsPackagesIdRoute: AdminCmsPackagesIdRoute,
+  AdminCmsPackagesListingPageRoute: AdminCmsPackagesListingPageRoute,
+  AdminCmsPackagesNewRoute: AdminCmsPackagesNewRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

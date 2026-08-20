@@ -51,25 +51,36 @@ export type Destination = {
 };
 
 export type Package = {
+  id: string;
   slug: string;
   title: string;
   destination: string;
   destinations: { slug: string; name: string }[];
   image: string;
   days: number;
+  durationMinDays: number;
+  durationMaxDays: number;
+  groupSizeMin: number;
+  groupSizeMax: number;
   price: number;
   oldPrice?: number;
   currency: string;
   rating: number;
   reviews: number;
   difficulty: string;
+  difficultyOptionId: string | null;
   style: string;
+  packageTypeOptionId: string | null;
   short: string;
+  overview: string;
   highlights: string[];
   itinerary: { day: string; title: string; detail: string }[];
   included: string[];
   excluded: string[];
   tiers: { name: string; note: string; price: number; currency: string }[];
+  gallery: { id: string; image: string; title: string; alt: string; caption: string }[];
+  packageReviews: { rating: number; text: string; customerName: string; countryCode: string }[];
+  faqs: { q: string; a: string }[];
 };
 
 export type Post = {
@@ -238,6 +249,9 @@ export type GalleryItem = {
 
   associatedToName?: string;
   associatedToSlug?: string;
+
+  packageType?: string;
+  packageTypeOptionId?: string;
 };
 export type BlogComment = { id: string; customerName: string; avatarUrl?: string; content: string; createdAt: string };
 export type BlogEngagement = { likeCount: number; hasLiked: boolean; averageRating: number | null; ratingCount: number; currentUserRating: number | null; comments: BlogComment[] };

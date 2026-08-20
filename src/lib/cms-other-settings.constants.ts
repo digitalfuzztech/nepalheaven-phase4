@@ -3,6 +3,7 @@ export const cmsOtherSettingsGroupValues = [
     "difficulty",
     "destination_type",
     "package_type",
+    "package_pricing_tier",
     "experience_type",
     "general_settings_type",
 ] as const;
@@ -113,6 +114,23 @@ export const cmsOtherSettingsGroups: Array<{
 
         examples:
             "Scenic Flight, Expedition, Basecamp Trek, Cultural Tour",
+    },
+
+    {
+        key:
+            "package_pricing_tier",
+
+        title:
+            "Package Pricing Tiers",
+
+        description:
+            "Reusable pricing tier names available in Package CMS pricing cards.",
+
+        placeholder:
+            "Enter pricing tier",
+
+        examples:
+            "Standard, Premium, Luxury, Private, Budget",
     },
 
     {

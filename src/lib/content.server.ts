@@ -1,4 +1,5 @@
 import { and, asc, eq, inArray } from "drizzle-orm";
+import { alias } from "drizzle-orm/mysql-core";
 import { db } from "@/db";
 import {
   blogCategories,
@@ -19,9 +20,11 @@ import {
 import {
   packageDestinations,
   packageExclusions,
+  packageFaqs,
   packageHighlights,
   packageInclusions,
   packageItineraries,
+  packageReviews,
   packages,
   packageTiers,
 } from "@/db/schema/packages";
@@ -81,12 +84,6 @@ function requireDb() {
       "Public content is unavailable because the database is not configured.",
     );
   return db;
-}
-
-function titleCaseDifficulty(value: string | null): string {
-  if (!value) return "";
-  if (value === "extreme") return "Strenuous";
-  return `${value.charAt(0).toUpperCase()}${value.slice(1)}`;
 }
 
 
@@ -361,6 +358,10 @@ export async function getPackages(): Promise<Package[]> {
     itineraries,
     inclusions,
     exclusions,
+    reviewRows,
+    faqRows,
+    packageMediaRows,
+    mediaCategoryRows,
   ] = await Promise.all([
     primaryDestinationIds.length === 0
       ? Promise.resolve([])
@@ -405,6 +406,10 @@ export async function getPackages(): Promise<Package[]> {
       .from(packageExclusions)
       .where(inArray(packageExclusions.packageId, packageIds))
       .orderBy(asc(packageExclusions.sortOrder)),
+    database.select().from(packageReviews).where(inArray(packageReviews.packageId, packageIds)).orderBy(asc(packageReviews.sortOrder)),
+    database.select().from(packageFaqs).where(inArray(packageFaqs.packageId, packageIds)).orderBy(asc(packageFaqs.sortOrder)),
+    database.select().from(media).where(and(eq(media.type, "image"), eq(media.lifecycleStatus, "ready"), inArray(media.associatedPackageId, packageIds))).orderBy(asc(media.sortOrder), asc(media.createdAt)),
+    database.select({ id: cmsOtherSettingsOptions.id, value: cmsOtherSettingsOptions.value }).from(cmsOtherSettingsOptions).where(eq(cmsOtherSettingsOptions.groupKey, "category")),
   ]);
 
   const primaryDestinationById = new Map(
@@ -419,8 +424,16 @@ export async function getPackages(): Promise<Package[]> {
   const itinerariesByPackage = groupBy(itineraries, (item) => item.packageId);
   const inclusionsByPackage = groupBy(inclusions, (item) => item.packageId);
   const exclusionsByPackage = groupBy(exclusions, (item) => item.packageId);
+  const reviewsByPackage = groupBy(reviewRows, (item) => item.packageId);
+  const faqsByPackage = groupBy(faqRows, (item) => item.packageId);
+  const mediaCategoryById = new Map(mediaCategoryRows.map((item) => [item.id, item.value]));
+  const mediaByPackage = groupBy(packageMediaRows.filter((item) => {
+    const category = item.categoryOptionId ? mediaCategoryById.get(item.categoryOptionId) : item.category?.trim().toLowerCase();
+    return category === "package" || category === "packages";
+  }), (item) => item.associatedPackageId);
 
   return rows.map((row) => ({
+    id: row.id,
     slug: row.slug,
     title: row.title,
     destination:
@@ -433,16 +446,27 @@ export async function getPackages(): Promise<Package[]> {
       ...(row.destinationId && primaryDestinationById.get(row.destinationId) ? [{ slug: primaryDestinationById.get(row.destinationId)!.slug, name: primaryDestinationById.get(row.destinationId)!.name }] : []),
       ...(destinationsByPackage.get(row.id) ?? []).map((item) => ({ slug: item.destination.slug, name: item.destination.name })),
     ].map((item) => [item.slug, item])).values()],
-    image: resolveAssetReference(row.heroImage),
+    image: row.heroImage
+      ? row.heroImage.startsWith("/")
+        ? row.heroImage
+        : resolveAssetReference(row.heroImage) || row.heroImage
+      : "",
     days: row.days ?? 0,
+    durationMinDays: row.durationMinDays ?? row.days ?? 0,
+    durationMaxDays: row.durationMaxDays ?? row.days ?? 0,
+    groupSizeMin: row.groupSizeMin ?? 2,
+    groupSizeMax: row.groupSizeMax ?? 12,
     price: Number(row.startingPrice ?? 0),
     ...(row.oldPrice === null ? {} : { oldPrice: Number(row.oldPrice) }),
     currency: row.currency,
     rating: Number(row.rating ?? 0),
     reviews: row.reviewCount,
-    difficulty: titleCaseDifficulty(row.difficulty),
+    difficulty: row.difficulty ?? "",
+    difficultyOptionId: row.difficultyOptionId,
     style: row.style ?? "",
+    packageTypeOptionId: row.packageTypeOptionId,
     short: row.shortDescription ?? "",
+    overview: row.overview ?? row.description ?? row.shortDescription ?? "",
     highlights: (highlightsByPackage.get(row.id) ?? []).map(
       (item) => item.item,
     ),
@@ -459,6 +483,15 @@ export async function getPackages(): Promise<Package[]> {
       price: Number(item.price),
       currency: item.currency,
     })),
+    gallery: (mediaByPackage.get(row.id) ?? []).map((item) => ({
+      id: item.id,
+      image: item.url.startsWith("/") ? item.url : resolveAssetReference(item.url) || item.url,
+      title: item.title ?? "",
+      alt: item.altText ?? item.title ?? row.title,
+      caption: item.caption ?? "",
+    })),
+    packageReviews: (reviewsByPackage.get(row.id) ?? []).map((item) => ({ rating: Number(item.rating), text: item.reviewText, customerName: item.customerName, countryCode: item.customerCountryCode })),
+    faqs: (faqsByPackage.get(row.id) ?? []).map((item) => ({ q: item.question, a: item.answer })),
   }));
 }
 
@@ -1007,6 +1040,10 @@ export async function getPublicGalleryItems():
 
   const database =
       requireDb();
+  const packageTypeOptions = alias(
+      cmsOtherSettingsOptions,
+      "gallery_package_type_options",
+  );
 
   /*
    * Load actual Media Library records,
@@ -1075,6 +1112,15 @@ export async function getPublicGalleryItems():
             packageSlug:
             packages.slug,
 
+            packageType:
+            packageTypeOptions.name,
+
+            packageLegacyType:
+            packages.style,
+
+            packageTypeOptionId:
+            packageTypeOptions.id,
+
             associatedExperienceId:
             media.associatedExperienceId,
 
@@ -1116,6 +1162,13 @@ export async function getPublicGalleryItems():
               eq(
                   media.associatedPackageId,
                   packages.id,
+              ),
+          )
+          .leftJoin(
+              packageTypeOptions,
+              and(
+                  eq(packages.packageTypeOptionId, packageTypeOptions.id),
+                  eq(packageTypeOptions.groupKey, "package_type"),
               ),
           )
           .leftJoin(
@@ -1360,7 +1413,11 @@ export async function getPublicGalleryItems():
                     associatedToKind === "destination"
                         ? item.destinationType?.trim() ||
                         "Uncategorised"
-                        : "Uncategorised",
+                        : associatedToKind === "package"
+                          ? item.packageType?.trim() ||
+                            item.packageLegacyType?.trim() ||
+                            "Uncategorised"
+                          : "Uncategorised",
 
                 span:
                 gallerySpan,
@@ -1388,6 +1445,14 @@ export async function getPublicGalleryItems():
                     ? {
                       associatedToSlug,
                     }
+                    : {}),
+
+                ...(associatedToKind === "package" && (item.packageType || item.packageLegacyType)
+                    ? { packageType: (item.packageType ?? item.packageLegacyType)! }
+                    : {}),
+
+                ...(associatedToKind === "package" && item.packageTypeOptionId
+                    ? { packageTypeOptionId: item.packageTypeOptionId }
                     : {}),
               },
             ];

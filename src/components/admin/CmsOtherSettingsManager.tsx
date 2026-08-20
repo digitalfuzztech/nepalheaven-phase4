@@ -7,6 +7,7 @@ import {
 } from "@tanstack/react-router";
 
 import {
+    AlertTriangle,
     Check,
     Loader2,
     Pencil,
@@ -303,6 +304,12 @@ function OptionRow({
         useState(false);
 
     const [
+        confirmingDelete,
+        setConfirmingDelete,
+    ] =
+        useState(false);
+
+    const [
         saved,
         setSaved,
     ] =
@@ -388,17 +395,6 @@ function OptionRow({
             return;
         }
 
-        const confirmed =
-            window.confirm(
-                `Delete "${option.name}"?`,
-            );
-
-        if (
-            !confirmed
-        ) {
-            return;
-        }
-
         setDeleting(true);
         setError("");
 
@@ -411,6 +407,8 @@ function OptionRow({
             });
 
             await router.invalidate();
+
+            setConfirmingDelete(false);
         } catch (
             caught
             ) {
@@ -538,8 +536,8 @@ function OptionRow({
                             disabled={
                                 deleting
                             }
-                            onClick={
-                                remove
+                            onClick={() =>
+                                setConfirmingDelete(true)
                             }
                             className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-red-200 bg-white text-red-600 transition hover:bg-red-50 disabled:opacity-50"
                             aria-label={`Delete ${option.name}`}
@@ -558,6 +556,22 @@ function OptionRow({
                 <p className="mt-2 text-xs text-red-700">
                     {error}
                 </p>
+            ) : null}
+
+            {confirmingDelete ? (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm" onMouseDown={() => !deleting && setConfirmingDelete(false)}>
+                    <div role="alertdialog" aria-modal="true" className="w-full max-w-md rounded-3xl bg-white shadow-2xl" onMouseDown={(event) => event.stopPropagation()}>
+                        <div className="flex items-center gap-4 border-b border-black/10 p-6">
+                            <div className="grid h-11 w-11 place-items-center rounded-2xl bg-red-50 text-red-600"><AlertTriangle className="h-5 w-5" /></div>
+                            <div><p className="text-xs font-bold uppercase tracking-wider text-red-600">Permanent action</p><h2 className="mt-1 text-xl font-semibold text-[#0c1724]">Delete option?</h2></div>
+                        </div>
+                        <div className="p-6 text-sm leading-6 text-muted-foreground">Delete <strong className="text-[#0c1724]">{option.name}</strong>? Existing stable references will be set to null where configured; legacy display text remains available.</div>
+                        <div className="flex justify-end gap-3 border-t border-black/10 bg-[#f8f8f6] p-5">
+                            <button type="button" disabled={deleting} onClick={() => setConfirmingDelete(false)} className="rounded-xl border bg-white px-5 py-3 text-sm font-semibold">Cancel</button>
+                            <button type="button" disabled={deleting} onClick={() => void remove()} className="inline-flex items-center gap-2 rounded-xl bg-red-600 px-5 py-3 text-sm font-semibold text-white">{deleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}Delete permanently</button>
+                        </div>
+                    </div>
+                </div>
             ) : null}
         </div>
     );

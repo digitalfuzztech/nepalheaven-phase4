@@ -628,7 +628,7 @@ type PublicBookingRow = {
   packageTitle: string;
   packageImage: string | null;
   packageDays: number | null;
-  packageDifficulty: "easy" | "moderate" | "challenging" | "extreme" | null;
+  packageDifficulty: string | null;
   tierName: string | null;
   travellers: number;
   departureDate: string | null;

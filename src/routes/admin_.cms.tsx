@@ -84,7 +84,7 @@ function AdminCmsPage() {
       description:
           "Reusable categories, difficulty levels and destination, package, experience and general content types.",
       icon: SlidersHorizontal,
-      value: 6,
+      value: 7,
       valueLabel: "option groups",
       to: "/admin/cms/other-settings" as const,
     },
@@ -139,7 +139,7 @@ function AdminCmsPage() {
       icon: PackageOpen,
       value: overview.packages,
       valueLabel: "packages",
-      to: null,
+      to: "/admin/cms/packages" as const,
     },
 
     {
