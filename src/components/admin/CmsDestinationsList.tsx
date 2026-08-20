@@ -10,6 +10,7 @@ import {
 } from "@tanstack/react-router";
 
 import {
+    LayoutTemplate,
     AlertTriangle,
     Eye,
     EyeOff,
@@ -354,6 +355,35 @@ export function CmsDestinationsList({
                     Create destination
                 </Link>
             </div>
+
+            <Link
+                to="/admin/cms/destinations/listing-page"
+                className="group flex items-center justify-between gap-5 rounded-2xl border border-black/10 bg-white p-5 transition hover:border-gold/50 hover:shadow-sm"
+            >
+                <div className="flex min-w-0 items-center gap-4">
+                    <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-[#0c1724] text-gold">
+                        <LayoutTemplate
+                            className="h-5 w-5"
+                            aria-hidden
+                        />
+                    </div>
+
+                    <div className="min-w-0">
+                        <p className="font-semibold text-[#0c1724]">
+                            Edit destinations listing page
+                        </p>
+
+                        <p className="mt-1 text-sm text-muted-foreground">
+                            Manage the /destinations hero,
+                            search text and public filters.
+                        </p>
+                    </div>
+                </div>
+
+                <span className="shrink-0 text-sm font-semibold text-gold transition-transform group-hover:translate-x-1">
+        Edit →
+    </span>
+            </Link>
 
             <div className="grid gap-4 sm:grid-cols-3">
                 <StatCard

@@ -9,6 +9,9 @@ export type Destination = {
   season: string;
   duration: string;
   difficulty: string;
+  difficultyOptionId:
+      string |
+      null;
   short: string;
   description: string;
   highlights: string[];
@@ -17,6 +20,9 @@ export type Destination = {
   excluded: string[];
   itinerary: { day: string; title: string; detail: string }[];
   category: string;
+  destinationTypeOptionId:
+      string |
+      null;
   faqs:
       Array<{
         q:

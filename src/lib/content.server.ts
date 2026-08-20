@@ -258,7 +258,9 @@ export async function getDestinations(): Promise<Destination[]> {
     season: row.bestSeason ?? "",
     duration: row.duration ?? "",
     difficulty: row.difficulty ?? "",
+    difficultyOptionId: row.difficultyOptionId,
     category: row.category ?? "",
+    destinationTypeOptionId: row.destinationTypeOptionId,
     short: row.shortDescription ?? "",
     description: row.description ?? "",
     highlights: (highlightsByDestination.get(row.id) ?? []).map(
