@@ -1,5 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Award, ExternalLink, Handshake } from "lucide-react";
+import { useRef } from "react";
+import {
+  Award,
+  ChevronLeft,
+  ChevronRight,
+  ExternalLink,
+  Handshake,
+} from "lucide-react";
 import { getPublicSiteSettingsFn } from "@/lib/content.functions";
 import { getPublicAboutPageFn } from "@/lib/cms-page-content.functions";
 import { PageHero } from "@/components/PageHero";
@@ -30,6 +37,7 @@ export const Route = createFileRoute("/about")({
 });
 function AboutPage() {
   const { settings, page } = Route.useLoaderData();
+  const teamTrackRef = useRef<HTMLUListElement>(null);
   const counters = page.counters.length
     ? page.counters
     : settings.stats
@@ -107,12 +115,41 @@ function AboutPage() {
         </div>
       </section>
       <section className="container-lux py-24">
-        <SectionHeading
-          eyebrow="Our people"
-          title="Meet the team"
-          align="center"
-        />
-        <ul className="mt-14 flex snap-x snap-mandatory gap-6 overflow-x-auto pb-4">
+        <div className="flex items-end justify-between gap-6">
+          <SectionHeading eyebrow="Our people" title="Meet the team" />
+          {team.length > 1 ? (
+            <div className="flex gap-2" aria-label="Team carousel controls">
+              {([-1, 1] as const).map((direction) => (
+                <button
+                  key={direction}
+                  type="button"
+                  aria-label={
+                    direction < 0
+                      ? "Previous team members"
+                      : "Next team members"
+                  }
+                  onClick={() =>
+                    teamTrackRef.current?.scrollBy({
+                      left: direction * teamTrackRef.current.clientWidth * 0.9,
+                      behavior: "smooth",
+                    })
+                  }
+                  className="grid h-11 w-11 place-items-center rounded-full border border-border bg-card text-foreground transition hover:border-gold hover:text-gold"
+                >
+                  {direction < 0 ? (
+                    <ChevronLeft className="h-5 w-5" />
+                  ) : (
+                    <ChevronRight className="h-5 w-5" />
+                  )}
+                </button>
+              ))}
+            </div>
+          ) : null}
+        </div>
+        <ul
+          ref={teamTrackRef}
+          className="mt-14 flex snap-x snap-mandatory gap-6 overflow-x-auto overflow-y-hidden scroll-smooth pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        >
           {team.map((m, i) => (
             <Reveal
               key={m.name}
@@ -182,12 +219,12 @@ function AboutPage() {
             ))}
           </ul>
           <a
-            href="/gallery?category=general&associatedTo=certificates"
+            href="/gallery?category=general&associatedTo=company-documents"
             target="_blank"
             rel="noreferrer"
             className="mt-6 inline-flex items-center gap-2 font-semibold text-gold"
           >
-            View Certificates
+            View Certificates and Legal Documents
             <ExternalLink className="h-4 w-4" />
           </a>
         </div>

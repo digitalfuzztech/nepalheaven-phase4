@@ -3,7 +3,11 @@ import { z } from "zod";
 
 const slugSchema = z.object({ slug: z.string().trim().min(1).max(200) });
 const searchSchema = z.object({ q: z.string().trim().max(200) });
-const gallerySchema = z.object({ certificatesOnly: z.boolean().default(false) });
+const gallerySchema = z.object({
+  documentMode: z
+    .enum(["none", "certificates", "company-documents"])
+    .default("none"),
+});
 
 export const getDestinationsFn = createServerFn({ method: "GET" }).handler(
   async () => {
@@ -32,9 +36,24 @@ export const getPackageBySlugFn = createServerFn({ method: "GET" })
     const { getPackageBySlug } = await import("@/lib/content.server");
     return getPackageBySlug(data.slug);
   });
-export const getExperiencesFn = createServerFn({ method: "GET" }).handler(async () => { const { getExperiences } = await import("@/lib/content.server"); return getExperiences(); });
-export const getExperienceBySlugFn = createServerFn({ method: "GET" }).validator(slugSchema).handler(async ({ data }) => { const { getExperienceBySlug } = await import("@/lib/content.server"); return getExperienceBySlug(data.slug); });
-export const searchPublicContentFn = createServerFn({ method: "GET" }).validator(searchSchema).handler(async ({ data }) => { const { searchPublicContent } = await import("@/lib/content.server"); return searchPublicContent(data.q); });
+export const getExperiencesFn = createServerFn({ method: "GET" }).handler(
+  async () => {
+    const { getExperiences } = await import("@/lib/content.server");
+    return getExperiences();
+  },
+);
+export const getExperienceBySlugFn = createServerFn({ method: "GET" })
+  .validator(slugSchema)
+  .handler(async ({ data }) => {
+    const { getExperienceBySlug } = await import("@/lib/content.server");
+    return getExperienceBySlug(data.slug);
+  });
+export const searchPublicContentFn = createServerFn({ method: "GET" })
+  .validator(searchSchema)
+  .handler(async ({ data }) => {
+    const { searchPublicContent } = await import("@/lib/content.server");
+    return searchPublicContent(data.q);
+  });
 
 export const getBlogPostsFn = createServerFn({ method: "GET" }).handler(
   async () => {
@@ -69,21 +88,15 @@ export const getPublicSiteSettingsFn = createServerFn({
   return getPublicSiteSettings();
 });
 
-export const getPublicGalleryItemsFn =
-    createServerFn({
-        method: "GET",
-    }).validator(gallerySchema).handler(
-        async ({ data }) => {
-            const {
-                getPublicGalleryItems,
-            } =
-                await import(
-                    "@/lib/content.server"
-                    );
+export const getPublicGalleryItemsFn = createServerFn({
+  method: "GET",
+})
+  .validator(gallerySchema)
+  .handler(async ({ data }) => {
+    const { getPublicGalleryItems } = await import("@/lib/content.server");
 
-            return getPublicGalleryItems(data.certificatesOnly);
-        },
-    );
+    return getPublicGalleryItems(data.documentMode);
+  });
 
 export const getHomeContentFn = createServerFn({ method: "GET" }).handler(
   async () => {

@@ -1,5 +1,11 @@
 import { useState, type ReactNode } from "react";
-import { ArrowDown, ArrowUp, Plus, Save, Trash2 } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import { ArrowDown, ArrowUp, Plus, Trash2 } from "lucide-react";
+import {
+  CmsEditorAlert,
+  CmsFloatingSave,
+  CmsSaveButton,
+} from "@/components/admin/CmsEditorControls";
 import {
   CmsMediaPicker,
   type CmsSelectableImage,
@@ -18,19 +24,22 @@ export function CmsAboutEditor({
 }) {
   const [form, setForm] = useState(initial);
   const [busy, setBusy] = useState(false);
-  const [msg, setMsg] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   async function save() {
     const parsed = cmsAboutPageSchema.safeParse(form);
     if (!parsed.success) {
-      setMsg(parsed.error.issues[0]?.message ?? "Check the form.");
+      setErrorMessage(parsed.error.issues[0]?.message ?? "Check the form.");
       return;
     }
     setBusy(true);
+    setErrorMessage("");
+    setSuccessMessage("");
     try {
       setForm(await updateCmsAboutPageFn({ data: parsed.data }));
-      setMsg("About page saved.");
+      setSuccessMessage("About page saved.");
     } catch (e) {
-      setMsg(e instanceof Error ? e.message : "Could not save.");
+      setErrorMessage(e instanceof Error ? e.message : "Could not save.");
     } finally {
       setBusy(false);
     }
@@ -70,21 +79,23 @@ export function CmsAboutEditor({
     <div>
       <div className="flex justify-between">
         <div>
+          <Link
+            to="/admin/cms"
+            className="text-sm font-semibold text-muted-foreground"
+          >
+            ← Back to CMS
+          </Link>
           <p className="text-xs font-bold uppercase text-gold">About CMS</p>
           <h1 className="mt-2 text-4xl font-semibold">About Page</h1>
         </div>
-        <button
-          disabled={busy}
+        <CmsSaveButton
+          busy={busy}
+          label="Save About Page"
+          type="button"
           onClick={() => void save()}
-          className="rounded-xl bg-[#0c1724] px-6 py-3 text-white"
-        >
-          <Save className="mr-2 inline h-4 w-4" />
-          {busy ? "Saving..." : "Save About Page"}
-        </button>
+        />
       </div>
-      {msg ? (
-        <p className="mt-5 rounded-xl border bg-white p-4">{msg}</p>
-      ) : null}
+      <CmsEditorAlert error={errorMessage} success={successMessage} />
       <div className="mt-8 grid gap-6">
         <Section title="Hero">
           <CmsMediaPicker
@@ -400,6 +411,11 @@ export function CmsAboutEditor({
           </Section>
         ))}
       </div>
+      <CmsFloatingSave
+        busy={busy}
+        label="Save About Page"
+        onClick={() => void save()}
+      />
     </div>
   );
 }

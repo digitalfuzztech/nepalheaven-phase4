@@ -68,6 +68,12 @@ export function CmsExperiencesList({
     <div>
       <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-end">
         <div>
+          <Link
+            to="/admin/cms"
+            className="text-sm font-semibold text-muted-foreground"
+          >
+            ← Back to CMS
+          </Link>
           <p className="text-xs font-bold uppercase tracking-[.18em] text-gold">
             Experience CMS
           </p>

@@ -1,8 +1,12 @@
 import { useState, type FormEvent } from "react";
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
-import { Save } from "lucide-react";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { CmsMediaPicker } from "@/components/admin/CmsMediaPicker";
+import {
+  CmsEditorAlert,
+  CmsFloatingSave,
+  CmsSaveButton,
+} from "@/components/admin/CmsEditorControls";
 import { getAdminSessionFn } from "@/lib/auth.functions";
 import { getCmsSelectableImagesFn } from "@/lib/cms-media.functions";
 import { getCmsBlogsFn } from "@/lib/cms-blog.functions";
@@ -30,20 +34,25 @@ function Page() {
   const { settings, images, posts } = Route.useLoaderData();
   const [form, setForm] = useState(settings);
   const [busy, setBusy] = useState(false);
-  const [msg, setMsg] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   async function save(e: FormEvent) {
     e.preventDefault();
     const parsed = cmsBlogListingSchema.safeParse(form);
     if (!parsed.success) {
-      setMsg(parsed.error.issues[0]?.message ?? "Check form.");
+      setErrorMessage(parsed.error.issues[0]?.message ?? "Check form.");
       return;
     }
     setBusy(true);
+    setErrorMessage("");
+    setSuccessMessage("");
     try {
       setForm(await updateCmsBlogListingFn({ data: parsed.data }));
-      setMsg("Blog listing saved.");
+      setSuccessMessage("Blog listing saved.");
     } catch (error) {
-      setMsg(error instanceof Error ? error.message : "Could not save.");
+      setErrorMessage(
+        error instanceof Error ? error.message : "Could not save.",
+      );
     } finally {
       setBusy(false);
     }
@@ -64,24 +73,16 @@ function Page() {
         <Link to="/admin/cms/blog">← Back to Blog</Link>
         <div className="mt-5 flex justify-between">
           <h1 className="text-4xl font-semibold">Blog Listing Page</h1>
-          <button
-            disabled={busy}
-            className="rounded-xl bg-[#0c1724] px-5 py-3 text-white"
-          >
-            <Save className="mr-2 inline h-4 w-4" />
-            {busy ? "Saving..." : "Save Changes"}
-          </button>
+          <CmsSaveButton busy={busy} label="Save Changes" type="submit" />
         </div>
-        {msg ? (
-          <p className="mt-5 rounded-xl border bg-white p-4">{msg}</p>
-        ) : null}
+        <CmsEditorAlert error={errorMessage} success={successMessage} />
         <div className="mt-8 grid gap-6">
           <Section title="Hero">
             <CmsMediaPicker
               label="Hero Image"
               value={form.heroMediaId}
               images={images}
-              generalSettingsTypeValue="blog"
+              generalSettingsTypeValue="website-media"
               onChange={(heroMediaId) =>
                 setForm((x) => ({ ...x, heroMediaId }))
               }
@@ -128,6 +129,7 @@ function Page() {
             {field("Title", "newsletterTitle")}
           </Section>
         </div>
+        <CmsFloatingSave busy={busy} label="Save Changes" type="submit" />
       </form>
     </AdminShell>
   );

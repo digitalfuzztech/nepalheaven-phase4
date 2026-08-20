@@ -2,150 +2,107 @@ import { eq } from "drizzle-orm";
 
 import { db } from "@/db";
 
-import {
-    cmsGeneralSettings,
-} from "@/db/schema/cms-foundation";
+import { cmsGeneralSettings } from "@/db/schema/cms-foundation";
+
+import { requireAdmin } from "@/lib/auth.server";
 
 import {
-    requireAdmin,
-} from "@/lib/auth.server";
-
-import {
-    cmsGeneralSettingsInputSchema,
-    cmsOfficeHoursSchema,
-    type CmsGeneralSettingsInput,
+  cmsGeneralSettingsInputSchema,
+  cmsOfficeHoursSchema,
+  type CmsGeneralSettingsInput,
 } from "@/lib/cms-general.schema";
-import {
-    validateCmsSelectableImageIds,
-} from "@/lib/cms-media.server";
+import { validateCmsSelectableImageIds } from "@/lib/cms-media.server";
 
-function emptyToNull(
-    value: string,
-) {
-    const trimmed = value.trim();
+function emptyToNull(value: string) {
+  const trimmed = value.trim();
 
-    return trimmed.length > 0
-        ? trimmed
-        : null;
+  return trimmed.length > 0 ? trimmed : null;
 }
 
-function parseOfficeHours(
-    raw: string | null,
-) {
-    if (!raw) return [];
+function parseOfficeHours(raw: string | null) {
+  if (!raw) return [];
 
-    try {
-        const parsed: unknown =
-            JSON.parse(raw);
+  try {
+    const parsed: unknown = JSON.parse(raw);
 
-        const result =
-            cmsOfficeHoursSchema.safeParse(
-                parsed,
-            );
+    const result = cmsOfficeHoursSchema.safeParse(parsed);
 
-        return result.success
-            ? result.data
-            : [];
-    } catch {
-        return [];
-    }
+    return result.success ? result.data : [];
+  } catch {
+    return [];
+  }
 }
 
 async function readGeneralSettings() {
-    if (!db) {
-        throw new Error(
-            "Database connection is not configured.",
-        );
-    }
+  if (!db) {
+    throw new Error("Database connection is not configured.");
+  }
 
-    const [settings] = await db
-        .select()
-        .from(cmsGeneralSettings)
-        .where(
-            eq(
-                cmsGeneralSettings.key,
-                "general",
-            ),
-        )
-        .limit(1);
+  const [settings] = await db
+    .select()
+    .from(cmsGeneralSettings)
+    .where(eq(cmsGeneralSettings.key, "general"))
+    .limit(1);
 
-    if (!settings) {
-        throw new Error(
-            "CMS General Settings have not been initialized. Run npm run db:seed:cms.",
-        );
-    }
+  if (!settings) {
+    throw new Error(
+      "CMS General Settings have not been initialized. Run npm run db:seed:cms.",
+    );
+  }
 
-    return {
-        websiteName:
-        settings.websiteName,
+  return {
+    websiteName: settings.websiteName,
 
-        companyName:
-        settings.companyName,
+    companyName: settings.companyName,
 
-        tagline:
-            settings.tagline ?? "",
+    tagline: settings.tagline ?? "",
 
-        mainLogoMediaId:
-        settings.mainLogoMediaId,
+    mainLogoMediaId: settings.mainLogoMediaId,
 
-        lightLogoMediaId:
-        settings.lightLogoMediaId,
+    lightLogoMediaId: settings.lightLogoMediaId,
 
-        faviconMediaId:
-        settings.faviconMediaId,
+    faviconMediaId: settings.faviconMediaId,
 
-        defaultOgImageMediaId:
-        settings.defaultOgImageMediaId,
+    defaultOgImageMediaId: settings.defaultOgImageMediaId,
 
-        address:
-            settings.address ?? "",
+    address: settings.address ?? "",
 
-        country:
-            settings.country ?? "",
+    country: settings.country ?? "",
 
-        phone:
-            settings.phone ?? "",
+    phone: settings.phone ?? "",
 
-        whatsapp:
-            settings.whatsapp ?? "",
+    whatsapp: settings.whatsapp ?? "",
 
-        email:
-            settings.email ?? "",
+    email: settings.email ?? "",
 
-        officeHours:
-            parseOfficeHours(
-                settings.officeHours,
-            ),
+    officeHours: parseOfficeHours(settings.officeHours),
 
-        facebookUrl:
-            settings.facebookUrl ?? "",
+    officeLatitude:
+      settings.officeLatitude === null ? null : Number(settings.officeLatitude),
 
-        instagramUrl:
-            settings.instagramUrl ?? "",
+    officeLongitude:
+      settings.officeLongitude === null
+        ? null
+        : Number(settings.officeLongitude),
 
-        youtubeUrl:
-            settings.youtubeUrl ?? "",
+    facebookUrl: settings.facebookUrl ?? "",
 
-        tiktokUrl:
-            settings.tiktokUrl ?? "",
+    instagramUrl: settings.instagramUrl ?? "",
 
-        linkedinUrl:
-            settings.linkedinUrl ?? "",
+    youtubeUrl: settings.youtubeUrl ?? "",
 
-        xUrl:
-            settings.xUrl ?? "",
+    tiktokUrl: settings.tiktokUrl ?? "",
 
-        copyrightText:
-            settings.copyrightText ?? "",
+    linkedinUrl: settings.linkedinUrl ?? "",
 
-        defaultSeoTitle:
-            settings.defaultSeoTitle ??
-            "",
+    xUrl: settings.xUrl ?? "",
 
-        defaultSeoDescription:
-            settings.defaultSeoDescription ??
-            "",
-    } satisfies CmsGeneralSettingsInput;
+    copyrightText: settings.copyrightText ?? "",
+
+    defaultSeoTitle: settings.defaultSeoTitle ?? "",
+
+    defaultSeoDescription: settings.defaultSeoDescription ?? "",
+  } satisfies CmsGeneralSettingsInput;
 }
 
 /*
@@ -155,9 +112,9 @@ async function readGeneralSettings() {
 */
 
 export async function getCmsGeneralSettings() {
-    await requireAdmin();
+  await requireAdmin();
 
-    return readGeneralSettings();
+  return readGeneralSettings();
 }
 
 /*
@@ -166,164 +123,94 @@ export async function getCmsGeneralSettings() {
 |--------------------------------------------------------------------------
 */
 
-export async function updateCmsGeneralSettings(
-    input: CmsGeneralSettingsInput,
-) {
-    const admin =
-        await requireAdmin();
+export async function updateCmsGeneralSettings(input: CmsGeneralSettingsInput) {
+  const admin = await requireAdmin();
 
-    if (!db) {
-        throw new Error(
-            "Database connection is not configured.",
-        );
-    }
+  if (!db) {
+    throw new Error("Database connection is not configured.");
+  }
 
-    const data =
-        cmsGeneralSettingsInputSchema.parse(
-            input,
-        );
+  const data = cmsGeneralSettingsInputSchema.parse(input);
 
-    await validateCmsSelectableImageIds(
-        [
-            data.mainLogoMediaId,
-            data.lightLogoMediaId,
-            data.faviconMediaId,
-            data.defaultOgImageMediaId,
-        ],
+  await validateCmsSelectableImageIds([
+    data.mainLogoMediaId,
+    data.lightLogoMediaId,
+    data.faviconMediaId,
+    data.defaultOgImageMediaId,
+  ]);
+
+  const [current] = await db
+    .select({
+      id: cmsGeneralSettings.id,
+    })
+    .from(cmsGeneralSettings)
+    .where(eq(cmsGeneralSettings.key, "general"))
+    .limit(1);
+
+  if (!current) {
+    throw new Error(
+      "CMS General Settings have not been initialized. Run npm run db:seed:cms.",
     );
+  }
 
-    const [current] = await db
-        .select({
-            id: cmsGeneralSettings.id,
-        })
-        .from(cmsGeneralSettings)
-        .where(
-            eq(
-                cmsGeneralSettings.key,
-                "general",
-            ),
-        )
-        .limit(1);
+  await db
+    .update(cmsGeneralSettings)
+    .set({
+      websiteName: data.websiteName,
 
-    if (!current) {
-        throw new Error(
-            "CMS General Settings have not been initialized. Run npm run db:seed:cms.",
-        );
-    }
+      companyName: data.companyName,
 
-    await db
-        .update(cmsGeneralSettings)
-        .set({
-            websiteName:
-            data.websiteName,
+      tagline: emptyToNull(data.tagline),
 
-            companyName:
-            data.companyName,
+      mainLogoMediaId: data.mainLogoMediaId,
 
-            tagline:
-                emptyToNull(
-                    data.tagline,
-                ),
+      lightLogoMediaId: data.lightLogoMediaId,
 
-            mainLogoMediaId:
-            data.mainLogoMediaId,
+      faviconMediaId: data.faviconMediaId,
 
-            lightLogoMediaId:
-            data.lightLogoMediaId,
+      defaultOgImageMediaId: data.defaultOgImageMediaId,
 
-            faviconMediaId:
-            data.faviconMediaId,
+      address: emptyToNull(data.address),
 
-            defaultOgImageMediaId:
-            data.defaultOgImageMediaId,
+      country: emptyToNull(data.country),
 
-            address:
-                emptyToNull(
-                    data.address,
-                ),
+      phone: emptyToNull(data.phone),
 
-            country:
-                emptyToNull(
-                    data.country,
-                ),
+      whatsapp: emptyToNull(data.whatsapp),
 
-            phone:
-                emptyToNull(
-                    data.phone,
-                ),
+      email: emptyToNull(data.email),
 
-            whatsapp:
-                emptyToNull(
-                    data.whatsapp,
-                ),
+      officeHours: JSON.stringify(data.officeHours),
 
-            email:
-                emptyToNull(
-                    data.email,
-                ),
+      officeLatitude:
+        data.officeLatitude === null ? null : String(data.officeLatitude),
 
-            officeHours:
-                JSON.stringify(
-                    data.officeHours,
-                ),
+      officeLongitude:
+        data.officeLongitude === null ? null : String(data.officeLongitude),
 
-            facebookUrl:
-                emptyToNull(
-                    data.facebookUrl,
-                ),
+      facebookUrl: emptyToNull(data.facebookUrl),
 
-            instagramUrl:
-                emptyToNull(
-                    data.instagramUrl,
-                ),
+      instagramUrl: emptyToNull(data.instagramUrl),
 
-            youtubeUrl:
-                emptyToNull(
-                    data.youtubeUrl,
-                ),
+      youtubeUrl: emptyToNull(data.youtubeUrl),
 
-            tiktokUrl:
-                emptyToNull(
-                    data.tiktokUrl,
-                ),
+      tiktokUrl: emptyToNull(data.tiktokUrl),
 
-            linkedinUrl:
-                emptyToNull(
-                    data.linkedinUrl,
-                ),
+      linkedinUrl: emptyToNull(data.linkedinUrl),
 
-            xUrl:
-                emptyToNull(
-                    data.xUrl,
-                ),
+      xUrl: emptyToNull(data.xUrl),
 
-            copyrightText:
-                emptyToNull(
-                    data.copyrightText,
-                ),
+      copyrightText: emptyToNull(data.copyrightText),
 
-            defaultSeoTitle:
-                emptyToNull(
-                    data.defaultSeoTitle,
-                ),
+      defaultSeoTitle: emptyToNull(data.defaultSeoTitle),
 
-            defaultSeoDescription:
-                emptyToNull(
-                    data.defaultSeoDescription,
-                ),
+      defaultSeoDescription: emptyToNull(data.defaultSeoDescription),
 
-            updatedByUserId:
-            admin.id,
+      updatedByUserId: admin.id,
 
-            updatedAt:
-                new Date(),
-        })
-        .where(
-            eq(
-                cmsGeneralSettings.id,
-                current.id,
-            ),
-        );
+      updatedAt: new Date(),
+    })
+    .where(eq(cmsGeneralSettings.id, current.id));
 
-    return readGeneralSettings();
+  return readGeneralSettings();
 }

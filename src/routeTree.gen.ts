@@ -52,6 +52,7 @@ import { Route as AdminCmsDestinationsRouteImport } from './routes/admin_.cms_.d
 import { Route as AdminCmsEmailTemplatesRouteImport } from './routes/admin_.cms_.email-templates'
 import { Route as AdminCmsExperiencesRouteImport } from './routes/admin_.cms_.experiences'
 import { Route as AdminCmsFooterRouteImport } from './routes/admin_.cms_.footer'
+import { Route as AdminCmsGalleryRouteImport } from './routes/admin_.cms_.gallery'
 import { Route as AdminCmsGeneralRouteImport } from './routes/admin_.cms_.general'
 import { Route as AdminCmsMediaRouteImport } from './routes/admin_.cms_.media'
 import { Route as AdminCmsNavigationRouteImport } from './routes/admin_.cms_.navigation'
@@ -291,6 +292,11 @@ const AdminCmsFooterRoute = AdminCmsFooterRouteImport.update({
   path: '/admin/cms/footer',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminCmsGalleryRoute = AdminCmsGalleryRouteImport.update({
+  id: '/admin_/cms_/gallery',
+  path: '/admin/cms/gallery',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminCmsGeneralRoute = AdminCmsGeneralRouteImport.update({
   id: '/admin_/cms_/general',
   path: '/admin/cms/general',
@@ -452,6 +458,7 @@ export interface FileRoutesByFullPath {
   '/admin/cms/email-templates': typeof AdminCmsEmailTemplatesRoute
   '/admin/cms/experiences': typeof AdminCmsExperiencesRoute
   '/admin/cms/footer': typeof AdminCmsFooterRoute
+  '/admin/cms/gallery': typeof AdminCmsGalleryRoute
   '/admin/cms/general': typeof AdminCmsGeneralRoute
   '/admin/cms/media': typeof AdminCmsMediaRoute
   '/admin/cms/navigation': typeof AdminCmsNavigationRoute
@@ -519,6 +526,7 @@ export interface FileRoutesByTo {
   '/admin/cms/email-templates': typeof AdminCmsEmailTemplatesRoute
   '/admin/cms/experiences': typeof AdminCmsExperiencesRoute
   '/admin/cms/footer': typeof AdminCmsFooterRoute
+  '/admin/cms/gallery': typeof AdminCmsGalleryRoute
   '/admin/cms/general': typeof AdminCmsGeneralRoute
   '/admin/cms/media': typeof AdminCmsMediaRoute
   '/admin/cms/navigation': typeof AdminCmsNavigationRoute
@@ -587,6 +595,7 @@ export interface FileRoutesById {
   '/admin_/cms_/email-templates': typeof AdminCmsEmailTemplatesRoute
   '/admin_/cms_/experiences': typeof AdminCmsExperiencesRoute
   '/admin_/cms_/footer': typeof AdminCmsFooterRoute
+  '/admin_/cms_/gallery': typeof AdminCmsGalleryRoute
   '/admin_/cms_/general': typeof AdminCmsGeneralRoute
   '/admin_/cms_/media': typeof AdminCmsMediaRoute
   '/admin_/cms_/navigation': typeof AdminCmsNavigationRoute
@@ -656,6 +665,7 @@ export interface FileRouteTypes {
     | '/admin/cms/email-templates'
     | '/admin/cms/experiences'
     | '/admin/cms/footer'
+    | '/admin/cms/gallery'
     | '/admin/cms/general'
     | '/admin/cms/media'
     | '/admin/cms/navigation'
@@ -723,6 +733,7 @@ export interface FileRouteTypes {
     | '/admin/cms/email-templates'
     | '/admin/cms/experiences'
     | '/admin/cms/footer'
+    | '/admin/cms/gallery'
     | '/admin/cms/general'
     | '/admin/cms/media'
     | '/admin/cms/navigation'
@@ -790,6 +801,7 @@ export interface FileRouteTypes {
     | '/admin_/cms_/email-templates'
     | '/admin_/cms_/experiences'
     | '/admin_/cms_/footer'
+    | '/admin_/cms_/gallery'
     | '/admin_/cms_/general'
     | '/admin_/cms_/media'
     | '/admin_/cms_/navigation'
@@ -857,6 +869,7 @@ export interface RootRouteChildren {
   AdminCmsEmailTemplatesRoute: typeof AdminCmsEmailTemplatesRoute
   AdminCmsExperiencesRoute: typeof AdminCmsExperiencesRoute
   AdminCmsFooterRoute: typeof AdminCmsFooterRoute
+  AdminCmsGalleryRoute: typeof AdminCmsGalleryRoute
   AdminCmsGeneralRoute: typeof AdminCmsGeneralRoute
   AdminCmsMediaRoute: typeof AdminCmsMediaRoute
   AdminCmsNavigationRoute: typeof AdminCmsNavigationRoute
@@ -1182,6 +1195,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminCmsFooterRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin_/cms_/gallery': {
+      id: '/admin_/cms_/gallery'
+      path: '/admin/cms/gallery'
+      fullPath: '/admin/cms/gallery'
+      preLoaderRoute: typeof AdminCmsGalleryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin_/cms_/general': {
       id: '/admin_/cms_/general'
       path: '/admin/cms/general'
@@ -1410,6 +1430,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminCmsEmailTemplatesRoute: AdminCmsEmailTemplatesRoute,
   AdminCmsExperiencesRoute: AdminCmsExperiencesRoute,
   AdminCmsFooterRoute: AdminCmsFooterRoute,
+  AdminCmsGalleryRoute: AdminCmsGalleryRoute,
   AdminCmsGeneralRoute: AdminCmsGeneralRoute,
   AdminCmsMediaRoute: AdminCmsMediaRoute,
   AdminCmsNavigationRoute: AdminCmsNavigationRoute,

@@ -5,8 +5,15 @@ import {
   cmsBlogListingSchema,
   cmsContactPageSchema,
   cmsExperienceListingSchema,
+  cmsGalleryPageSchema,
 } from "@/lib/cms-page-content.schema";
-const kindSchema = z.enum(["experiences", "blog", "about", "contact"]);
+const kindSchema = z.enum([
+  "experiences",
+  "blog",
+  "about",
+  "contact",
+  "gallery",
+]);
 export const getCmsPageContentFn = createServerFn({ method: "GET" })
   .validator(kindSchema)
   .handler(async ({ data }) =>
@@ -34,6 +41,11 @@ export const updateCmsContactPageFn = createServerFn({ method: "POST" })
   .handler(async ({ data }) =>
     (await import("@/lib/cms-page-content.server")).updateCmsContactPage(data),
   );
+export const updateCmsGalleryPageFn = createServerFn({ method: "POST" })
+  .validator(cmsGalleryPageSchema)
+  .handler(async ({ data }) =>
+    (await import("@/lib/cms-page-content.server")).updateCmsGalleryPage(data),
+  );
 export const getPublicExperienceListingFn = createServerFn({
   method: "GET",
 }).handler(async () =>
@@ -50,4 +62,8 @@ export const getPublicAboutPageFn = createServerFn({ method: "GET" }).handler(
 export const getPublicContactPageFn = createServerFn({ method: "GET" }).handler(
   async () =>
     (await import("@/lib/cms-page-content.server")).getPublicContactPage(),
+);
+export const getPublicGalleryPageFn = createServerFn({ method: "GET" }).handler(
+  async () =>
+    (await import("@/lib/cms-page-content.server")).getPublicGalleryPage(),
 );

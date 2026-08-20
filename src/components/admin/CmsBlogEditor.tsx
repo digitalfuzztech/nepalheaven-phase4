@@ -1,15 +1,11 @@
-import { useState, type ReactNode } from "react";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { Link, useNavigate, useRouter } from "@tanstack/react-router";
+import { ArrowDown, ArrowUp, Image, Plus, Trash2, Upload } from "lucide-react";
 import {
-  ArrowDown,
-  ArrowUp,
-  Image,
-  Loader2,
-  Plus,
-  Save,
-  Trash2,
-  Upload,
-} from "lucide-react";
+  CmsEditorAlert,
+  CmsFloatingSave,
+  CmsSaveButton,
+} from "@/components/admin/CmsEditorControls";
 import type { CmsOtherSettingsOption } from "@/lib/cms-other-settings.constants";
 import {
   cmsBlogSaveSchema,
@@ -33,6 +29,7 @@ export function CmsBlogEditor({
   const detail = data.detail;
   const types = options.filter((o) => o.groupKey === "blog_type");
   const navigate = useNavigate();
+  const router = useRouter();
   const legacyBlocks =
     detail && !detail.blocks.length && detail.post.content
       ? [
@@ -91,9 +88,24 @@ export function CmsBlogEditor({
         },
   );
   const [hero, setHero] = useState<File | null>(null);
+  const [heroPreview, setHeroPreview] = useState<string | null>(null);
   const [files, setFiles] = useState<Record<string, File>>({});
+  const [filePreviews, setFilePreviews] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const objectUrls = useRef(new Set<string>());
+  useEffect(
+    () => () => {
+      objectUrls.current.forEach((url) => URL.revokeObjectURL(url));
+    },
+    [],
+  );
+  const previewUrl = (file: File) => {
+    const url = URL.createObjectURL(file);
+    objectUrls.current.add(url);
+    return url;
+  };
   const existingImage = (id?: string) =>
     id ? detail?.blocks.find((x) => x.id === id)?.imageUrl : null;
   const update = <K extends keyof CmsBlogSaveInput>(
@@ -125,6 +137,7 @@ export function CmsBlogEditor({
   }
   async function save() {
     setError("");
+    setSuccess("");
     const parsed = cmsBlogSaveSchema.safeParse(form);
     if (!parsed.success) {
       setError(parsed.error.issues[0]?.message ?? "Check the form.");
@@ -138,7 +151,15 @@ export function CmsBlogEditor({
       for (const [key, file] of Object.entries(files))
         fd.set(`blockFile:${key}`, file);
       const result = await saveCmsBlogFn({ data: fd });
-      await navigate({ to: "/admin/cms/blog/$id", params: { id: result.id } });
+      if (mode === "create") {
+        await navigate({
+          to: "/admin/cms/blog/$id",
+          params: { id: result.id },
+        });
+      } else {
+        setSuccess("Blog saved successfully.");
+        await router.invalidate();
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Blog could not be saved.");
     } finally {
@@ -160,13 +181,14 @@ export function CmsBlogEditor({
             {mode === "create" ? "Add Blog Post" : form.title}
           </h1>
         </div>
-        <SaveBtn busy={busy} save={save} />
+        <CmsSaveButton
+          busy={busy}
+          label="Save Blog"
+          type="button"
+          onClick={() => void save()}
+        />
       </div>
-      {error ? (
-        <p className="mt-5 rounded-xl border border-red-200 bg-red-50 p-4 text-red-700">
-          {error}
-        </p>
-      ) : null}
+      <CmsEditorAlert error={error} success={success} />
       <div className="mt-8 grid gap-6">
         <Section title="Blog Identity">
           <div className="grid gap-4 md:grid-cols-2">
@@ -241,9 +263,9 @@ export function CmsBlogEditor({
           </Field>
         </Section>
         <Section title="Detail Hero Image">
-          {detail?.post.coverImage ? (
+          {heroPreview || detail?.post.coverImage ? (
             <img
-              src={detail.post.coverImage}
+              src={heroPreview ?? detail?.post.coverImage ?? ""}
               alt=""
               className="aspect-[16/6] w-full rounded-2xl object-cover"
             />
@@ -255,7 +277,12 @@ export function CmsBlogEditor({
               type="file"
               accept="image/*"
               className="sr-only"
-              onChange={(e) => setHero(e.target.files?.[0] ?? null)}
+              onChange={(e) => {
+                const next = e.target.files?.[0] ?? null;
+                if (heroPreview) URL.revokeObjectURL(heroPreview);
+                setHero(next);
+                setHeroPreview(next ? previewUrl(next) : null);
+              }}
             />
           </label>
         </Section>
@@ -369,9 +396,13 @@ export function CmsBlogEditor({
                 />
               ) : (
                 <div className="grid gap-4">
-                  {existingImage(row.id) ? (
+                  {filePreviews[row.clientId] || existingImage(row.id) ? (
                     <img
-                      src={existingImage(row.id)!}
+                      src={
+                        filePreviews[row.clientId] ??
+                        existingImage(row.id) ??
+                        ""
+                      }
                       alt=""
                       className="max-h-64 rounded-xl object-cover"
                     />
@@ -386,8 +417,17 @@ export function CmsBlogEditor({
                       className="sr-only"
                       onChange={(e) => {
                         const file = e.target.files?.[0];
-                        if (file)
+                        if (file) {
                           setFiles((x) => ({ ...x, [row.clientId]: file }));
+                          setFilePreviews((current) => {
+                            const previous = current[row.clientId];
+                            if (previous) URL.revokeObjectURL(previous);
+                            return {
+                              ...current,
+                              [row.clientId]: previewUrl(file),
+                            };
+                          });
+                        }
                       }}
                     />
                   </label>
@@ -435,9 +475,11 @@ export function CmsBlogEditor({
           </Field>
         </Section>
       </div>
-      <div className="sticky bottom-4 mt-6 flex justify-end">
-        <SaveBtn busy={busy} save={save} />
-      </div>
+      <CmsFloatingSave
+        busy={busy}
+        label="Save Blog"
+        onClick={() => void save()}
+      />
     </div>
   );
 }
@@ -460,22 +502,5 @@ function Field({ label, children }: { label: string; children: ReactNode }) {
       {label}
       {children}
     </label>
-  );
-}
-function SaveBtn({ busy, save }: { busy: boolean; save: () => Promise<void> }) {
-  return (
-    <button
-      type="button"
-      disabled={busy}
-      onClick={() => void save()}
-      className="rounded-xl bg-[#0c1724] px-6 py-3 text-white shadow-xl"
-    >
-      {busy ? (
-        <Loader2 className="mr-2 inline h-4 w-4 animate-spin" />
-      ) : (
-        <Save className="mr-2 inline h-4 w-4 text-gold" />
-      )}
-      {busy ? "Saving..." : "Save Blog"}
-    </button>
   );
 }

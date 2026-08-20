@@ -1,19 +1,16 @@
 import {
-    boolean,
-    index,
-    int,
-    mysqlEnum,
-    mysqlTable,
-    text,
-    uniqueIndex,
-    varchar,
+  boolean,
+  decimal,
+  index,
+  int,
+  mysqlEnum,
+  mysqlTable,
+  text,
+  uniqueIndex,
+  varchar,
 } from "drizzle-orm/mysql-core";
 
-import {
-    defaultMomentColumn,
-    uuidColumn,
-    uuidPrimaryColumn,
-} from "./columns";
+import { defaultMomentColumn, uuidColumn, uuidPrimaryColumn } from "./columns";
 
 import { media } from "./media";
 import { users } from "./users";
@@ -25,9 +22,9 @@ import { users } from "./users";
 */
 
 export const cmsPublishingStatusValues = [
-    "draft",
-    "published",
-    "archived",
+  "draft",
+  "published",
+  "archived",
 ] as const;
 
 /*
@@ -54,62 +51,48 @@ export const cmsPublishingStatusValues = [
 */
 
 export const cmsPages = mysqlTable(
-    "cms_pages",
-    {
-        id: uuidPrimaryColumn("id").primaryKey(),
+  "cms_pages",
+  {
+    id: uuidPrimaryColumn("id").primaryKey(),
 
-        key: varchar("key", { length: 100 }).notNull(),
+    key: varchar("key", { length: 100 }).notNull(),
 
-        name: varchar("name", { length: 180 }).notNull(),
+    name: varchar("name", { length: 180 }).notNull(),
 
-        routePath: varchar("route_path", {
-            length: 191,
-        }),
+    routePath: varchar("route_path", {
+      length: 191,
+    }),
 
-        status: mysqlEnum(
-            "status",
-            cmsPublishingStatusValues,
-        )
-            .default("published")
-            .notNull(),
+    status: mysqlEnum("status", cmsPublishingStatusValues)
+      .default("published")
+      .notNull(),
 
-        seoTitle: text("seo_title"),
+    seoTitle: text("seo_title"),
 
-        seoDescription: text("seo_description"),
+    seoDescription: text("seo_description"),
 
-        ogImageMediaId: uuidColumn(
-            "og_image_media_id",
-        ).references(() => media.id, {
-            onDelete: "set null",
-        }),
+    ogImageMediaId: uuidColumn("og_image_media_id").references(() => media.id, {
+      onDelete: "set null",
+    }),
 
-        noIndex: boolean("no_index")
-            .default(false)
-            .notNull(),
+    noIndex: boolean("no_index").default(false).notNull(),
 
-        updatedByUserId: uuidColumn(
-            "updated_by_user_id",
-        ).references(() => users.id, {
-            onDelete: "set null",
-        }),
+    updatedByUserId: uuidColumn("updated_by_user_id").references(
+      () => users.id,
+      {
+        onDelete: "set null",
+      },
+    ),
 
-        createdAt: defaultMomentColumn(
-            "created_at",
-        ).notNull(),
+    createdAt: defaultMomentColumn("created_at").notNull(),
 
-        updatedAt: defaultMomentColumn(
-            "updated_at",
-        ).notNull(),
-    },
-    (table) => [
-        uniqueIndex("cms_pages_key_unique").on(
-            table.key,
-        ),
+    updatedAt: defaultMomentColumn("updated_at").notNull(),
+  },
+  (table) => [
+    uniqueIndex("cms_pages_key_unique").on(table.key),
 
-        index("cms_pages_status_idx").on(
-            table.status,
-        ),
-    ],
+    index("cms_pages_status_idx").on(table.status),
+  ],
 );
 
 /*
@@ -143,63 +126,47 @@ export const cmsPages = mysqlTable(
 */
 
 export const cmsPageSections = mysqlTable(
-    "cms_page_sections",
-    {
-        id: uuidPrimaryColumn("id").primaryKey(),
+  "cms_page_sections",
+  {
+    id: uuidPrimaryColumn("id").primaryKey(),
 
-        pageId: uuidColumn("page_id")
-            .notNull()
-            .references(() => cmsPages.id, {
-                onDelete: "cascade",
-            }),
+    pageId: uuidColumn("page_id")
+      .notNull()
+      .references(() => cmsPages.id, {
+        onDelete: "cascade",
+      }),
 
-        sectionKey: varchar("section_key", {
-            length: 100,
-        }).notNull(),
+    sectionKey: varchar("section_key", {
+      length: 100,
+    }).notNull(),
 
-        schemaVersion: int("schema_version")
-            .default(1)
-            .notNull(),
+    schemaVersion: int("schema_version").default(1).notNull(),
 
-        content: text("content").notNull(),
+    content: text("content").notNull(),
 
-        enabled: boolean("enabled")
-            .default(true)
-            .notNull(),
+    enabled: boolean("enabled").default(true).notNull(),
 
-        sortOrder: int("sort_order")
-            .default(0)
-            .notNull(),
+    sortOrder: int("sort_order").default(0).notNull(),
 
-        updatedByUserId: uuidColumn(
-            "updated_by_user_id",
-        ).references(() => users.id, {
-            onDelete: "set null",
-        }),
+    updatedByUserId: uuidColumn("updated_by_user_id").references(
+      () => users.id,
+      {
+        onDelete: "set null",
+      },
+    ),
 
-        createdAt: defaultMomentColumn(
-            "created_at",
-        ).notNull(),
+    createdAt: defaultMomentColumn("created_at").notNull(),
 
-        updatedAt: defaultMomentColumn(
-            "updated_at",
-        ).notNull(),
-    },
-    (table) => [
-        uniqueIndex(
-            "cms_page_sections_page_section_unique",
-        ).on(
-            table.pageId,
-            table.sectionKey,
-        ),
+    updatedAt: defaultMomentColumn("updated_at").notNull(),
+  },
+  (table) => [
+    uniqueIndex("cms_page_sections_page_section_unique").on(
+      table.pageId,
+      table.sectionKey,
+    ),
 
-        index(
-            "cms_page_sections_page_sort_idx",
-        ).on(
-            table.pageId,
-            table.sortOrder,
-        ),
-    ],
+    index("cms_page_sections_page_sort_idx").on(table.pageId, table.sortOrder),
+  ],
 );
 
 /*
@@ -218,117 +185,105 @@ export const cmsPageSections = mysqlTable(
 */
 
 export const cmsGeneralSettings = mysqlTable(
-    "cms_general_settings",
-    {
-        id: uuidPrimaryColumn("id").primaryKey(),
+  "cms_general_settings",
+  {
+    id: uuidPrimaryColumn("id").primaryKey(),
 
-        key: varchar("key", {
-            length: 50,
-        })
-            .default("general")
-            .notNull(),
+    key: varchar("key", {
+      length: 50,
+    })
+      .default("general")
+      .notNull(),
 
-        websiteName: text(
-            "website_name",
-        ).notNull(),
+    websiteName: text("website_name").notNull(),
 
-        companyName: text(
-            "company_name",
-        ).notNull(),
+    companyName: text("company_name").notNull(),
 
-        tagline: text("tagline"),
+    tagline: text("tagline"),
 
-        mainLogoMediaId: uuidColumn(
-            "main_logo_media_id",
-        ).references(() => media.id, {
-            onDelete: "set null",
-        }),
+    mainLogoMediaId: uuidColumn("main_logo_media_id").references(
+      () => media.id,
+      {
+        onDelete: "set null",
+      },
+    ),
 
-        lightLogoMediaId: uuidColumn(
-            "light_logo_media_id",
-        ).references(() => media.id, {
-            onDelete: "set null",
-        }),
+    lightLogoMediaId: uuidColumn("light_logo_media_id").references(
+      () => media.id,
+      {
+        onDelete: "set null",
+      },
+    ),
 
-        faviconMediaId: uuidColumn(
-            "favicon_media_id",
-        ).references(() => media.id, {
-            onDelete: "set null",
-        }),
+    faviconMediaId: uuidColumn("favicon_media_id").references(() => media.id, {
+      onDelete: "set null",
+    }),
 
-        address: text("address"),
+    address: text("address"),
 
-        country: text("country"),
+    country: text("country"),
 
-        phone: text("phone"),
+    phone: text("phone"),
 
-        whatsapp: text("whatsapp"),
+    whatsapp: text("whatsapp"),
 
-        email: text("email"),
+    email: text("email"),
 
-        /*
-         * Serialized JSON.
-         *
-         * Example:
-         *
-         * [
-         *   {
-         *     "day": "Monday – Friday",
-         *     "time": "09:00 – 17:00"
-         *   }
-         * ]
-         */
-        officeHours: text("office_hours"),
+    /*
+     * Serialized JSON.
+     *
+     * Example:
+     *
+     * [
+     *   {
+     *     "day": "Monday – Friday",
+     *     "time": "09:00 – 17:00"
+     *   }
+     * ]
+     */
+    officeHours: text("office_hours"),
 
-        facebookUrl: text("facebook_url"),
+    officeLatitude: decimal("office_latitude", { precision: 10, scale: 7 }),
 
-        instagramUrl: text("instagram_url"),
+    officeLongitude: decimal("office_longitude", { precision: 10, scale: 7 }),
 
-        youtubeUrl: text("youtube_url"),
+    facebookUrl: text("facebook_url"),
 
-        tiktokUrl: text("tiktok_url"),
+    instagramUrl: text("instagram_url"),
 
-        linkedinUrl: text("linkedin_url"),
+    youtubeUrl: text("youtube_url"),
 
-        xUrl: text("x_url"),
+    tiktokUrl: text("tiktok_url"),
 
-        copyrightText: text(
-            "copyright_text",
-        ),
+    linkedinUrl: text("linkedin_url"),
 
-        defaultSeoTitle: text(
-            "default_seo_title",
-        ),
+    xUrl: text("x_url"),
 
-        defaultSeoDescription: text(
-            "default_seo_description",
-        ),
+    copyrightText: text("copyright_text"),
 
-        defaultOgImageMediaId: uuidColumn(
-            "default_og_image_media_id",
-        ).references(() => media.id, {
-            onDelete: "set null",
-        }),
+    defaultSeoTitle: text("default_seo_title"),
 
-        updatedByUserId: uuidColumn(
-            "updated_by_user_id",
-        ).references(() => users.id, {
-            onDelete: "set null",
-        }),
+    defaultSeoDescription: text("default_seo_description"),
 
-        createdAt: defaultMomentColumn(
-            "created_at",
-        ).notNull(),
+    defaultOgImageMediaId: uuidColumn("default_og_image_media_id").references(
+      () => media.id,
+      {
+        onDelete: "set null",
+      },
+    ),
 
-        updatedAt: defaultMomentColumn(
-            "updated_at",
-        ).notNull(),
-    },
-    (table) => [
-        uniqueIndex(
-            "cms_general_settings_key_unique",
-        ).on(table.key),
-    ],
+    updatedByUserId: uuidColumn("updated_by_user_id").references(
+      () => users.id,
+      {
+        onDelete: "set null",
+      },
+    ),
+
+    createdAt: defaultMomentColumn("created_at").notNull(),
+
+    updatedAt: defaultMomentColumn("updated_at").notNull(),
+  },
+  (table) => [uniqueIndex("cms_general_settings_key_unique").on(table.key)],
 );
 
 /*
@@ -343,55 +298,42 @@ export const cmsGeneralSettings = mysqlTable(
 */
 
 export const cmsFooterSettings = mysqlTable(
-    "cms_footer_settings",
-    {
-        id: uuidPrimaryColumn("id").primaryKey(),
+  "cms_footer_settings",
+  {
+    id: uuidPrimaryColumn("id").primaryKey(),
 
-        key: varchar("key", {
-            length: 50,
-        })
-            .default("footer")
-            .notNull(),
+    key: varchar("key", {
+      length: 50,
+    })
+      .default("footer")
+      .notNull(),
 
-        companyDescription: text(
-            "company_description",
-        ),
+    companyDescription: text("company_description"),
 
-        journalDescription: text(
-            "journal_description",
-        ),
+    journalDescription: text("journal_description"),
 
-        /*
-         * Optional footer-specific logo.
-         *
-         * NULL later means:
-         * use General Settings light logo.
-         */
-        logoMediaId: uuidColumn(
-            "logo_media_id",
-        ).references(() => media.id, {
-            onDelete: "set null",
-        }),
+    /*
+     * Optional footer-specific logo.
+     *
+     * NULL later means:
+     * use General Settings light logo.
+     */
+    logoMediaId: uuidColumn("logo_media_id").references(() => media.id, {
+      onDelete: "set null",
+    }),
 
-        updatedByUserId: uuidColumn(
-            "updated_by_user_id",
-        ).references(() => users.id, {
-            onDelete: "set null",
-        }),
+    updatedByUserId: uuidColumn("updated_by_user_id").references(
+      () => users.id,
+      {
+        onDelete: "set null",
+      },
+    ),
 
-        createdAt: defaultMomentColumn(
-            "created_at",
-        ).notNull(),
+    createdAt: defaultMomentColumn("created_at").notNull(),
 
-        updatedAt: defaultMomentColumn(
-            "updated_at",
-        ).notNull(),
-    },
-    (table) => [
-        uniqueIndex(
-            "cms_footer_settings_key_unique",
-        ).on(table.key),
-    ],
+    updatedAt: defaultMomentColumn("updated_at").notNull(),
+  },
+  (table) => [uniqueIndex("cms_footer_settings_key_unique").on(table.key)],
 );
 
 /*
@@ -400,109 +342,78 @@ export const cmsFooterSettings = mysqlTable(
 |--------------------------------------------------------------------------
 */
 
-export const cmsNavigationLinkTypeValues = [
-    "internal",
-    "external",
-] as const;
+export const cmsNavigationLinkTypeValues = ["internal", "external"] as const;
 
 export const cmsNavigationMenus = mysqlTable(
-    "cms_navigation_menus",
-    {
-        id: uuidPrimaryColumn("id").primaryKey(),
+  "cms_navigation_menus",
+  {
+    id: uuidPrimaryColumn("id").primaryKey(),
 
-        key: varchar("key", {
-            length: 100,
-        }).notNull(),
+    key: varchar("key", {
+      length: 100,
+    }).notNull(),
 
-        name: varchar("name", {
-            length: 180,
-        }).notNull(),
+    name: varchar("name", {
+      length: 180,
+    }).notNull(),
 
-        description: text("description"),
+    description: text("description"),
 
-        createdAt: defaultMomentColumn(
-            "created_at",
-        ).notNull(),
+    createdAt: defaultMomentColumn("created_at").notNull(),
 
-        updatedAt: defaultMomentColumn(
-            "updated_at",
-        ).notNull(),
-    },
-    (table) => [
-        uniqueIndex(
-            "cms_navigation_menus_key_unique",
-        ).on(table.key),
-    ],
+    updatedAt: defaultMomentColumn("updated_at").notNull(),
+  },
+  (table) => [uniqueIndex("cms_navigation_menus_key_unique").on(table.key)],
 );
 
 export const cmsNavigationItems = mysqlTable(
-    "cms_navigation_items",
-    {
-        id: uuidPrimaryColumn("id").primaryKey(),
+  "cms_navigation_items",
+  {
+    id: uuidPrimaryColumn("id").primaryKey(),
 
-        menuId: uuidColumn("menu_id")
-            .notNull()
-            .references(
-                () => cmsNavigationMenus.id,
-                {
-                    onDelete: "cascade",
-                },
-            ),
+    menuId: uuidColumn("menu_id")
+      .notNull()
+      .references(() => cmsNavigationMenus.id, {
+        onDelete: "cascade",
+      }),
 
-        label: varchar("label", {
-            length: 180,
-        }).notNull(),
+    label: varchar("label", {
+      length: 180,
+    }).notNull(),
 
-        linkType: mysqlEnum(
-            "link_type",
-            cmsNavigationLinkTypeValues,
-        )
-            .default("internal")
-            .notNull(),
+    linkType: mysqlEnum("link_type", cmsNavigationLinkTypeValues)
+      .default("internal")
+      .notNull(),
 
-        /*
-         * Internal:
-         * path = /destinations
-         *
-         * External:
-         * url = https://example.com
-         */
-        path: varchar("path", {
-            length: 500,
-        }),
+    /*
+     * Internal:
+     * path = /destinations
+     *
+     * External:
+     * url = https://example.com
+     */
+    path: varchar("path", {
+      length: 500,
+    }),
 
-        url: text("url"),
+    url: text("url"),
 
-        sortOrder: int("sort_order")
-            .default(0)
-            .notNull(),
+    sortOrder: int("sort_order").default(0).notNull(),
 
-        enabled: boolean("enabled")
-            .default(true)
-            .notNull(),
+    enabled: boolean("enabled").default(true).notNull(),
 
-        openNewTab: boolean(
-            "open_new_tab",
-        )
-            .default(false)
-            .notNull(),
+    openNewTab: boolean("open_new_tab").default(false).notNull(),
 
-        createdAt: defaultMomentColumn(
-            "created_at",
-        ).notNull(),
+    createdAt: defaultMomentColumn("created_at").notNull(),
 
-        updatedAt: defaultMomentColumn(
-            "updated_at",
-        ).notNull(),
-    },
-    (table) => [
-        index(
-            "cms_navigation_items_menu_sort_idx",
-        ).on(
-            table.menuId,
-            table.sortOrder,
-        ),
-    ],
+    updatedAt: defaultMomentColumn("updated_at").notNull(),
+  },
+  (table) => [
+    index("cms_navigation_items_menu_sort_idx").on(
+      table.menuId,
+      table.sortOrder,
+    ),
+  ],
 );
 
 /*
@@ -522,88 +433,72 @@ export const cmsNavigationItems = mysqlTable(
 */
 
 export const cmsFeaturedEntityTypeValues = [
-    "destination",
-    "package",
-    "experience",
-    "blog_post",
-    "testimonial",
-    "media",
+  "destination",
+  "package",
+  "experience",
+  "blog_post",
+  "testimonial",
+  "media",
 ] as const;
 
 export const cmsFeaturedContent = mysqlTable(
-    "cms_featured_content",
-    {
-        id: uuidPrimaryColumn("id").primaryKey(),
+  "cms_featured_content",
+  {
+    id: uuidPrimaryColumn("id").primaryKey(),
 
-        groupKey: varchar("group_key", {
-            length: 150,
-        }).notNull(),
+    groupKey: varchar("group_key", {
+      length: 150,
+    }).notNull(),
 
-        entityType: mysqlEnum(
-            "entity_type",
-            cmsFeaturedEntityTypeValues,
-        ).notNull(),
+    entityType: mysqlEnum("entity_type", cmsFeaturedEntityTypeValues).notNull(),
 
-        /*
-         * Polymorphic entity reference.
-         *
-         * There is intentionally no DB foreign key because this UUID can point
-         * to several different entity tables.
-         *
-         * Later CMS services will validate the referenced record before saving.
-         */
-        entityId: uuidColumn(
-            "entity_id",
-        ).notNull(),
+    /*
+     * Polymorphic entity reference.
+     *
+     * There is intentionally no DB foreign key because this UUID can point
+     * to several different entity tables.
+     *
+     * Later CMS services will validate the referenced record before saving.
+     */
+    entityId: uuidColumn("entity_id").notNull(),
 
-        /*
-         * Optional semantic slot:
-         *
-         * primary
-         * secondary
-         * hero
-         * etc.
-         */
-        slot: varchar("slot", {
-            length: 100,
-        }),
+    /*
+     * Optional semantic slot:
+     *
+     * primary
+     * secondary
+     * hero
+     * etc.
+     */
+    slot: varchar("slot", {
+      length: 100,
+    }),
 
-        sortOrder: int("sort_order")
-            .default(0)
-            .notNull(),
+    sortOrder: int("sort_order").default(0).notNull(),
 
-        enabled: boolean("enabled")
-            .default(true)
-            .notNull(),
+    enabled: boolean("enabled").default(true).notNull(),
 
-        updatedByUserId: uuidColumn(
-            "updated_by_user_id",
-        ).references(() => users.id, {
-            onDelete: "set null",
-        }),
+    updatedByUserId: uuidColumn("updated_by_user_id").references(
+      () => users.id,
+      {
+        onDelete: "set null",
+      },
+    ),
 
-        createdAt: defaultMomentColumn(
-            "created_at",
-        ).notNull(),
+    createdAt: defaultMomentColumn("created_at").notNull(),
 
-        updatedAt: defaultMomentColumn(
-            "updated_at",
-        ).notNull(),
-    },
-    (table) => [
-        index(
-            "cms_featured_content_group_sort_idx",
-        ).on(
-            table.groupKey,
-            table.sortOrder,
-        ),
+    updatedAt: defaultMomentColumn("updated_at").notNull(),
+  },
+  (table) => [
+    index("cms_featured_content_group_sort_idx").on(
+      table.groupKey,
+      table.sortOrder,
+    ),
 
-        uniqueIndex(
-            "cms_featured_content_group_entity_unique",
-        ).on(
-            table.groupKey,
-            table.entityType,
-            table.entityId,
-        ),
-    ],
+    uniqueIndex("cms_featured_content_group_entity_unique").on(
+      table.groupKey,
+      table.entityType,
+      table.entityId,
+    ),
+  ],
 );

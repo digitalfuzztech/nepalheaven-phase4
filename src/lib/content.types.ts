@@ -9,9 +9,7 @@ export type Destination = {
   season: string;
   duration: string;
   difficulty: string;
-  difficultyOptionId:
-      string |
-      null;
+  difficultyOptionId: string | null;
   short: string;
   description: string;
   highlights: string[];
@@ -20,34 +18,23 @@ export type Destination = {
   excluded: string[];
   itinerary: { day: string; title: string; detail: string }[];
   category: string;
-  destinationTypeOptionId:
-      string |
-      null;
-  faqs:
-      Array<{
-        q:
-            string;
+  destinationTypeOptionId: string | null;
+  faqs: Array<{
+    q: string;
 
-        a:
-            string;
-      }>;
-  gallery:
-      Array<{
-        id:
-            string;
+    a: string;
+  }>;
+  gallery: Array<{
+    id: string;
 
-        image:
-            string;
+    image: string;
 
-        title:
-            string;
+    title: string;
 
-        alt:
-            string;
+    alt: string;
 
-        caption:
-            string;
-      }>;
+    caption: string;
+  }>;
 };
 
 export type Package = {
@@ -78,8 +65,19 @@ export type Package = {
   included: string[];
   excluded: string[];
   tiers: { name: string; note: string; price: number; currency: string }[];
-  gallery: { id: string; image: string; title: string; alt: string; caption: string }[];
-  packageReviews: { rating: number; text: string; customerName: string; countryCode: string }[];
+  gallery: {
+    id: string;
+    image: string;
+    title: string;
+    alt: string;
+    caption: string;
+  }[];
+  packageReviews: {
+    rating: number;
+    text: string;
+    customerName: string;
+    countryCode: string;
+  }[];
   faqs: { q: string; a: string }[];
 };
 
@@ -97,7 +95,14 @@ export type Post = {
   body: string[];
   highlights: string[];
   aboutAuthor: string;
-  blocks: Array<{ id: string; type: "text" | "highlight" | "image"; content: string; image?: string; alt: string; caption: string }>;
+  blocks: Array<{
+    id: string;
+    type: "text" | "highlight" | "image";
+    content: string;
+    image?: string;
+    alt: string;
+    caption: string;
+  }>;
 };
 
 export type Testimonial = {
@@ -122,26 +127,20 @@ export type Company = {
   email: string;
   address: string;
   hours: { day: string; time: string }[];
+  officeLatitude?: number | null;
+  officeLongitude?: number | null;
 };
 
 export type PublicBranding = {
   companyName: string;
 
-  mainLogoUrl:
-      | string
-      | null;
+  mainLogoUrl: string | null;
 
-  lightLogoUrl:
-      | string
-      | null;
+  lightLogoUrl: string | null;
 
-  faviconUrl:
-      | string
-      | null;
+  faviconUrl: string | null;
 
-  defaultOgImageUrl:
-      | string
-      | null;
+  defaultOgImageUrl: string | null;
 
   defaultSeoTitle: string;
 
@@ -184,9 +183,7 @@ export type PublicFooterContent = {
 
   journalDescription: string;
 
-  logoUrl:
-      | string
-      | null;
+  logoUrl: string | null;
 
   menus: PublicFooterMenus;
 };
@@ -210,7 +207,13 @@ export type ExperienceCategory = {
   included: string[];
   excluded: string[];
   faqs: { q: string; a: string }[];
-  gallery: { id: string; image: string; title: string; alt: string; caption: string }[];
+  gallery: {
+    id: string;
+    image: string;
+    title: string;
+    alt: string;
+    caption: string;
+  }[];
   packages: Package[];
   seoTitle: string;
   seoDescription: string;
@@ -257,21 +260,37 @@ export type GalleryItem = {
   /*
    * Media Library "Associated To" information.
    */
-  associatedToKind?:
-      | "destination"
-      | "package"
-      | "experience"
-      | "general";
+  associatedToKind?: "destination" | "package" | "experience" | "general";
 
   associatedToName?: string;
   associatedToSlug?: string;
 
   packageType?: string;
   packageTypeOptionId?: string;
+  generalSettingsType?: string;
 };
-export type BlogComment = { id: string; customerName: string; avatarUrl?: string; content: string; createdAt: string };
-export type BlogEngagement = { likeCount: number; hasLiked: boolean; averageRating: number | null; ratingCount: number; currentUserRating: number | null; comments: BlogComment[] };
-export type PublicSearchResults = { query: string; destinations: Destination[]; packages: Package[]; experiences: ExperienceCategory[]; articles: Post[] };
+export type BlogComment = {
+  id: string;
+  customerName: string;
+  avatarUrl?: string;
+  content: string;
+  createdAt: string;
+};
+export type BlogEngagement = {
+  likeCount: number;
+  hasLiked: boolean;
+  averageRating: number | null;
+  ratingCount: number;
+  currentUserRating: number | null;
+  comments: BlogComment[];
+};
+export type PublicSearchResults = {
+  query: string;
+  destinations: Destination[];
+  packages: Package[];
+  experiences: ExperienceCategory[];
+  articles: Post[];
+};
 export type TeamMember = { name: string; role: string; bio: string };
 export type Milestone = { year: string; title: string; detail: string };
 export type WhyUsItem = { title: string; detail: string; icon: string };
@@ -307,7 +326,12 @@ export type PublicSiteSettings = {
   primaryNavigation: PublicNavigationItem[];
   footer: PublicFooterContent | null;
 };
-type LegacyExperienceCategory = { name: string; detail: string; image: string; count?: number };
+type LegacyExperienceCategory = {
+  name: string;
+  detail: string;
+  image: string;
+  count?: number;
+};
 
 export type HomeContent = PublicSiteSettings & {
   destinations: Destination[];
@@ -320,18 +344,10 @@ export type ShellContent = {
   company: Company;
 
   branding: PublicBranding;
-  primaryNavigation:
-      PublicNavigationItem[];
-  footer:
-      PublicFooterContent | null;
+  primaryNavigation: PublicNavigationItem[];
+  footer: PublicFooterContent | null;
 
-  destinations: Pick<
-      Destination,
-      "slug" | "name"
-  >[];
+  destinations: Pick<Destination, "slug" | "name">[];
 
-  packages: Pick<
-      Package,
-      "slug" | "title"
-  >[];
+  packages: Pick<Package, "slug" | "title">[];
 };

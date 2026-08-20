@@ -57,6 +57,12 @@ export function CmsBlogsList({ posts }: { posts: CmsBlogListItem[] }) {
     <div>
       <div className="flex justify-between gap-5">
         <div>
+          <Link
+            to="/admin/cms"
+            className="text-sm font-semibold text-muted-foreground"
+          >
+            ← Back to CMS
+          </Link>
           <p className="text-xs font-bold uppercase text-gold">Blog CMS</p>
           <h1 className="mt-2 text-4xl font-semibold">Blog</h1>
         </div>

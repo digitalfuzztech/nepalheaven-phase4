@@ -1,155 +1,96 @@
 import { z } from "zod";
-import {
-    cmsMediaIdSchema,
-} from "@/lib/cms-media.schema";
+import { cmsMediaIdSchema } from "@/lib/cms-media.schema";
 
-const optionalMediaId =
-    cmsMediaIdSchema.nullable();
+const optionalMediaId = cmsMediaIdSchema.nullable();
 function isHttpUrl(value: string) {
-    if (!value) return true;
+  if (!value) return true;
 
-    try {
-        const url = new URL(value);
+  try {
+    const url = new URL(value);
 
-        return (
-            url.protocol === "http:" ||
-            url.protocol === "https:"
-        );
-    } catch {
-        return false;
-    }
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch {
+    return false;
+  }
 }
 
-const optionalText = (
-    maxLength: number,
-) =>
-    z
-        .string()
-        .trim()
-        .max(maxLength);
+const optionalText = (maxLength: number) => z.string().trim().max(maxLength);
 
 const optionalUrl = z
-    .string()
-    .trim()
-    .max(500)
-    .refine(
-        isHttpUrl,
-        "Enter a valid http:// or https:// URL.",
-    );
+  .string()
+  .trim()
+  .max(500)
+  .refine(isHttpUrl, "Enter a valid http:// or https:// URL.");
 
 const optionalEmail = z
-    .string()
-    .trim()
-    .max(254)
-    .refine(
-        (value) =>
-            value === "" ||
-            /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
-                value,
-            ),
-        "Enter a valid email address.",
-    );
+  .string()
+  .trim()
+  .max(254)
+  .refine(
+    (value) => value === "" || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value),
+    "Enter a valid email address.",
+  );
 
-export const cmsOfficeHourSchema =
-    z.object({
-        day: z
-            .string()
-            .trim()
-            .min(
-                1,
-                "Office-hours day is required.",
-            )
-            .max(120),
+export const cmsOfficeHourSchema = z.object({
+  day: z.string().trim().min(1, "Office-hours day is required.").max(120),
 
-        time: z
-            .string()
-            .trim()
-            .min(
-                1,
-                "Office-hours time is required.",
-            )
-            .max(120),
-    });
+  time: z.string().trim().min(1, "Office-hours time is required.").max(120),
+});
 
-export const cmsOfficeHoursSchema =
-    z
-        .array(cmsOfficeHourSchema)
-        .max(
-            20,
-            "A maximum of 20 office-hour rows is allowed.",
-        );
+export const cmsOfficeHoursSchema = z
+  .array(cmsOfficeHourSchema)
+  .max(20, "A maximum of 20 office-hour rows is allowed.");
 
-export const cmsGeneralSettingsInputSchema =
-    z.object({
-        websiteName: z
-            .string()
-            .trim()
-            .min(
-                1,
-                "Website name is required.",
-            )
-            .max(180),
+export const cmsGeneralSettingsInputSchema = z.object({
+  websiteName: z.string().trim().min(1, "Website name is required.").max(180),
 
-        companyName: z
-            .string()
-            .trim()
-            .min(
-                1,
-                "Company name is required.",
-            )
-            .max(180),
+  companyName: z.string().trim().min(1, "Company name is required.").max(180),
 
-        tagline: optionalText(300),
+  tagline: optionalText(300),
 
-        mainLogoMediaId:
-        optionalMediaId,
+  mainLogoMediaId: optionalMediaId,
 
-        lightLogoMediaId:
-        optionalMediaId,
+  lightLogoMediaId: optionalMediaId,
 
-        faviconMediaId:
-        optionalMediaId,
+  faviconMediaId: optionalMediaId,
 
-        defaultOgImageMediaId:
-        optionalMediaId,
+  defaultOgImageMediaId: optionalMediaId,
 
-        address: optionalText(500),
+  address: optionalText(500),
 
-        country: optionalText(120),
+  country: optionalText(120),
 
-        phone: optionalText(60),
+  phone: optionalText(60),
 
-        whatsapp: optionalText(60),
+  whatsapp: optionalText(60),
 
-        email: optionalEmail,
+  email: optionalEmail,
 
-        officeHours:
-        cmsOfficeHoursSchema,
+  officeHours: cmsOfficeHoursSchema,
 
-        facebookUrl: optionalUrl,
+  officeLatitude: z.number().min(-90).max(90).nullable(),
 
-        instagramUrl: optionalUrl,
+  officeLongitude: z.number().min(-180).max(180).nullable(),
 
-        youtubeUrl: optionalUrl,
+  facebookUrl: optionalUrl,
 
-        tiktokUrl: optionalUrl,
+  instagramUrl: optionalUrl,
 
-        linkedinUrl: optionalUrl,
+  youtubeUrl: optionalUrl,
 
-        xUrl: optionalUrl,
+  tiktokUrl: optionalUrl,
 
-        copyrightText:
-            optionalText(500),
+  linkedinUrl: optionalUrl,
 
-        defaultSeoTitle:
-            optionalText(180),
+  xUrl: optionalUrl,
 
-        defaultSeoDescription:
-            optionalText(500),
+  copyrightText: optionalText(500),
 
-    });
+  defaultSeoTitle: optionalText(180),
 
-export type CmsGeneralSettingsInput =
-    z.infer<
-        typeof cmsGeneralSettingsInputSchema
-    >;
+  defaultSeoDescription: optionalText(500),
+});
+
+export type CmsGeneralSettingsInput = z.infer<
+  typeof cmsGeneralSettingsInputSchema
+>;

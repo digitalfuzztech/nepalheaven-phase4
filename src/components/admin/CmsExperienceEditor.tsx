@@ -1,16 +1,19 @@
-import { useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Link, useNavigate, useRouter } from "@tanstack/react-router";
 import {
   ArrowDown,
   ArrowUp,
-  Loader2,
   Plus,
-  Save,
   Search,
   Trash2,
   Upload,
   X,
 } from "lucide-react";
+import {
+  CmsEditorAlert,
+  CmsFloatingSave,
+  CmsSaveButton,
+} from "@/components/admin/CmsEditorControls";
 import type { CmsOtherSettingsOption } from "@/lib/cms-other-settings.constants";
 import {
   cmsExperienceSaveSchema,
@@ -92,6 +95,7 @@ export function CmsExperienceEditor({
         },
   );
   const [file, setFile] = useState<File | null>(null);
+  const [filePreview, setFilePreview] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -99,6 +103,18 @@ export function CmsExperienceEditor({
   const selected = data.packages.filter((p) =>
     form.relatedPackageIds.includes(p.id),
   );
+  useEffect(
+    () => () => {
+      if (filePreview) URL.revokeObjectURL(filePreview);
+    },
+    [filePreview],
+  );
+
+  function chooseHero(nextFile: File | null) {
+    if (filePreview) URL.revokeObjectURL(filePreview);
+    setFile(nextFile);
+    setFilePreview(nextFile ? URL.createObjectURL(nextFile) : null);
+  }
   const available = data.packages
     .filter(
       (p) =>
@@ -147,7 +163,7 @@ export function CmsExperienceEditor({
           fd.set("id", detail.core.id);
           fd.set("mainImage", file);
           await uploadCmsExperienceMainImageFn({ data: fd });
-          setFile(null);
+          chooseHero(null);
         }
         setSuccess("Experience saved successfully.");
         await router.invalidate();
@@ -218,315 +234,344 @@ export function CmsExperienceEditor({
             {mode === "create" ? "Create Experience" : form.title}
           </h1>
         </div>
-        <SaveButton busy={busy} save={save} />
+        <CmsSaveButton
+          busy={busy}
+          label="Save Experience"
+          type="button"
+          onClick={() => void save()}
+        />
       </div>
-      {error ? (
-        <p className="mt-6 rounded-xl border border-red-200 bg-red-50 p-4 text-red-700">
-          {error}
-        </p>
-      ) : null}
-      {success ? (
-        <p className="mt-6 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-700">
-          {success}
-        </p>
-      ) : null}
-      <div className="mt-8 grid gap-6">
-        <Section title="Experience Identity">
-          <div className="grid gap-4 md:grid-cols-2">
-            <Field label="Title">
-              <input
-                value={form.title}
-                onChange={(e) => update("title", e.target.value)}
-                className={input}
-              />
-            </Field>
-            <Field label="Experience Type">
-              <select
-                value={form.experienceTypeOptionId}
-                onChange={(e) =>
-                  update("experienceTypeOptionId", e.target.value)
-                }
-                className={input}
+      <CmsEditorAlert error={error} success={success} />
+      <div className="mt-8 grid gap-8 lg:grid-cols-[220px_minmax(0,1fr)]">
+        <aside className="hidden lg:block">
+          <nav
+            className="sticky top-24 rounded-2xl border bg-white p-4 shadow-sm"
+            aria-label="Experience editor sections"
+          >
+            {[
+              "Experience Identity",
+              "Detail Hero Image",
+              "Overview",
+              "Highlights",
+              "Itinerary",
+              "Inclusions",
+              "Exclusions",
+              "Related Packages",
+              "FAQs",
+              "SEO",
+            ].map((label) => (
+              <a
+                key={label}
+                href={`#${sectionId(label)}`}
+                className="block rounded-lg px-3 py-2 text-sm font-semibold text-muted-foreground transition hover:bg-[#faf9f6] hover:text-[#0c1724]"
               >
-                {types.map((o) => (
-                  <option key={o.id} value={o.id}>
-                    {o.name}
-                  </option>
-                ))}
-              </select>
-            </Field>
-            <Field label="Card Link Text">
-              <input
-                value={form.cardLinkText}
-                onChange={(e) => update("cardLinkText", e.target.value)}
-                className={input}
-              />
-            </Field>
-            <Field label="Sort Order">
-              <input
-                type="number"
-                min={0}
-                value={form.sortOrder}
-                onChange={(e) => update("sortOrder", Number(e.target.value))}
-                className={input}
-              />
-            </Field>
-          </div>
-          <Field label="Description">
-            <textarea
-              rows={4}
-              value={form.description}
-              onChange={(e) => update("description", e.target.value)}
-              className={area}
-            />
-          </Field>
-        </Section>
-        <Section title="Detail Hero Image">
-          {detail?.core.heroImage ? (
-            <img
-              src={detail.core.heroImage}
-              alt=""
-              className="aspect-[16/6] w-full rounded-2xl object-cover"
-            />
-          ) : null}
-          <label className="inline-flex w-fit cursor-pointer gap-2 rounded-xl border px-4 py-3">
-            <Upload className="h-4 w-4" />
-            {file?.name ?? "Choose hero image"}
-            <input
-              type="file"
-              accept="image/*"
-              className="sr-only"
-              onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-            />
-          </label>
-        </Section>
-        <Section title="Overview">
-          <textarea
-            rows={7}
-            value={form.overview ?? ""}
-            onChange={(e) => update("overview", e.target.value || null)}
-            className={area}
-          />
-        </Section>
-        {list("highlights", "Highlights")}
-        <Section title="Itinerary">
-          {form.itineraries.map((row, i) => (
-            <Row
-              key={i}
-              onUp={() => move("itineraries", i, -1)}
-              onDown={() => move("itineraries", i, 1)}
-              onRemove={() =>
-                update(
-                  "itineraries",
-                  form.itineraries.filter((_, n) => n !== i),
-                )
-              }
-            >
-              <div className="grid gap-4 md:grid-cols-2">
-                <Field label="Minimum Day">
-                  <input
-                    type="number"
-                    min={1}
-                    value={row.minDay}
-                    onChange={(e) =>
-                      update(
-                        "itineraries",
-                        form.itineraries.map((x, n) =>
-                          n === i
-                            ? { ...x, minDay: Number(e.target.value) }
-                            : x,
-                        ),
-                      )
-                    }
-                    className={input}
-                  />
-                </Field>
-                <Field label="Maximum Day">
-                  <input
-                    type="number"
-                    min={1}
-                    value={row.maxDay}
-                    onChange={(e) =>
-                      update(
-                        "itineraries",
-                        form.itineraries.map((x, n) =>
-                          n === i
-                            ? { ...x, maxDay: Number(e.target.value) }
-                            : x,
-                        ),
-                      )
-                    }
-                    className={input}
-                  />
-                </Field>
-              </div>
+                {label}
+              </a>
+            ))}
+          </nav>
+        </aside>
+        <div className="grid min-w-0 gap-6">
+          <Section title="Experience Identity">
+            <div className="grid gap-4 md:grid-cols-2">
               <Field label="Title">
                 <input
-                  value={row.title}
-                  onChange={(e) =>
-                    update(
-                      "itineraries",
-                      form.itineraries.map((x, n) =>
-                        n === i ? { ...x, title: e.target.value } : x,
-                      ),
-                    )
-                  }
+                  value={form.title}
+                  onChange={(e) => update("title", e.target.value)}
                   className={input}
                 />
               </Field>
-              <Field label="Description">
-                <textarea
-                  rows={4}
-                  value={row.description}
+              <Field label="Experience Type">
+                <select
+                  value={form.experienceTypeOptionId}
                   onChange={(e) =>
-                    update(
-                      "itineraries",
-                      form.itineraries.map((x, n) =>
-                        n === i ? { ...x, description: e.target.value } : x,
-                      ),
-                    )
+                    update("experienceTypeOptionId", e.target.value)
                   }
-                  className={area}
+                  className={input}
+                >
+                  {types.map((o) => (
+                    <option key={o.id} value={o.id}>
+                      {o.name}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+              <Field label="Card Link Text">
+                <input
+                  value={form.cardLinkText}
+                  onChange={(e) => update("cardLinkText", e.target.value)}
+                  className={input}
                 />
               </Field>
-            </Row>
-          ))}
-          <Add
-            onClick={() =>
-              update("itineraries", [
-                ...form.itineraries,
-                { minDay: 1, maxDay: 1, title: "", description: "" },
-              ])
-            }
-          >
-            Add Itinerary Row
-          </Add>
-        </Section>
-        <Section title="Related Packages">
-          <div className="flex flex-wrap gap-2">
-            {selected.map((p) => (
-              <button
-                key={p.id}
-                type="button"
-                onClick={() =>
+              <Field label="Sort Order">
+                <input
+                  type="number"
+                  min={0}
+                  value={form.sortOrder}
+                  onChange={(e) => update("sortOrder", Number(e.target.value))}
+                  className={input}
+                />
+              </Field>
+            </div>
+            <Field label="Description">
+              <textarea
+                rows={4}
+                value={form.description}
+                onChange={(e) => update("description", e.target.value)}
+                className={area}
+              />
+            </Field>
+          </Section>
+          <Section title="Detail Hero Image">
+            {filePreview || detail?.core.heroImage ? (
+              <img
+                src={filePreview ?? detail?.core.heroImage ?? ""}
+                alt=""
+                className="aspect-[16/6] w-full rounded-2xl object-cover"
+              />
+            ) : null}
+            <label className="inline-flex w-fit cursor-pointer gap-2 rounded-xl border px-4 py-3">
+              <Upload className="h-4 w-4" />
+              {file?.name ?? "Choose hero image"}
+              <input
+                type="file"
+                accept="image/*"
+                className="sr-only"
+                onChange={(e) => chooseHero(e.target.files?.[0] ?? null)}
+              />
+            </label>
+          </Section>
+          <Section title="Overview">
+            <textarea
+              rows={7}
+              value={form.overview ?? ""}
+              onChange={(e) => update("overview", e.target.value || null)}
+              className={area}
+            />
+          </Section>
+          {list("highlights", "Highlights")}
+          <Section title="Itinerary">
+            {form.itineraries.map((row, i) => (
+              <Row
+                key={i}
+                onUp={() => move("itineraries", i, -1)}
+                onDown={() => move("itineraries", i, 1)}
+                onRemove={() =>
                   update(
-                    "relatedPackageIds",
-                    form.relatedPackageIds.filter((id) => id !== p.id),
+                    "itineraries",
+                    form.itineraries.filter((_, n) => n !== i),
                   )
                 }
-                className="rounded-full bg-[#0c1724] px-3 py-2 text-xs text-white"
               >
-                {p.title}
-                {!p.status ? " · Unpublished" : ""}{" "}
-                <X className="inline h-3 w-3" />
-              </button>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <Field label="Minimum Day">
+                    <input
+                      type="number"
+                      min={1}
+                      value={row.minDay}
+                      onChange={(e) =>
+                        update(
+                          "itineraries",
+                          form.itineraries.map((x, n) =>
+                            n === i
+                              ? { ...x, minDay: Number(e.target.value) }
+                              : x,
+                          ),
+                        )
+                      }
+                      className={input}
+                    />
+                  </Field>
+                  <Field label="Maximum Day">
+                    <input
+                      type="number"
+                      min={1}
+                      value={row.maxDay}
+                      onChange={(e) =>
+                        update(
+                          "itineraries",
+                          form.itineraries.map((x, n) =>
+                            n === i
+                              ? { ...x, maxDay: Number(e.target.value) }
+                              : x,
+                          ),
+                        )
+                      }
+                      className={input}
+                    />
+                  </Field>
+                </div>
+                <Field label="Title">
+                  <input
+                    value={row.title}
+                    onChange={(e) =>
+                      update(
+                        "itineraries",
+                        form.itineraries.map((x, n) =>
+                          n === i ? { ...x, title: e.target.value } : x,
+                        ),
+                      )
+                    }
+                    className={input}
+                  />
+                </Field>
+                <Field label="Description">
+                  <textarea
+                    rows={4}
+                    value={row.description}
+                    onChange={(e) =>
+                      update(
+                        "itineraries",
+                        form.itineraries.map((x, n) =>
+                          n === i ? { ...x, description: e.target.value } : x,
+                        ),
+                      )
+                    }
+                    className={area}
+                  />
+                </Field>
+              </Row>
             ))}
-          </div>
-          <label className="flex gap-2 rounded-xl border px-4 py-3">
-            <Search className="h-4 w-4" />
-            <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search packages…"
-              className="w-full outline-none"
-            />
-          </label>
-          {search ? (
-            <div className="rounded-xl border p-2">
-              {available.map((p) => (
+            <Add
+              onClick={() =>
+                update("itineraries", [
+                  ...form.itineraries,
+                  { minDay: 1, maxDay: 1, title: "", description: "" },
+                ])
+              }
+            >
+              Add Itinerary Row
+            </Add>
+          </Section>
+          <Section title="Related Packages">
+            <div className="flex flex-wrap gap-2">
+              {selected.map((p) => (
                 <button
                   key={p.id}
                   type="button"
-                  onClick={() => {
-                    update("relatedPackageIds", [
-                      ...form.relatedPackageIds,
-                      p.id,
-                    ]);
-                    setSearch("");
-                  }}
-                  className="block w-full rounded-lg p-2 text-left hover:bg-black/5"
+                  onClick={() =>
+                    update(
+                      "relatedPackageIds",
+                      form.relatedPackageIds.filter((id) => id !== p.id),
+                    )
+                  }
+                  className="rounded-full bg-[#0c1724] px-3 py-2 text-xs text-white"
                 >
                   {p.title}
-                  {!p.status ? " · Unpublished" : ""}
+                  {!p.status ? " · Unpublished" : ""}{" "}
+                  <X className="inline h-3 w-3" />
                 </button>
               ))}
             </div>
-          ) : null}
-        </Section>
-        {list("inclusions", "Inclusions")}
-        {list("exclusions", "Exclusions")}
-        <Section title="FAQs">
-          {form.faqs.map((row, i) => (
-            <Row
-              key={i}
-              onUp={() => move("faqs", i, -1)}
-              onDown={() => move("faqs", i, 1)}
-              onRemove={() =>
-                update(
-                  "faqs",
-                  form.faqs.filter((_, n) => n !== i),
-                )
+            <label className="flex gap-2 rounded-xl border px-4 py-3">
+              <Search className="h-4 w-4" />
+              <input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search packages…"
+                className="w-full outline-none"
+              />
+            </label>
+            {search ? (
+              <div className="rounded-xl border p-2">
+                {available.map((p) => (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => {
+                      update("relatedPackageIds", [
+                        ...form.relatedPackageIds,
+                        p.id,
+                      ]);
+                      setSearch("");
+                    }}
+                    className="block w-full rounded-lg p-2 text-left hover:bg-black/5"
+                  >
+                    {p.title}
+                    {!p.status ? " · Unpublished" : ""}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+          </Section>
+          {list("inclusions", "Inclusions")}
+          {list("exclusions", "Exclusions")}
+          <Section title="FAQs">
+            {form.faqs.map((row, i) => (
+              <Row
+                key={i}
+                onUp={() => move("faqs", i, -1)}
+                onDown={() => move("faqs", i, 1)}
+                onRemove={() =>
+                  update(
+                    "faqs",
+                    form.faqs.filter((_, n) => n !== i),
+                  )
+                }
+              >
+                <Field label="Question">
+                  <input
+                    value={row.question}
+                    onChange={(e) =>
+                      update(
+                        "faqs",
+                        form.faqs.map((x, n) =>
+                          n === i ? { ...x, question: e.target.value } : x,
+                        ),
+                      )
+                    }
+                    className={input}
+                  />
+                </Field>
+                <Field label="Answer">
+                  <textarea
+                    rows={4}
+                    value={row.answer}
+                    onChange={(e) =>
+                      update(
+                        "faqs",
+                        form.faqs.map((x, n) =>
+                          n === i ? { ...x, answer: e.target.value } : x,
+                        ),
+                      )
+                    }
+                    className={area}
+                  />
+                </Field>
+              </Row>
+            ))}
+            <Add
+              onClick={() =>
+                update("faqs", [...form.faqs, { question: "", answer: "" }])
               }
             >
-              <Field label="Question">
-                <input
-                  value={row.question}
-                  onChange={(e) =>
-                    update(
-                      "faqs",
-                      form.faqs.map((x, n) =>
-                        n === i ? { ...x, question: e.target.value } : x,
-                      ),
-                    )
-                  }
-                  className={input}
-                />
-              </Field>
-              <Field label="Answer">
-                <textarea
-                  rows={4}
-                  value={row.answer}
-                  onChange={(e) =>
-                    update(
-                      "faqs",
-                      form.faqs.map((x, n) =>
-                        n === i ? { ...x, answer: e.target.value } : x,
-                      ),
-                    )
-                  }
-                  className={area}
-                />
-              </Field>
-            </Row>
-          ))}
-          <Add
-            onClick={() =>
-              update("faqs", [...form.faqs, { question: "", answer: "" }])
-            }
-          >
-            Add FAQ
-          </Add>
-        </Section>
-        <Section title="SEO">
-          <Field label="SEO Title">
-            <input
-              value={form.seoTitle ?? ""}
-              onChange={(e) => update("seoTitle", e.target.value || null)}
-              className={input}
-            />
-          </Field>
-          <Field label="SEO Description">
-            <textarea
-              value={form.seoDescription ?? ""}
-              onChange={(e) => update("seoDescription", e.target.value || null)}
-              className={area}
-            />
-          </Field>
-        </Section>
+              Add FAQ
+            </Add>
+          </Section>
+          <Section title="SEO">
+            <Field label="SEO Title">
+              <input
+                value={form.seoTitle ?? ""}
+                onChange={(e) => update("seoTitle", e.target.value || null)}
+                className={input}
+              />
+            </Field>
+            <Field label="SEO Description">
+              <textarea
+                value={form.seoDescription ?? ""}
+                onChange={(e) =>
+                  update("seoDescription", e.target.value || null)
+                }
+                className={area}
+              />
+            </Field>
+          </Section>
+        </div>
       </div>
-      <div className="sticky bottom-4 mt-6 flex justify-end">
-        <SaveButton busy={busy} save={save} />
-      </div>
+      <CmsFloatingSave
+        busy={busy}
+        label="Save Experience"
+        onClick={() => void save()}
+      />
     </div>
   );
 }
@@ -536,11 +581,20 @@ const area =
   "w-full rounded-xl border bg-white px-4 py-3 text-sm outline-none focus:border-gold";
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <section className="rounded-2xl border bg-white p-6 shadow-sm">
+    <section
+      id={sectionId(title)}
+      className="scroll-mt-24 rounded-2xl border bg-white p-6 shadow-sm"
+    >
       <h2 className="text-lg font-semibold">{title}</h2>
       <div className="mt-5 grid gap-4">{children}</div>
     </section>
   );
+}
+function sectionId(title: string) {
+  return title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
 }
 function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
@@ -601,29 +655,6 @@ function Add({
     >
       <Plus className="h-4 w-4 text-gold" />
       {children}
-    </button>
-  );
-}
-function SaveButton({
-  busy,
-  save,
-}: {
-  busy: boolean;
-  save: () => Promise<void>;
-}) {
-  return (
-    <button
-      type="button"
-      disabled={busy}
-      onClick={() => void save()}
-      className="inline-flex items-center gap-2 rounded-xl bg-[#0c1724] px-6 py-3 text-sm font-semibold text-white shadow-xl disabled:opacity-50"
-    >
-      {busy ? (
-        <Loader2 className="h-4 w-4 animate-spin text-gold" />
-      ) : (
-        <Save className="h-4 w-4 text-gold" />
-      )}
-      {busy ? "Saving..." : "Save Experience"}
     </button>
   );
 }

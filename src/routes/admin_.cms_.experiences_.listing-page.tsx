@@ -1,8 +1,13 @@
 import { useState, type FormEvent } from "react";
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
-import { Plus, Save, Trash2 } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { CmsMediaPicker } from "@/components/admin/CmsMediaPicker";
+import {
+  CmsEditorAlert,
+  CmsFloatingSave,
+  CmsSaveButton,
+} from "@/components/admin/CmsEditorControls";
 import { getAdminSessionFn } from "@/lib/auth.functions";
 import { getCmsSelectableImagesFn } from "@/lib/cms-media.functions";
 import {
@@ -28,20 +33,25 @@ function Page() {
   const { settings, images } = Route.useLoaderData();
   const [form, setForm] = useState(settings);
   const [busy, setBusy] = useState(false);
-  const [message, setMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   async function save(e: FormEvent) {
     e.preventDefault();
     const parsed = cmsExperienceListingSchema.safeParse(form);
     if (!parsed.success) {
-      setMessage(parsed.error.issues[0]?.message ?? "Check the form.");
+      setErrorMessage(parsed.error.issues[0]?.message ?? "Check the form.");
       return;
     }
     setBusy(true);
+    setErrorMessage("");
+    setSuccessMessage("");
     try {
       setForm(await updateCmsExperienceListingFn({ data: parsed.data }));
-      setMessage("Experiences listing page saved.");
+      setSuccessMessage("Experiences listing page saved.");
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Could not save.");
+      setErrorMessage(
+        error instanceof Error ? error.message : "Could not save.",
+      );
     } finally {
       setBusy(false);
     }
@@ -87,17 +97,9 @@ function Page() {
               Experiences Listing Page
             </h1>
           </div>
-          <button
-            disabled={busy}
-            className="rounded-full bg-[#0c1724] px-5 py-3 text-white"
-          >
-            <Save className="mr-2 inline h-4 w-4 text-gold" />
-            {busy ? "Saving..." : "Save Changes"}
-          </button>
+          <CmsSaveButton busy={busy} label="Save Changes" type="submit" />
         </div>
-        {message ? (
-          <p className="mt-5 rounded-xl border bg-white p-4">{message}</p>
-        ) : null}
+        <CmsEditorAlert error={errorMessage} success={successMessage} />
         <div className="mt-8 grid gap-6">
           <Section title="Hero">
             <CmsMediaPicker
@@ -167,6 +169,7 @@ function Page() {
             </button>
           </Section>
         </div>
+        <CmsFloatingSave busy={busy} label="Save Changes" type="submit" />
       </form>
     </AdminShell>
   );

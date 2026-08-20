@@ -30,11 +30,17 @@ import {
   packages,
   packageTiers,
 } from "@/db/schema/packages";
-import { experienceCategories, experienceExclusions, experienceFaqs, experienceHighlights, experienceInclusions, experienceItineraries, experiencePackages } from "@/db/schema/experiences";
-import { media } from "@/db/schema/media";
 import {
-  cmsOtherSettingsOptions,
-} from "@/db/schema/cms-other-settings";
+  experienceCategories,
+  experienceExclusions,
+  experienceFaqs,
+  experienceHighlights,
+  experienceInclusions,
+  experienceItineraries,
+  experiencePackages,
+} from "@/db/schema/experiences";
+import { media } from "@/db/schema/media";
+import { cmsOtherSettingsOptions } from "@/db/schema/cms-other-settings";
 import { resolveAssetReference } from "@/lib/asset-resolver";
 import type {
   Activity,
@@ -88,7 +94,6 @@ function requireDb() {
   return db;
 }
 
-
 function parseJsonSetting<T>(
   values: Map<string, string | null>,
   key: string,
@@ -137,73 +142,57 @@ export async function getDestinations(): Promise<Destination[]> {
 
   if (rows.length === 0) return [];
   const destinationIds = rows.map((row) => row.id);
-  const [highlights, tips, itineraries, inclusions, exclusions, destinationFaqRows, destinationMediaRows,] =
-    await Promise.all([
-      database
-        .select()
-        .from(destinationHighlights)
-        .where(inArray(destinationHighlights.destinationId, destinationIds))
-        .orderBy(asc(destinationHighlights.sortOrder)),
-      database
-        .select()
-        .from(destinationTips)
-        .where(inArray(destinationTips.destinationId, destinationIds))
-        .orderBy(asc(destinationTips.sortOrder)),
-      database
-        .select()
-        .from(destinationItineraries)
-        .where(inArray(destinationItineraries.destinationId, destinationIds))
-        .orderBy(asc(destinationItineraries.sortOrder)),
-      database
-        .select()
-        .from(destinationInclusions)
-        .where(inArray(destinationInclusions.destinationId, destinationIds))
-        .orderBy(asc(destinationInclusions.sortOrder)),
-      database
-        .select()
-        .from(destinationExclusions)
-        .where(inArray(destinationExclusions.destinationId, destinationIds))
-        .orderBy(asc(destinationExclusions.sortOrder)),
-      database
-          .select()
-          .from(
-              destinationFaqs,
-          )
-          .where(
-              inArray(
-                  destinationFaqs.destinationId,
-                  destinationIds,
-              ),
-          )
-          .orderBy(
-              asc(
-                  destinationFaqs.sortOrder,
-              ),
-          ),
-      database
-          .select()
-          .from(
-              media,
-          )
-          .where(
-              and(
-                  eq(
-                      media.type,
-                      "image",
-                  ),
+  const [
+    highlights,
+    tips,
+    itineraries,
+    inclusions,
+    exclusions,
+    destinationFaqRows,
+    destinationMediaRows,
+  ] = await Promise.all([
+    database
+      .select()
+      .from(destinationHighlights)
+      .where(inArray(destinationHighlights.destinationId, destinationIds))
+      .orderBy(asc(destinationHighlights.sortOrder)),
+    database
+      .select()
+      .from(destinationTips)
+      .where(inArray(destinationTips.destinationId, destinationIds))
+      .orderBy(asc(destinationTips.sortOrder)),
+    database
+      .select()
+      .from(destinationItineraries)
+      .where(inArray(destinationItineraries.destinationId, destinationIds))
+      .orderBy(asc(destinationItineraries.sortOrder)),
+    database
+      .select()
+      .from(destinationInclusions)
+      .where(inArray(destinationInclusions.destinationId, destinationIds))
+      .orderBy(asc(destinationInclusions.sortOrder)),
+    database
+      .select()
+      .from(destinationExclusions)
+      .where(inArray(destinationExclusions.destinationId, destinationIds))
+      .orderBy(asc(destinationExclusions.sortOrder)),
+    database
+      .select()
+      .from(destinationFaqs)
+      .where(inArray(destinationFaqs.destinationId, destinationIds))
+      .orderBy(asc(destinationFaqs.sortOrder)),
+    database
+      .select()
+      .from(media)
+      .where(
+        and(
+          eq(media.type, "image"),
 
-                  inArray(
-                      media.associatedDestinationId,
-                      destinationIds,
-                  ),
-              ),
-          )
-          .orderBy(
-              asc(
-                  media.createdAt,
-              ),
-          ),
-    ]);
+          inArray(media.associatedDestinationId, destinationIds),
+        ),
+      )
+      .orderBy(asc(media.createdAt)),
+  ]);
 
   const highlightsByDestination = groupBy(
     highlights,
@@ -222,23 +211,15 @@ export async function getDestinations(): Promise<Destination[]> {
     exclusions,
     (item) => item.destinationId,
   );
-  const faqsByDestination =
-      groupBy(
-          destinationFaqRows,
-          (
-              item,
-          ) =>
-              item.destinationId,
-      );
+  const faqsByDestination = groupBy(
+    destinationFaqRows,
+    (item) => item.destinationId,
+  );
 
-  const mediaByDestination =
-      groupBy(
-          destinationMediaRows,
-          (
-              item,
-          ) =>
-              item.associatedDestinationId,
-      );
+  const mediaByDestination = groupBy(
+    destinationMediaRows,
+    (item) => item.associatedDestinationId,
+  );
 
   return rows.map((row) => ({
     slug: row.slug,
@@ -247,10 +228,10 @@ export async function getDestinations(): Promise<Destination[]> {
     latitude: row.latitude,
     longitude: row.longitude,
     image: row.heroImage
-        ? row.heroImage.startsWith("/")
-            ? row.heroImage
-            : resolveAssetReference(row.heroImage) || row.heroImage
-        : "",
+      ? row.heroImage.startsWith("/")
+        ? row.heroImage
+        : resolveAssetReference(row.heroImage) || row.heroImage
+      : "",
     altitude:
       row.altitudeLabel ??
       (row.elevation ? `${row.elevation.toLocaleString()} m` : ""),
@@ -277,58 +258,24 @@ export async function getDestinations(): Promise<Destination[]> {
     excluded: (exclusionsByDestination.get(row.id) ?? []).map(
       (item) => item.item,
     ),
-    faqs:
-        (
-            faqsByDestination.get(
-                row.id,
-            ) ??
-            []
-        ).map(
-            (
-                faq,
-            ) => ({
-              q:
-              faq.question,
+    faqs: (faqsByDestination.get(row.id) ?? []).map((faq) => ({
+      q: faq.question,
 
-              a:
-              faq.answer,
-            }),
-        ),
-    gallery:
-        (
-            mediaByDestination.get(
-                row.id,
-            ) ??
-            []
-        ).map(
-            (
-                item,
-            ) => ({
-              id:
-              item.id,
+      a: faq.answer,
+    })),
+    gallery: (mediaByDestination.get(row.id) ?? []).map((item) => ({
+      id: item.id,
 
-              image:
-                  item.url.startsWith("/")
-                      ? item.url
-                      : resolveAssetReference(
-                          item.url,
-                      ) ||
-                      item.url,
+      image: item.url.startsWith("/")
+        ? item.url
+        : resolveAssetReference(item.url) || item.url,
 
-              title:
-                  item.title ??
-                  "",
+      title: item.title ?? "",
 
-              alt:
-                  item.altText ??
-                  item.title ??
-                  row.name,
+      alt: item.altText ?? item.title ?? row.name,
 
-              caption:
-                  item.caption ??
-                  "",
-            }),
-        ),
+      caption: item.caption ?? "",
+    })),
   }));
 }
 
@@ -408,10 +355,34 @@ export async function getPackages(): Promise<Package[]> {
       .from(packageExclusions)
       .where(inArray(packageExclusions.packageId, packageIds))
       .orderBy(asc(packageExclusions.sortOrder)),
-    database.select().from(packageReviews).where(inArray(packageReviews.packageId, packageIds)).orderBy(asc(packageReviews.sortOrder)),
-    database.select().from(packageFaqs).where(inArray(packageFaqs.packageId, packageIds)).orderBy(asc(packageFaqs.sortOrder)),
-    database.select().from(media).where(and(eq(media.type, "image"), eq(media.lifecycleStatus, "ready"), inArray(media.associatedPackageId, packageIds))).orderBy(asc(media.sortOrder), asc(media.createdAt)),
-    database.select({ id: cmsOtherSettingsOptions.id, value: cmsOtherSettingsOptions.value }).from(cmsOtherSettingsOptions).where(eq(cmsOtherSettingsOptions.groupKey, "category")),
+    database
+      .select()
+      .from(packageReviews)
+      .where(inArray(packageReviews.packageId, packageIds))
+      .orderBy(asc(packageReviews.sortOrder)),
+    database
+      .select()
+      .from(packageFaqs)
+      .where(inArray(packageFaqs.packageId, packageIds))
+      .orderBy(asc(packageFaqs.sortOrder)),
+    database
+      .select()
+      .from(media)
+      .where(
+        and(
+          eq(media.type, "image"),
+          eq(media.lifecycleStatus, "ready"),
+          inArray(media.associatedPackageId, packageIds),
+        ),
+      )
+      .orderBy(asc(media.sortOrder), asc(media.createdAt)),
+    database
+      .select({
+        id: cmsOtherSettingsOptions.id,
+        value: cmsOtherSettingsOptions.value,
+      })
+      .from(cmsOtherSettingsOptions)
+      .where(eq(cmsOtherSettingsOptions.groupKey, "category")),
   ]);
 
   const primaryDestinationById = new Map(
@@ -428,11 +399,18 @@ export async function getPackages(): Promise<Package[]> {
   const exclusionsByPackage = groupBy(exclusions, (item) => item.packageId);
   const reviewsByPackage = groupBy(reviewRows, (item) => item.packageId);
   const faqsByPackage = groupBy(faqRows, (item) => item.packageId);
-  const mediaCategoryById = new Map(mediaCategoryRows.map((item) => [item.id, item.value]));
-  const mediaByPackage = groupBy(packageMediaRows.filter((item) => {
-    const category = item.categoryOptionId ? mediaCategoryById.get(item.categoryOptionId) : item.category?.trim().toLowerCase();
-    return category === "package" || category === "packages";
-  }), (item) => item.associatedPackageId);
+  const mediaCategoryById = new Map(
+    mediaCategoryRows.map((item) => [item.id, item.value]),
+  );
+  const mediaByPackage = groupBy(
+    packageMediaRows.filter((item) => {
+      const category = item.categoryOptionId
+        ? mediaCategoryById.get(item.categoryOptionId)
+        : item.category?.trim().toLowerCase();
+      return category === "package" || category === "packages";
+    }),
+    (item) => item.associatedPackageId,
+  );
 
   return rows.map((row) => ({
     id: row.id,
@@ -444,10 +422,24 @@ export async function getPackages(): Promise<Package[]> {
         ? primaryDestinationById.get(row.destinationId)?.name
         : undefined) ??
       "",
-    destinations: [...new Map([
-      ...(row.destinationId && primaryDestinationById.get(row.destinationId) ? [{ slug: primaryDestinationById.get(row.destinationId)!.slug, name: primaryDestinationById.get(row.destinationId)!.name }] : []),
-      ...(destinationsByPackage.get(row.id) ?? []).map((item) => ({ slug: item.destination.slug, name: item.destination.name })),
-    ].map((item) => [item.slug, item])).values()],
+    destinations: [
+      ...new Map(
+        [
+          ...(row.destinationId && primaryDestinationById.get(row.destinationId)
+            ? [
+                {
+                  slug: primaryDestinationById.get(row.destinationId)!.slug,
+                  name: primaryDestinationById.get(row.destinationId)!.name,
+                },
+              ]
+            : []),
+          ...(destinationsByPackage.get(row.id) ?? []).map((item) => ({
+            slug: item.destination.slug,
+            name: item.destination.name,
+          })),
+        ].map((item) => [item.slug, item]),
+      ).values(),
+    ],
     image: row.heroImage
       ? row.heroImage.startsWith("/")
         ? row.heroImage
@@ -487,13 +479,23 @@ export async function getPackages(): Promise<Package[]> {
     })),
     gallery: (mediaByPackage.get(row.id) ?? []).map((item) => ({
       id: item.id,
-      image: item.url.startsWith("/") ? item.url : resolveAssetReference(item.url) || item.url,
+      image: item.url.startsWith("/")
+        ? item.url
+        : resolveAssetReference(item.url) || item.url,
       title: item.title ?? "",
       alt: item.altText ?? item.title ?? row.title,
       caption: item.caption ?? "",
     })),
-    packageReviews: (reviewsByPackage.get(row.id) ?? []).map((item) => ({ rating: Number(item.rating), text: item.reviewText, customerName: item.customerName, countryCode: item.customerCountryCode })),
-    faqs: (faqsByPackage.get(row.id) ?? []).map((item) => ({ q: item.question, a: item.answer })),
+    packageReviews: (reviewsByPackage.get(row.id) ?? []).map((item) => ({
+      rating: Number(item.rating),
+      text: item.reviewText,
+      customerName: item.customerName,
+      countryCode: item.customerCountryCode,
+    })),
+    faqs: (faqsByPackage.get(row.id) ?? []).map((item) => ({
+      q: item.question,
+      a: item.answer,
+    })),
   }));
 }
 
@@ -503,62 +505,249 @@ export async function getPackageBySlug(slug: string): Promise<Package | null> {
 }
 export async function getExperiences(): Promise<ExperienceCategory[]> {
   const database = requireDb();
-  const rows = await database.select().from(experienceCategories).where(eq(experienceCategories.status, true)).orderBy(asc(experienceCategories.sortOrder));
+  const rows = await database
+    .select()
+    .from(experienceCategories)
+    .where(eq(experienceCategories.status, true))
+    .orderBy(asc(experienceCategories.sortOrder));
   if (!rows.length) return [];
   const ids = rows.map((row) => row.id);
-  const [highlights, links, packageRows, publicPackages, itineraries, faqRows, inclusions, exclusions, experienceMediaRows, categoryRows] = await Promise.all([
-    database.select().from(experienceHighlights).where(inArray(experienceHighlights.experienceId, ids)).orderBy(asc(experienceHighlights.sortOrder)),
-    database.select().from(experiencePackages).where(inArray(experiencePackages.experienceId, ids)).orderBy(asc(experiencePackages.sortOrder)),
-    database.select({ id: packages.id, slug: packages.slug }).from(packages).where(eq(packages.status, true)), getPackages(),
-    database.select().from(experienceItineraries).where(inArray(experienceItineraries.experienceId, ids)).orderBy(asc(experienceItineraries.sortOrder)),
-    database.select().from(experienceFaqs).where(inArray(experienceFaqs.experienceId, ids)).orderBy(asc(experienceFaqs.sortOrder)),
-    database.select().from(experienceInclusions).where(inArray(experienceInclusions.experienceId, ids)).orderBy(asc(experienceInclusions.sortOrder)),
-    database.select().from(experienceExclusions).where(inArray(experienceExclusions.experienceId, ids)).orderBy(asc(experienceExclusions.sortOrder)),
-    database.select().from(media).where(and(eq(media.type, "image"), eq(media.lifecycleStatus, "ready"), inArray(media.associatedExperienceId, ids))).orderBy(asc(media.sortOrder), asc(media.createdAt)),
-    database.select({ id: cmsOtherSettingsOptions.id, value: cmsOtherSettingsOptions.value }).from(cmsOtherSettingsOptions).where(eq(cmsOtherSettingsOptions.groupKey, "category")),
+  const [
+    highlights,
+    links,
+    packageRows,
+    publicPackages,
+    itineraries,
+    faqRows,
+    inclusions,
+    exclusions,
+    experienceMediaRows,
+    categoryRows,
+  ] = await Promise.all([
+    database
+      .select()
+      .from(experienceHighlights)
+      .where(inArray(experienceHighlights.experienceId, ids))
+      .orderBy(asc(experienceHighlights.sortOrder)),
+    database
+      .select()
+      .from(experiencePackages)
+      .where(inArray(experiencePackages.experienceId, ids))
+      .orderBy(asc(experiencePackages.sortOrder)),
+    database
+      .select({ id: packages.id, slug: packages.slug })
+      .from(packages)
+      .where(eq(packages.status, true)),
+    getPackages(),
+    database
+      .select()
+      .from(experienceItineraries)
+      .where(inArray(experienceItineraries.experienceId, ids))
+      .orderBy(asc(experienceItineraries.sortOrder)),
+    database
+      .select()
+      .from(experienceFaqs)
+      .where(inArray(experienceFaqs.experienceId, ids))
+      .orderBy(asc(experienceFaqs.sortOrder)),
+    database
+      .select()
+      .from(experienceInclusions)
+      .where(inArray(experienceInclusions.experienceId, ids))
+      .orderBy(asc(experienceInclusions.sortOrder)),
+    database
+      .select()
+      .from(experienceExclusions)
+      .where(inArray(experienceExclusions.experienceId, ids))
+      .orderBy(asc(experienceExclusions.sortOrder)),
+    database
+      .select()
+      .from(media)
+      .where(
+        and(
+          eq(media.type, "image"),
+          eq(media.lifecycleStatus, "ready"),
+          inArray(media.associatedExperienceId, ids),
+        ),
+      )
+      .orderBy(asc(media.sortOrder), asc(media.createdAt)),
+    database
+      .select({
+        id: cmsOtherSettingsOptions.id,
+        value: cmsOtherSettingsOptions.value,
+      })
+      .from(cmsOtherSettingsOptions)
+      .where(eq(cmsOtherSettingsOptions.groupKey, "category")),
   ]);
-  const highlightsByExperience = groupBy(highlights, (item) => item.experienceId);
+  const highlightsByExperience = groupBy(
+    highlights,
+    (item) => item.experienceId,
+  );
   const linksByExperience = groupBy(links, (item) => item.experienceId);
   const slugById = new Map(packageRows.map((item) => [item.id, item.slug]));
-  const packageBySlug = new Map(publicPackages.map((item) => [item.slug, item]));
-  const itinerariesByExperience = groupBy(itineraries, (item) => item.experienceId); const faqsByExperience = groupBy(faqRows, (item) => item.experienceId); const inclusionsByExperience = groupBy(inclusions, (item) => item.experienceId); const exclusionsByExperience = groupBy(exclusions, (item) => item.experienceId);
-  const categoryById = new Map(categoryRows.map((item) => [item.id, item.value]));
-  const mediaByExperience = groupBy(experienceMediaRows.filter((item) => { const category = item.categoryOptionId ? categoryById.get(item.categoryOptionId) : item.category?.trim().toLowerCase(); return category === "experience" || category === "experiences"; }), (item) => item.associatedExperienceId);
+  const packageBySlug = new Map(
+    publicPackages.map((item) => [item.slug, item]),
+  );
+  const itinerariesByExperience = groupBy(
+    itineraries,
+    (item) => item.experienceId,
+  );
+  const faqsByExperience = groupBy(faqRows, (item) => item.experienceId);
+  const inclusionsByExperience = groupBy(
+    inclusions,
+    (item) => item.experienceId,
+  );
+  const exclusionsByExperience = groupBy(
+    exclusions,
+    (item) => item.experienceId,
+  );
+  const categoryById = new Map(
+    categoryRows.map((item) => [item.id, item.value]),
+  );
+  const mediaByExperience = groupBy(
+    experienceMediaRows.filter((item) => {
+      const category = item.categoryOptionId
+        ? categoryById.get(item.categoryOptionId)
+        : item.category?.trim().toLowerCase();
+      return category === "experience" || category === "experiences";
+    }),
+    (item) => item.associatedExperienceId,
+  );
   return rows.map((row) => {
-    const related = (linksByExperience.get(row.id) ?? []).map((link) => packageBySlug.get(slugById.get(link.packageId) ?? "")).filter((item): item is Package => Boolean(item));
-    return { id: row.id, slug: row.slug, name: row.name, short: row.shortDescription ?? "", detail: row.shortDescription ?? "", description: row.description ?? "", type: row.experienceType ?? "Nepal experience", experienceTypeOptionId: row.experienceTypeOptionId, cardLinkText: row.cardLinkText ?? "View journeys", overview: row.overview ?? row.description ?? "", image: resolveAssetReference(row.heroImage), count: related.length, highlights: (highlightsByExperience.get(row.id) ?? []).map((item) => item.item), packages: related,
-      itinerary: (itinerariesByExperience.get(row.id) ?? []).map((item) => ({ day: item.minDay === item.maxDay ? `Day ${item.minDay}` : `Day ${item.minDay}–${item.maxDay}`, title: item.title, detail: item.description ?? "" })),
-      faqs: (faqsByExperience.get(row.id) ?? []).map((item) => ({ q: item.question, a: item.answer })), included: (inclusionsByExperience.get(row.id) ?? []).map((item) => item.item), excluded: (exclusionsByExperience.get(row.id) ?? []).map((item) => item.item),
-      gallery: (mediaByExperience.get(row.id) ?? []).map((item) => ({ id: item.id, image: item.url.startsWith("/") ? item.url : resolveAssetReference(item.url) || item.url, title: item.title ?? "", alt: item.altText ?? item.title ?? row.name, caption: item.caption ?? "" })),
-      seoTitle: row.seoTitle ?? `${row.name} Experiences | Nepal Heaven`, seoDescription: row.seoDescription ?? row.shortDescription ?? "" };
+    const related = (linksByExperience.get(row.id) ?? [])
+      .map((link) => packageBySlug.get(slugById.get(link.packageId) ?? ""))
+      .filter((item): item is Package => Boolean(item));
+    return {
+      id: row.id,
+      slug: row.slug,
+      name: row.name,
+      short: row.shortDescription ?? "",
+      detail: row.shortDescription ?? "",
+      description: row.description ?? "",
+      type: row.experienceType ?? "Nepal experience",
+      experienceTypeOptionId: row.experienceTypeOptionId,
+      cardLinkText: row.cardLinkText ?? "View journeys",
+      overview: row.overview ?? row.description ?? "",
+      image: row.heroImage
+        ? row.heroImage.startsWith("/")
+          ? row.heroImage
+          : resolveAssetReference(row.heroImage) || row.heroImage
+        : "",
+      count: related.length,
+      highlights: (highlightsByExperience.get(row.id) ?? []).map(
+        (item) => item.item,
+      ),
+      packages: related,
+      itinerary: (itinerariesByExperience.get(row.id) ?? []).map((item) => ({
+        day:
+          item.minDay === item.maxDay
+            ? `Day ${item.minDay}`
+            : `Day ${item.minDay}–${item.maxDay}`,
+        title: item.title,
+        detail: item.description ?? "",
+      })),
+      faqs: (faqsByExperience.get(row.id) ?? []).map((item) => ({
+        q: item.question,
+        a: item.answer,
+      })),
+      included: (inclusionsByExperience.get(row.id) ?? []).map(
+        (item) => item.item,
+      ),
+      excluded: (exclusionsByExperience.get(row.id) ?? []).map(
+        (item) => item.item,
+      ),
+      gallery: (mediaByExperience.get(row.id) ?? []).map((item) => ({
+        id: item.id,
+        image: item.url.startsWith("/")
+          ? item.url
+          : resolveAssetReference(item.url) || item.url,
+        title: item.title ?? "",
+        alt: item.altText ?? item.title ?? row.name,
+        caption: item.caption ?? "",
+      })),
+      seoTitle: row.seoTitle ?? `${row.name} Experiences | Nepal Heaven`,
+      seoDescription: row.seoDescription ?? row.shortDescription ?? "",
+    };
   });
 }
-export async function getExperienceBySlug(slug: string) { return (await getExperiences()).find((item) => item.slug === slug) ?? null; }
-export async function searchPublicContent(query: string): Promise<PublicSearchResults> {
+export async function getExperienceBySlug(slug: string) {
+  return (await getExperiences()).find((item) => item.slug === slug) ?? null;
+}
+export async function searchPublicContent(
+  query: string,
+): Promise<PublicSearchResults> {
   const normalized = query.trim().toLocaleLowerCase();
-  if (!normalized) return { query: "", destinations: [], packages: [], experiences: [], articles: [] };
-  const [allDestinations, allPackages, allExperiences, allArticles] = await Promise.all([getDestinations(), getPackages(), getExperiences(), getBlogPosts()]);
-  const matches = (...values: (string | string[])[]) => values.flat().join(" ").toLocaleLowerCase().includes(normalized);
-  return { query: query.trim(), destinations: allDestinations.filter((x) => matches(x.name, x.region, x.category, x.short)), packages: allPackages.filter((x) => matches(x.title, x.destination, x.style, x.difficulty, x.highlights)), experiences: allExperiences.filter((x) => matches(x.name, x.short, x.description)), articles: allArticles.filter((x) => matches(x.title, x.excerpt, x.category)) };
+  if (!normalized)
+    return {
+      query: "",
+      destinations: [],
+      packages: [],
+      experiences: [],
+      articles: [],
+    };
+  const [allDestinations, allPackages, allExperiences, allArticles] =
+    await Promise.all([
+      getDestinations(),
+      getPackages(),
+      getExperiences(),
+      getBlogPosts(),
+    ]);
+  const matches = (...values: (string | string[])[]) =>
+    values.flat().join(" ").toLocaleLowerCase().includes(normalized);
+  return {
+    query: query.trim(),
+    destinations: allDestinations.filter((x) =>
+      matches(x.name, x.region, x.category, x.short),
+    ),
+    packages: allPackages.filter((x) =>
+      matches(x.title, x.destination, x.style, x.difficulty, x.highlights),
+    ),
+    experiences: allExperiences.filter((x) =>
+      matches(x.name, x.short, x.description),
+    ),
+    articles: allArticles.filter((x) =>
+      matches(x.title, x.excerpt, x.category),
+    ),
+  };
 }
 
 export async function getBlogPosts(): Promise<Post[]> {
   const database = requireDb();
-  const blogTypeOptions = alias(cmsOtherSettingsOptions, "public_blog_type_options");
+  const blogTypeOptions = alias(
+    cmsOtherSettingsOptions,
+    "public_blog_type_options",
+  );
   const rows = await database
-    .select({ post: blogPosts, category: blogCategories, blogType: blogTypeOptions.name })
+    .select({
+      post: blogPosts,
+      category: blogCategories,
+      blogType: blogTypeOptions.name,
+    })
     .from(blogPosts)
     .leftJoin(blogCategories, eq(blogPosts.categoryId, blogCategories.id))
-    .leftJoin(blogTypeOptions, eq(blogPosts.blogTypeOptionId, blogTypeOptions.id))
+    .leftJoin(
+      blogTypeOptions,
+      eq(blogPosts.blogTypeOptionId, blogTypeOptions.id),
+    )
     .where(eq(blogPosts.status, "published"))
     .orderBy(asc(blogPosts.publishedAt));
 
   const ids = rows.map(({ post }) => post.id);
-  const [blocks, highlights] = ids.length ? await Promise.all([
-    database.select().from(blogContentBlocks).where(inArray(blogContentBlocks.blogPostId, ids)).orderBy(asc(blogContentBlocks.sortOrder)),
-    database.select().from(blogHighlights).where(inArray(blogHighlights.blogPostId, ids)).orderBy(asc(blogHighlights.sortOrder)),
-  ]) : [[], []];
-  const blocksByPost = groupBy(blocks, (item) => item.blogPostId); const highlightsByPost = groupBy(highlights, (item) => item.blogPostId);
+  const [blocks, highlights] = ids.length
+    ? await Promise.all([
+        database
+          .select()
+          .from(blogContentBlocks)
+          .where(inArray(blogContentBlocks.blogPostId, ids))
+          .orderBy(asc(blogContentBlocks.sortOrder)),
+        database
+          .select()
+          .from(blogHighlights)
+          .where(inArray(blogHighlights.blogPostId, ids))
+          .orderBy(asc(blogHighlights.sortOrder)),
+      ])
+    : [[], []];
+  const blocksByPost = groupBy(blocks, (item) => item.blogPostId);
+  const highlightsByPost = groupBy(highlights, (item) => item.blogPostId);
   return rows
     .map(({ post, category, blogType }) => ({
       id: post.id,
@@ -579,11 +768,30 @@ export async function getBlogPosts(): Promise<Post[]> {
         ? `${post.readingTimeMinutes} min read`
         : "",
       author: { name: post.authorName ?? "", role: post.authorRole ?? "" },
-      image: resolveAssetReference(post.coverImage),
+      image: post.coverImage
+        ? post.coverImage.startsWith("/")
+          ? post.coverImage
+          : resolveAssetReference(post.coverImage) || post.coverImage
+        : "",
       body: (post.content ?? "").split(/\r?\n\s*\r?\n/).filter(Boolean),
-      highlights: (highlightsByPost.get(post.id) ?? []).map((item) => item.item),
+      highlights: (highlightsByPost.get(post.id) ?? []).map(
+        (item) => item.item,
+      ),
       aboutAuthor: post.aboutAuthor ?? "",
-      blocks: (blocksByPost.get(post.id) ?? []).map((item) => ({ id: item.id, type: item.type, content: item.content ?? "", ...(item.imageUrl ? { image: item.imageUrl.startsWith("/") ? item.imageUrl : resolveAssetReference(item.imageUrl) || item.imageUrl } : {}), alt: item.altText ?? post.title, caption: item.caption ?? "" })),
+      blocks: (blocksByPost.get(post.id) ?? []).map((item) => ({
+        id: item.id,
+        type: item.type,
+        content: item.content ?? "",
+        ...(item.imageUrl
+          ? {
+              image: item.imageUrl.startsWith("/")
+                ? item.imageUrl
+                : resolveAssetReference(item.imageUrl) || item.imageUrl,
+            }
+          : {}),
+        alt: item.altText ?? post.title,
+        caption: item.caption ?? "",
+      })),
       publishedAt: post.publishedAt?.getTime() ?? 0,
     }))
     .sort((a, b) => b.publishedAt - a.publishedAt)
@@ -630,36 +838,29 @@ export async function getFaqs(): Promise<FaqGroup[]> {
 }
 
 const legacyDefaultSeoTitle =
-    "Nepal Heaven — Luxury Himalayan Travel & Trekking";
+  "Nepal Heaven — Luxury Himalayan Travel & Trekking";
 
 const legacyDefaultSeoDescription =
-    "Private, expertly crafted journeys across Nepal — Everest, Annapurna, Mustang and beyond. Heaven on Earth Awaits.";
+  "Private, expertly crafted journeys across Nepal — Everest, Annapurna, Mustang and beyond. Heaven on Earth Awaits.";
 
 function legacyBranding(): PublicBranding {
   return {
-    companyName:
-        "Nepal Heaven Travels & Tours Pvt. Ltd.",
+    companyName: "Nepal Heaven Travels & Tours Pvt. Ltd.",
 
-    mainLogoUrl:
-        null,
+    mainLogoUrl: null,
 
-    lightLogoUrl:
-        null,
+    lightLogoUrl: null,
 
-    faviconUrl:
-        null,
+    faviconUrl: null,
 
-    defaultOgImageUrl:
-        null,
+    defaultOgImageUrl: null,
 
-    defaultSeoTitle:
-    legacyDefaultSeoTitle,
+    defaultSeoTitle: legacyDefaultSeoTitle,
 
-    defaultSeoDescription:
-    legacyDefaultSeoDescription,
+    defaultSeoDescription: legacyDefaultSeoDescription,
 
     copyrightText:
-        "Nepal Heaven Travels & Tours Pvt. Ltd. All rights reserved.",
+      "Nepal Heaven Travels & Tours Pvt. Ltd. All rights reserved.",
 
     socialLinks: {
       facebook: "",
@@ -672,8 +873,7 @@ function legacyBranding(): PublicBranding {
   };
 }
 
-function legacyPrimaryNavigation():
-    PublicNavigationItem[] {
+function legacyPrimaryNavigation(): PublicNavigationItem[] {
   return [
     {
       label: "Home",
@@ -683,107 +883,72 @@ function legacyPrimaryNavigation():
     },
 
     {
-      label:
-          "Destinations",
-      href:
-          "/destinations",
+      label: "Destinations",
+      href: "/destinations",
       external: false,
       openNewTab: false,
     },
 
     {
-      label:
-          "Packages",
-      href:
-          "/packages",
+      label: "Packages",
+      href: "/packages",
       external: false,
       openNewTab: false,
     },
 
     {
-      label:
-          "Experiences",
-      href:
-          "/experiences",
+      label: "Experiences",
+      href: "/experiences",
       external: false,
       openNewTab: false,
     },
 
     {
-      label:
-          "About",
-      href:
-          "/about",
+      label: "About",
+      href: "/about",
       external: false,
       openNewTab: false,
     },
 
     {
-      label:
-          "Blog",
-      href:
-          "/blog",
+      label: "Blog",
+      href: "/blog",
       external: false,
       openNewTab: false,
     },
 
     {
-      label:
-          "Gallery",
-      href:
-          "/gallery",
+      label: "Gallery",
+      href: "/gallery",
       external: false,
       openNewTab: false,
     },
 
     {
-      label:
-          "Contact",
-      href:
-          "/contact",
+      label: "Contact",
+      href: "/contact",
       external: false,
       openNewTab: false,
     },
   ];
 }
 
-function normalizePublicMediaCategory(
-    value:
-        string |
-        null |
-        undefined,
-) {
-  const normalized =
-      (value ?? "")
-          .trim()
-          .toLowerCase()
-          .replace(
-              /[^a-z0-9]+/g,
-              "-",
-          )
-          .replace(
-              /^-+|-+$/g,
-              "",
-          );
+function normalizePublicMediaCategory(value: string | null | undefined) {
+  const normalized = (value ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
 
-  if (
-      normalized ===
-      "destinations"
-  ) {
+  if (normalized === "destinations") {
     return "destination";
   }
 
-  if (
-      normalized ===
-      "packages"
-  ) {
+  if (normalized === "packages") {
     return "package";
   }
 
-  if (
-      normalized ===
-      "experiences"
-  ) {
+  if (normalized === "experiences") {
     return "experience";
   }
 
@@ -837,40 +1002,29 @@ export async function getPublicSiteSettings(): Promise<PublicSiteSettings> {
     hours: companyHours,
   };
 
-  const [
-    cmsGlobal,
-    cmsPrimaryNavigation,
-    cmsFooter,
-  ] = await Promise.all([
+  const [cmsGlobal, cmsPrimaryNavigation, cmsFooter] = await Promise.all([
     getPublicCmsGlobalSettings(),
     getPublicCmsPrimaryNavigation(),
     getPublicCmsFooterContent(),
   ]);
 
-  const company:
-      Company =
-      cmsGlobal
-          ? {
-            ...cmsGlobal.company,
+  const company: Company = cmsGlobal
+    ? {
+        ...cmsGlobal.company,
 
-            hours:
-                cmsGlobal.company.hours.length >
-                0
-                    ? cmsGlobal.company.hours
-                    : legacyCompany.hours,
-          }
-          : legacyCompany;
+        hours:
+          cmsGlobal.company.hours.length > 0
+            ? cmsGlobal.company.hours
+            : legacyCompany.hours,
+      }
+    : legacyCompany;
 
-  const branding =
-      cmsGlobal?.branding ??
-      legacyBranding();
+  const branding = cmsGlobal?.branding ?? legacyBranding();
 
   const primaryNavigation =
-      cmsPrimaryNavigation &&
-      cmsPrimaryNavigation.length >
-      0
-          ? cmsPrimaryNavigation
-          : legacyPrimaryNavigation();
+    cmsPrimaryNavigation && cmsPrimaryNavigation.length > 0
+      ? cmsPrimaryNavigation
+      : legacyPrimaryNavigation();
 
   const activities = parseJsonSetting<Activity[]>(
     values,
@@ -888,118 +1042,80 @@ export async function getPublicSiteSettings(): Promise<PublicSiteSettings> {
   );
   const stats = parseJsonSetting<Stat[]>(values, "home.stats", [], isArray);
 
-  const settingGalleryItems =
-      parseJsonSetting<GalleryItem[]>(
-          values,
-          "gallery.items",
-          [],
-          isArray,
-      ).map((item) => ({
-        ...item,
+  const settingGalleryItems = parseJsonSetting<GalleryItem[]>(
+    values,
+    "gallery.items",
+    [],
+    isArray,
+  ).map((item) => ({
+    ...item,
 
-        type:
-            item.type === "video"
-                ? ("video" as const)
-                : ("image" as const),
+    type: item.type === "video" ? ("video" as const) : ("image" as const),
 
-        ...(item.image
-            ? {
-              image:
-                  resolveAssetReference(
-                      item.image,
-                  ),
-            }
-            : {}),
+    ...(item.image
+      ? {
+          image: resolveAssetReference(item.image),
+        }
+      : {}),
 
-        ...(item.thumbnail
-            ? {
-              thumbnail:
-                  resolveAssetReference(
-                      item.thumbnail,
-                  ),
-            }
-            : {}),
-      }));
+    ...(item.thumbnail
+      ? {
+          thumbnail: resolveAssetReference(item.thumbnail),
+        }
+      : {}),
+  }));
 
-  const mediaRows =
-      await database
-          .select()
-          .from(media)
-          .orderBy(
-              asc(media.createdAt),
-          );
+  const mediaRows = await database
+    .select()
+    .from(media)
+    .orderBy(asc(media.createdAt));
 
-  const mediaUrl = (
-      value: string,
-  ) =>
-      value.startsWith("/")
-          ? value
-          : resolveAssetReference(
-          value,
-      ) || value;
+  const mediaUrl = (value: string) =>
+    value.startsWith("/") ? value : resolveAssetReference(value) || value;
 
-  const galleryItems:
-      GalleryItem[] = [
+  const galleryItems: GalleryItem[] = [
     ...settingGalleryItems,
 
-    ...mediaRows.map(
-        (item) => ({
-          type:
-          item.type,
+    ...mediaRows.map((item) => ({
+      type: item.type,
 
-          ...(item.type === "image"
-              ? {
-                image:
-                    mediaUrl(
-                        item.url,
-                    ),
-              }
-              : {
-                videoUrl:
-                    mediaUrl(
-                        item.url,
-                    ),
-              }),
+      ...(item.type === "image"
+        ? {
+            image: mediaUrl(item.url),
+          }
+        : {
+            videoUrl: mediaUrl(item.url),
+          }),
 
-          ...(item.thumbnailUrl
-              ? {
-                thumbnail:
-                    mediaUrl(
-                        item.thumbnailUrl,
-                    ),
-              }
-              : {}),
+      ...(item.thumbnailUrl
+        ? {
+            thumbnail: mediaUrl(item.thumbnailUrl),
+          }
+        : {}),
 
-          ...(item.provider
-              ? {
-                provider:
-                item.provider,
-              }
-              : {}),
+      ...(item.provider
+        ? {
+            provider: item.provider,
+          }
+        : {}),
 
-          ...(item.caption
-              ? {
-                caption:
-                item.caption,
-              }
-              : {}),
+      ...(item.caption
+        ? {
+            caption: item.caption,
+          }
+        : {}),
 
-          title:
-              item.title ??
-              item.altText ??
-              (
-                  item.type === "video"
-                      ? "Nepal Heaven video"
-                      : "Nepal Heaven photograph"
-              ),
+      title:
+        item.title ??
+        item.altText ??
+        (item.type === "video"
+          ? "Nepal Heaven video"
+          : "Nepal Heaven photograph"),
 
-          category:
-              "Uncategorised",
+      category: "Uncategorised",
 
-          span:
-              "normal",
-        }),
-    ),
+      span: "normal",
+    })),
   ];
 
   const team = parseJsonSetting<TeamMember[]>(
@@ -1063,447 +1179,344 @@ export async function getPublicSiteSettings(): Promise<PublicSiteSettings> {
   };
 }
 
-export async function getPublicGalleryItems(certificatesOnly = false):
-    Promise<GalleryItem[]> {
-
-  const database =
-      requireDb();
+export async function getPublicGalleryItems(
+  documentMode: "none" | "certificates" | "company-documents" = "none",
+): Promise<GalleryItem[]> {
+  const database = requireDb();
   const packageTypeOptions = alias(
-      cmsOtherSettingsOptions,
-      "gallery_package_type_options",
+    cmsOtherSettingsOptions,
+    "gallery_package_type_options",
   );
-  const generalTypeOptions = alias(cmsOtherSettingsOptions, "gallery_general_type_options");
+  const generalTypeOptions = alias(
+    cmsOtherSettingsOptions,
+    "gallery_general_type_options",
+  );
 
   /*
    * Load actual Media Library records,
    * including CMS Category + Associated To.
    */
-  const mediaRows =
-      await database
-          .select({
-            type:
-            media.type,
+  const mediaRows = await database
+    .select({
+      type: media.type,
 
-            url:
-            media.url,
+      url: media.url,
 
-            thumbnailUrl:
-            media.thumbnailUrl,
+      thumbnailUrl: media.thumbnailUrl,
 
-            width:
-            media.width,
+      width: media.width,
 
-            height:
-            media.height,
+      height: media.height,
 
-            altText:
-            media.altText,
+      altText: media.altText,
 
-            title:
-            media.title,
+      title: media.title,
 
-            caption:
-            media.caption,
+      caption: media.caption,
 
-            provider:
-            media.provider,
+      provider: media.provider,
 
-            legacyCategory:
-            media.category,
+      legacyCategory: media.category,
 
-            categoryName:
-            cmsOtherSettingsOptions.name,
+      categoryName: cmsOtherSettingsOptions.name,
 
-            categoryValue:
-            cmsOtherSettingsOptions.value,
+      categoryValue: cmsOtherSettingsOptions.value,
 
-            generalSettingsTypeOptionId:
-            media.generalSettingsTypeOptionId,
+      generalSettingsTypeOptionId: media.generalSettingsTypeOptionId,
 
-            generalTypeName:
-            generalTypeOptions.name,
+      generalTypeName: generalTypeOptions.name,
 
-            generalTypeValue:
-            generalTypeOptions.value,
+      generalTypeValue: generalTypeOptions.value,
 
-            associatedDestinationId:
-            media.associatedDestinationId,
+      associatedDestinationId: media.associatedDestinationId,
 
-            destinationName:
-            destinations.name,
+      destinationName: destinations.name,
 
-            destinationSlug:
-            destinations.slug,
+      destinationSlug: destinations.slug,
 
-            destinationType:
-            destinations.category,
+      destinationType: destinations.category,
 
-            associatedPackageId:
-            media.associatedPackageId,
+      associatedPackageId: media.associatedPackageId,
 
-            packageName:
-            packages.title,
+      packageName: packages.title,
 
-            packageSlug:
-            packages.slug,
+      packageSlug: packages.slug,
 
-            packageType:
-            packageTypeOptions.name,
+      packageType: packageTypeOptions.name,
 
-            packageLegacyType:
-            packages.style,
+      packageLegacyType: packages.style,
 
-            packageTypeOptionId:
-            packageTypeOptions.id,
+      packageTypeOptionId: packageTypeOptions.id,
 
-            associatedExperienceId:
-            media.associatedExperienceId,
+      associatedExperienceId: media.associatedExperienceId,
 
-            experienceName:
-            experienceCategories.name,
+      experienceName: experienceCategories.name,
 
-            experienceSlug:
-            experienceCategories.slug,
-          })
-          .from(
-              media,
-          )
-          .leftJoin(
-              cmsOtherSettingsOptions,
+      experienceSlug: experienceCategories.slug,
+    })
+    .from(media)
+    .leftJoin(
+      cmsOtherSettingsOptions,
 
-              and(
-                  eq(
-                      media.categoryOptionId,
-                      cmsOtherSettingsOptions.id,
-                  ),
+      and(
+        eq(media.categoryOptionId, cmsOtherSettingsOptions.id),
 
-                  eq(
-                      cmsOtherSettingsOptions.groupKey,
-                      "category",
-                  ),
-              ),
-          )
-          .leftJoin(
-              destinations,
+        eq(cmsOtherSettingsOptions.groupKey, "category"),
+      ),
+    )
+    .leftJoin(
+      destinations,
 
-              eq(
-                  media.associatedDestinationId,
-                  destinations.id,
-              ),
-          )
-          .leftJoin(
-              packages,
+      eq(media.associatedDestinationId, destinations.id),
+    )
+    .leftJoin(
+      packages,
 
-              eq(
-                  media.associatedPackageId,
-                  packages.id,
-              ),
-          )
-          .leftJoin(
-              packageTypeOptions,
-              and(
-                  eq(packages.packageTypeOptionId, packageTypeOptions.id),
-                  eq(packageTypeOptions.groupKey, "package_type"),
-              ),
-          )
-          .leftJoin(
-              experienceCategories,
+      eq(media.associatedPackageId, packages.id),
+    )
+    .leftJoin(
+      packageTypeOptions,
+      and(
+        eq(packages.packageTypeOptionId, packageTypeOptions.id),
+        eq(packageTypeOptions.groupKey, "package_type"),
+      ),
+    )
+    .leftJoin(
+      experienceCategories,
 
-              eq(
-                  media.associatedExperienceId,
-                  experienceCategories.id,
-              ),
-          )
-          .leftJoin(
-              generalTypeOptions,
-              and(eq(media.generalSettingsTypeOptionId, generalTypeOptions.id), eq(generalTypeOptions.groupKey, "general_settings_type")),
-          )
-          .where(
-              eq(
-                  media.lifecycleStatus,
-                  "ready",
-              ),
-          )
-          .orderBy(
-              asc(
-                  media.createdAt,
-              ),
-          );
+      eq(media.associatedExperienceId, experienceCategories.id),
+    )
+    .leftJoin(
+      generalTypeOptions,
+      and(
+        eq(media.generalSettingsTypeOptionId, generalTypeOptions.id),
+        eq(generalTypeOptions.groupKey, "general_settings_type"),
+      ),
+    )
+    .where(eq(media.lifecycleStatus, "ready"))
+    .orderBy(asc(media.createdAt));
 
-  const mediaUrl = (
-      value: string,
-  ) =>
-      value.startsWith("/")
-          ? value
-          : resolveAssetReference(
-          value,
-      ) || value;
+  const mediaUrl = (value: string) =>
+    value.startsWith("/") ? value : resolveAssetReference(value) || value;
 
-  const publicMediaItems:
-      GalleryItem[] =
-      mediaRows.flatMap(
-          (item, index) => {
-            const cmsCategoryValue =
-                normalizePublicMediaCategory(
-                    item.categoryValue ??
-                    item.legacyCategory,
-                ) ||
-                "uncategorized";
+  const publicMediaItems: GalleryItem[] = mediaRows.flatMap((item, index) => {
+    const cmsCategoryValue =
+      normalizePublicMediaCategory(item.categoryValue ?? item.legacyCategory) ||
+      "uncategorized";
 
-            /*
-             * IMPORTANT:
-             *
-             * Never show General media:
-             *
-             * Logo
-             * Icons
-             * Certificates
-             * Website assets
-             * etc.
-             */
-            const isCertificate = cmsCategoryValue === "general" && ["certificate", "certificates"].includes(normalizePublicMediaCategory(item.generalTypeValue ?? item.generalTypeName));
-            if ((certificatesOnly && !isCertificate) || (!certificatesOnly && (cmsCategoryValue === "general" || item.generalSettingsTypeOptionId))) {
-              return [];
+    /*
+     * IMPORTANT:
+     *
+     * Never show General media:
+     *
+     * Logo
+     * Icons
+     * Certificates
+     * Website assets
+     * etc.
+     */
+    const generalTypeValue = normalizePublicMediaCategory(
+      item.generalTypeValue ?? item.generalTypeName,
+    );
+    const allowedDocumentTypes =
+      documentMode === "certificates"
+        ? new Set(["certificate", "certificates"])
+        : new Set([
+            "certificate",
+            "certificates",
+            "legal-document",
+            "legal-documents",
+            "company-image",
+            "company-images",
+          ]);
+    const isSpecialDocument =
+      cmsCategoryValue === "general" &&
+      allowedDocumentTypes.has(generalTypeValue);
+    if (
+      (documentMode !== "none" && !isSpecialDocument) ||
+      (documentMode === "none" &&
+        (cmsCategoryValue === "general" || item.generalSettingsTypeOptionId))
+    ) {
+      return [];
+    }
+
+    const cmsCategory =
+      item.categoryName ?? item.legacyCategory ?? "Uncategorized";
+
+    let associatedToKind:
+      "destination" | "package" | "experience" | "general" | undefined;
+
+    let associatedToName: string | undefined;
+
+    let associatedToSlug: string | undefined;
+
+    if (documentMode !== "none" && isSpecialDocument) {
+      associatedToKind = "general";
+      associatedToName =
+        documentMode === "certificates" ? "Certificates" : "Company Documents";
+      associatedToSlug = documentMode;
+    }
+
+    if (
+      !associatedToKind &&
+      item.associatedDestinationId &&
+      item.destinationName &&
+      item.destinationSlug
+    ) {
+      associatedToKind = "destination";
+
+      associatedToName = item.destinationName;
+
+      associatedToSlug = item.destinationSlug;
+    } else if (
+      item.associatedPackageId &&
+      item.packageName &&
+      item.packageSlug
+    ) {
+      associatedToKind = "package";
+
+      associatedToName = item.packageName;
+
+      associatedToSlug = item.packageSlug;
+    } else if (
+      item.associatedExperienceId &&
+      item.experienceName &&
+      item.experienceSlug
+    ) {
+      associatedToKind = "experience";
+
+      associatedToName = item.experienceName;
+
+      associatedToSlug = item.experienceSlug;
+    }
+
+    const fallbackTitle =
+      item.type === "video" ? "Nepal Heaven video" : "Nepal Heaven photograph";
+
+    let gallerySpan: "normal" | "tall" | "wide" = "normal";
+
+    if (item.width && item.height) {
+      const ratio = item.width / item.height;
+
+      if (ratio < 0.85) {
+        gallerySpan = "tall";
+      } else if (ratio > 1.65) {
+        gallerySpan = "wide";
+      }
+    }
+
+    /*
+     * If the image is neither clearly portrait nor clearly panoramic,
+     * use a repeating editorial pattern so uploaded Media Library
+     * items still create the same varied mosaic feel as the legacy Gallery.
+     */
+    if (gallerySpan === "normal") {
+      const mosaicPattern = [
+        "normal",
+        "wide",
+        "normal",
+        "tall",
+        "normal",
+        "normal",
+        "wide",
+        "normal",
+        "tall",
+        "normal",
+      ] as const;
+
+      gallerySpan = mosaicPattern[index % mosaicPattern.length] ?? "normal";
+    }
+
+    return [
+      {
+        type: item.type,
+
+        ...(item.type === "image"
+          ? {
+              image: mediaUrl(item.url),
             }
+          : {
+              videoUrl: mediaUrl(item.url),
+            }),
 
-            const cmsCategory =
-                item.categoryName ??
-                item.legacyCategory ??
-                "Uncategorized";
-
-            let associatedToKind:
-                | "destination"
-                | "package"
-                | "experience"
-                | "general"
-                | undefined;
-
-            let associatedToName:
-                string |
-                undefined;
-
-            let associatedToSlug:
-                string |
-                undefined;
-
-            if (certificatesOnly && isCertificate) {
-              associatedToKind = "general";
-              associatedToName = "Certificates";
-              associatedToSlug = "certificates";
+        ...(item.thumbnailUrl
+          ? {
+              thumbnail: mediaUrl(item.thumbnailUrl),
             }
+          : {}),
 
-            if (!associatedToKind &&
-                item.associatedDestinationId &&
-                item.destinationName &&
-                item.destinationSlug
-            ) {
-              associatedToKind =
-                  "destination";
-
-              associatedToName =
-                  item.destinationName;
-
-              associatedToSlug =
-                  item.destinationSlug;
-            } else if (
-                item.associatedPackageId &&
-                item.packageName &&
-                item.packageSlug
-            ) {
-              associatedToKind =
-                  "package";
-
-              associatedToName =
-                  item.packageName;
-
-              associatedToSlug =
-                  item.packageSlug;
-            } else if (
-                item.associatedExperienceId &&
-                item.experienceName &&
-                item.experienceSlug
-            ) {
-              associatedToKind =
-                  "experience";
-
-              associatedToName =
-                  item.experienceName;
-
-              associatedToSlug =
-                  item.experienceSlug;
+        ...(item.provider
+          ? {
+              provider: item.provider,
             }
+          : {}),
 
-            const fallbackTitle =
-                item.type === "video"
-                    ? "Nepal Heaven video"
-                    : "Nepal Heaven photograph";
+        title: item.title ?? item.altText ?? fallbackTitle,
 
-            let gallerySpan:
-                | "normal"
-                | "tall"
-                | "wide" =
-                "normal";
+        alt: item.altText ?? item.title ?? fallbackTitle,
 
-            if (
-                item.width &&
-                item.height
-            ) {
-              const ratio =
-                  item.width /
-                  item.height;
-
-              if (
-                  ratio <
-                  0.85
-              ) {
-                gallerySpan =
-                    "tall";
-              } else if (
-                  ratio >
-                  1.65
-              ) {
-                gallerySpan =
-                    "wide";
-              }
+        ...(item.caption
+          ? {
+              caption: item.caption,
             }
+          : {}),
 
-            /*
-             * If the image is neither clearly portrait nor clearly panoramic,
-             * use a repeating editorial pattern so uploaded Media Library
-             * items still create the same varied mosaic feel as the legacy Gallery.
-             */
-            if (
-                gallerySpan ===
-                "normal"
-            ) {
-              const mosaicPattern = [
-                "normal",
-                "wide",
-                "normal",
-                "tall",
-                "normal",
-                "normal",
-                "wide",
-                "normal",
-                "tall",
-                "normal",
-              ] as const;
+        /*
+         * Existing Gallery Subject field.
+         */
+        category:
+          documentMode !== "none"
+            ? (item.generalTypeName ?? "Company Documents")
+            : associatedToKind === "destination"
+              ? item.destinationType?.trim() || "Uncategorised"
+              : associatedToKind === "package"
+                ? item.packageType?.trim() ||
+                  item.packageLegacyType?.trim() ||
+                  "Uncategorised"
+                : "Uncategorised",
 
-              gallerySpan =
-                  mosaicPattern[
-                  index %
-                  mosaicPattern.length
-                      ] ?? "normal";
+        span: gallerySpan,
+
+        /*
+         * CMS Category.
+         */
+        cmsCategory,
+
+        cmsCategoryValue,
+
+        ...(documentMode !== "none" && item.generalTypeName
+          ? { generalSettingsType: item.generalTypeName }
+          : {}),
+
+        ...(associatedToKind
+          ? {
+              associatedToKind,
             }
+          : {}),
 
-            return [
-              {
-                type:
-                item.type,
+        ...(associatedToName
+          ? {
+              associatedToName,
+            }
+          : {}),
 
-                ...(item.type ===
-                "image"
-                    ? {
-                      image:
-                          mediaUrl(
-                              item.url,
-                          ),
-                    }
-                    : {
-                      videoUrl:
-                          mediaUrl(
-                              item.url,
-                          ),
-                    }),
+        ...(associatedToSlug
+          ? {
+              associatedToSlug,
+            }
+          : {}),
 
-                ...(item.thumbnailUrl
-                    ? {
-                      thumbnail:
-                          mediaUrl(
-                              item.thumbnailUrl,
-                          ),
-                    }
-                    : {}),
+        ...(associatedToKind === "package" &&
+        (item.packageType || item.packageLegacyType)
+          ? { packageType: (item.packageType ?? item.packageLegacyType)! }
+          : {}),
 
-                ...(item.provider
-                    ? {
-                      provider:
-                      item.provider,
-                    }
-                    : {}),
-
-                title:
-                    item.title ??
-                    item.altText ??
-                    fallbackTitle,
-
-                alt:
-                    item.altText ??
-                    item.title ??
-                    fallbackTitle,
-
-                ...(item.caption
-                    ? {
-                      caption:
-                      item.caption,
-                    }
-                    : {}),
-
-                /*
-                 * Existing Gallery Subject field.
-                 */
-                category:
-                    certificatesOnly
-                        ? "Certificates"
-                        :
-                    associatedToKind === "destination"
-                        ? item.destinationType?.trim() ||
-                        "Uncategorised"
-                        : associatedToKind === "package"
-                          ? item.packageType?.trim() ||
-                            item.packageLegacyType?.trim() ||
-                            "Uncategorised"
-                          : "Uncategorised",
-
-                span:
-                gallerySpan,
-
-                /*
-                 * CMS Category.
-                 */
-                cmsCategory,
-
-                cmsCategoryValue,
-
-                ...(associatedToKind
-                    ? {
-                      associatedToKind,
-                    }
-                    : {}),
-
-                ...(associatedToName
-                    ? {
-                      associatedToName,
-                    }
-                    : {}),
-
-                ...(associatedToSlug
-                    ? {
-                      associatedToSlug,
-                    }
-                    : {}),
-
-                ...(associatedToKind === "package" && (item.packageType || item.packageLegacyType)
-                    ? { packageType: (item.packageType ?? item.packageLegacyType)! }
-                    : {}),
-
-                ...(associatedToKind === "package" && item.packageTypeOptionId
-                    ? { packageTypeOptionId: item.packageTypeOptionId }
-                    : {}),
-              },
-            ];
-          },
-      );
+        ...(associatedToKind === "package" && item.packageTypeOptionId
+          ? { packageTypeOptionId: item.packageTypeOptionId }
+          : {}),
+      },
+    ];
+  });
 
   return publicMediaItems;
 }
@@ -1526,38 +1539,22 @@ export async function getShellContent(): Promise<ShellContent> {
     getPublicSiteSettings(),
   ]);
   return {
-    company:
-    settings.company,
+    company: settings.company,
 
-    branding:
-    settings.branding,
+    branding: settings.branding,
 
-    primaryNavigation:
-    settings.primaryNavigation,
+    primaryNavigation: settings.primaryNavigation,
 
-    footer:
-    settings.footer,
+    footer: settings.footer,
 
-    destinations:
-        destinations.map(
-            ({
-               slug,
-               name,
-             }) => ({
-              slug,
-              name,
-            }),
-        ),
+    destinations: destinations.map(({ slug, name }) => ({
+      slug,
+      name,
+    })),
 
-    packages:
-        packages.map(
-            ({
-               slug,
-               title,
-             }) => ({
-              slug,
-              title,
-            }),
-        ),
+    packages: packages.map(({ slug, title }) => ({
+      slug,
+      title,
+    })),
   };
 }

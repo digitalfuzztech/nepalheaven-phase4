@@ -11,10 +11,12 @@ import {
   cmsBlogListingSchema,
   cmsContactPageSchema,
   cmsExperienceListingSchema,
+  cmsGalleryPageSchema,
   type CmsAboutPageInput,
   type CmsBlogListingInput,
   type CmsContactPageInput,
   type CmsExperienceListingInput,
+  type CmsGalleryPageInput,
 } from "@/lib/cms-page-content.schema";
 
 type PageDataMap = {
@@ -22,6 +24,7 @@ type PageDataMap = {
   blog: CmsBlogListingInput;
   about: CmsAboutPageInput;
   contact: CmsContactPageInput;
+  gallery: CmsGalleryPageInput;
 };
 
 const defaults: PageDataMap = {
@@ -100,6 +103,13 @@ const defaults: PageDataMap = {
       },
     ],
   } satisfies CmsContactPageInput,
+  gallery: {
+    heroMediaId: null,
+    heroSubtitle: "Gallery",
+    heroTitle: "Nepal, frame by frame",
+    heroDescription:
+      "A field archive from our guides: summits at dawn, monastery courtyards, jungle rivers and the people who make every journey memorable.",
+  } satisfies CmsGalleryPageInput,
 };
 
 type PageKind = keyof PageDataMap;
@@ -108,12 +118,14 @@ const schemaByKind = {
   blog: cmsBlogListingSchema,
   about: cmsAboutPageSchema,
   contact: cmsContactPageSchema,
+  gallery: cmsGalleryPageSchema,
 };
 const routeByKind = {
   experiences: "/experiences",
   blog: "/blog",
   about: "/about",
   contact: "/contact",
+  gallery: "/gallery",
 };
 
 function database() {
@@ -231,15 +243,22 @@ async function validateGeneralMedia(
 async function save<K extends PageKind>(kind: K, input: PageDataMap[K]) {
   const admin = await requireAdmin();
   const data = schemaByKind[kind].parse(input) as PageDataMap[K];
-  if (kind === "experiences" || kind === "contact")
+  if (kind === "experiences" || kind === "contact" || kind === "gallery")
     await validateGeneralMedia(
-      [(data as CmsExperienceListingInput | CmsContactPageInput).heroMediaId],
+      [
+        (
+          data as
+            | CmsExperienceListingInput
+            | CmsContactPageInput
+            | CmsGalleryPageInput
+        ).heroMediaId,
+      ],
       "website-media",
     );
   if (kind === "blog")
     await validateGeneralMedia(
       [(data as CmsBlogListingInput).heroMediaId],
-      "blog",
+      "website-media",
     );
   if (kind === "about") {
     const about = data as CmsAboutPageInput;
@@ -307,6 +326,9 @@ export async function updateCmsAboutPage(input: CmsAboutPageInput) {
 export async function updateCmsContactPage(input: CmsContactPageInput) {
   return save("contact", input);
 }
+export async function updateCmsGalleryPage(input: CmsGalleryPageInput) {
+  return save("gallery", input);
+}
 export async function getPublicExperienceListing() {
   const data = await read("experiences");
   return { ...data, heroImageUrl: await mediaUrl(data.heroMediaId) };
@@ -337,5 +359,9 @@ export async function getPublicAboutPage() {
 }
 export async function getPublicContactPage() {
   const data = await read("contact");
+  return { ...data, heroImageUrl: await mediaUrl(data.heroMediaId) };
+}
+export async function getPublicGalleryPage() {
+  const data = await read("gallery");
   return { ...data, heroImageUrl: await mediaUrl(data.heroMediaId) };
 }

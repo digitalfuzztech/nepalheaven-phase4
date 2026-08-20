@@ -78,9 +78,17 @@ export const cmsContactPageSchema = z.object({
     .max(100),
 });
 
+export const cmsGalleryPageSchema = z.object({
+  heroMediaId: cmsMediaIdSchema.nullable(),
+  heroSubtitle: text(180),
+  heroTitle: text(240),
+  heroDescription: text(),
+});
+
 export type CmsExperienceListingInput = z.infer<
   typeof cmsExperienceListingSchema
 >;
 export type CmsBlogListingInput = z.infer<typeof cmsBlogListingSchema>;
 export type CmsAboutPageInput = z.infer<typeof cmsAboutPageSchema>;
 export type CmsContactPageInput = z.infer<typeof cmsContactPageSchema>;
+export type CmsGalleryPageInput = z.infer<typeof cmsGalleryPageSchema>;

@@ -26,7 +26,12 @@ export const Route = createFileRoute("/contact")({
       getPublicSiteSettingsFn(),
       getPublicContactPageFn(),
     ]);
-    return { company: settings.company, images: settings.images, packages, page };
+    return {
+      company: settings.company,
+      images: settings.images,
+      packages,
+      page,
+    };
   },
   head: () => ({
     meta: [
@@ -50,6 +55,21 @@ export const Route = createFileRoute("/contact")({
 
 function ContactPage() {
   const { company, images, packages, page } = Route.useLoaderData();
+  const officeLatitude =
+    company.officeLatitude !== null &&
+    company.officeLatitude !== undefined &&
+    company.officeLatitude >= -90 &&
+    company.officeLatitude <= 90
+      ? company.officeLatitude
+      : 27.72;
+  const officeLongitude =
+    company.officeLongitude !== null &&
+    company.officeLongitude !== undefined &&
+    company.officeLongitude >= -180 &&
+    company.officeLongitude <= 180
+      ? company.officeLongitude
+      : 85.325;
+  const mapUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${officeLongitude - 0.025}%2C${officeLatitude - 0.02}%2C${officeLongitude + 0.025}%2C${officeLatitude + 0.02}&layer=mapnik&marker=${officeLatitude}%2C${officeLongitude}`;
   const { user } = useAuth();
   const search = Route.useSearch();
   const [sent, setSent] = useState(false);
@@ -297,7 +317,7 @@ function ContactPage() {
             <div className="overflow-hidden rounded-3xl border border-border">
               <iframe
                 title="Nepal Heaven office location in Kathmandu"
-                src="https://www.openstreetmap.org/export/embed.html?bbox=85.30%2C27.70%2C85.35%2C27.74&layer=mapnik"
+                src={mapUrl}
                 className="h-64 w-full"
                 loading="lazy"
               />
@@ -315,7 +335,10 @@ function ContactPage() {
           />
           <div className="mt-10">
             <FaqAccordion
-              items={page.faqs.map((item) => ({ q: item.question, a: item.answer }))}
+              items={page.faqs.map((item) => ({
+                q: item.question,
+                a: item.answer,
+              }))}
             />
           </div>
         </div>
