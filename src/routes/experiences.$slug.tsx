@@ -1,28 +1,30 @@
-import { createFileRoute, notFound } from "@tanstack/react-router";
-import { useState, type FormEvent } from "react";
+import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { Check, MessageCircle, Sparkles } from "lucide-react";
-import { getExperienceBySlugFn } from "@/lib/content.functions";
+import { getExperienceBySlugFn, getExperiencesFn } from "@/lib/content.functions";
 import { submitExperienceInquiryFn } from "@/lib/lead.functions";
 import { useAuth } from "@/lib/auth";
 import { PageHero } from "@/components/PageHero";
 import { PackageCard } from "@/components/PackageCard";
 import { SectionHeading } from "@/components/SectionHeading";
 import { WhatsAppLink } from "@/components/WhatsAppLink";
+import { FaqAccordion } from "@/components/FaqAccordion";
+import type { ExperienceCategory } from "@/lib/content.types";
 
 export const Route = createFileRoute("/experiences/$slug")({
   loader: async ({ params }) => {
-    const experience = await getExperienceBySlugFn({
+    const [experience, experiences] = await Promise.all([getExperienceBySlugFn({
       data: { slug: params.slug },
-    });
+    }), getExperiencesFn()]);
     if (!experience) throw notFound();
-    return experience;
+    return { experience, experiences };
   },
   head: ({ loaderData, params }) =>
     loaderData
       ? {
           meta: [
-            { title: loaderData.seoTitle },
-            { name: "description", content: loaderData.seoDescription },
+            { title: loaderData.experience.seoTitle },
+            { name: "description", content: loaderData.experience.seoDescription },
             { property: "og:url", content: `/experiences/${params.slug}` },
           ],
           links: [{ rel: "canonical", href: `/experiences/${params.slug}` }],
@@ -32,11 +34,14 @@ export const Route = createFileRoute("/experiences/$slug")({
 });
 
 function ExperienceDetail() {
-  const experience = Route.useLoaderData();
+  const { experience, experiences } = Route.useLoaderData();
   const { user } = useAuth();
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState("");
+  const [activeImage, setActiveImage] = useState<number | null>(null);
+  const relatedExperiences = useMemo(() => getRelatedExperiences(experience, experiences), [experience, experiences]);
+  useEffect(() => { if (activeImage === null) return; const close=(event:KeyboardEvent)=>{if(event.key==="Escape")setActiveImage(null);};window.addEventListener("keydown",close);return()=>window.removeEventListener("keydown",close); }, [activeImage]);
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setBusy(true);
@@ -69,7 +74,7 @@ function ExperienceDetail() {
     <>
       <PageHero
         image={experience.image}
-        eyebrow="Nepal experience"
+        eyebrow={experience.type}
         title={experience.name}
         description={experience.short}
         crumbs={[
@@ -81,7 +86,7 @@ function ExperienceDetail() {
       <section className="container-lux grid gap-12 py-20 lg:grid-cols-[1.25fr_0.75fr] lg:py-28">
         <div>
           <p className="text-lg leading-8 text-muted-foreground">
-            {experience.description}
+            {experience.overview || experience.description}
           </p>
           <h2 className="mt-10 text-3xl">What travellers can expect</h2>
           <ul className="mt-6 grid gap-3">
@@ -174,6 +179,9 @@ function ExperienceDetail() {
           )}
         </aside>
       </section>
+      {experience.itinerary.length || experience.included.length || experience.excluded.length ? <section className="bg-sand py-24"><div className="container-lux grid gap-12 lg:grid-cols-2"><div><SectionHeading eyebrow="Day by day" title="Experience itinerary"/><div className="mt-8 space-y-4">{experience.itinerary.map((row)=><div key={`${row.day}-${row.title}`} className="rounded-2xl bg-card p-5"><p className="text-xs font-bold uppercase text-gold">{row.day}</p><h3 className="mt-2 text-lg">{row.title}</h3><p className="mt-2 text-sm text-muted-foreground">{row.detail}</p></div>)}</div></div><div className="grid gap-8 sm:grid-cols-2"><div><h2 className="text-2xl">Included</h2><ul className="mt-5 space-y-2">{experience.included.map((item)=><li key={item} className="flex gap-2"><Check className="h-4 w-4 text-forest"/>{item}</li>)}</ul></div><div><h2 className="text-2xl">Not included</h2><ul className="mt-5 space-y-2">{experience.excluded.map((item)=><li key={item}>{item}</li>)}</ul></div></div></div></section>:null}
+      {experience.gallery.length?<section className="container-lux py-24"><div className="flex items-end justify-between"><SectionHeading eyebrow="Gallery" title={`${experience.name} in pictures`}/>{experience.gallery.length>6?<a href={`/gallery?category=experience&associatedTo=${experience.slug}`} target="_blank" rel="noreferrer" className="font-semibold text-gold">See More</a>:null}</div><ul className="mt-10 grid auto-rows-[13rem] grid-cols-2 gap-4 lg:grid-cols-3">{experience.gallery.slice(0,6).map((item,index)=><li key={item.id}><button type="button" onClick={()=>setActiveImage(index)} className="h-full w-full overflow-hidden rounded-3xl"><img src={item.image} alt={item.alt} className="h-full w-full object-cover"/></button></li>)}</ul></section>:null}
+      {experience.faqs.length?<section className="bg-sand py-24"><div className="container-lux max-w-3xl"><SectionHeading eyebrow="Questions" title="Experience FAQs"/><div className="mt-8"><FaqAccordion items={experience.faqs}/></div></div></section>:null}
       <section className="bg-sand py-24">
         <div className="container-lux">
           <SectionHeading
@@ -195,6 +203,11 @@ function ExperienceDetail() {
           )}
         </div>
       </section>
+      {relatedExperiences.length?<section className="container-lux py-24"><SectionHeading eyebrow="Explore more" title="Related experiences"/><div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">{relatedExperiences.map((item)=><Link key={item.id} to="/experiences/$slug" params={{slug:item.slug}} className="overflow-hidden rounded-3xl border bg-card"><img src={item.image} alt={item.name} className="aspect-[16/10] w-full object-cover"/><div className="p-6"><p className="text-xs font-bold uppercase text-gold">{item.type}</p><h3 className="mt-2 text-xl">{item.name}</h3></div></Link>)}</div></section>:null}
+      {activeImage!==null&&experience.gallery[activeImage]?<div className="fixed inset-0 z-[100] grid place-items-center bg-black/90 p-5" role="dialog" aria-modal="true" onClick={()=>setActiveImage(null)}><button type="button" onClick={()=>setActiveImage(null)} className="absolute right-5 top-5 rounded-full bg-white px-4 py-2">Close</button><figure onClick={(e)=>e.stopPropagation()}><img src={experience.gallery[activeImage].image} alt={experience.gallery[activeImage].alt} className="max-h-[82vh] max-w-[90vw] rounded-2xl"/><figcaption className="mt-3 text-center text-white">{experience.gallery[activeImage].caption||experience.gallery[activeImage].title}</figcaption></figure></div>:null}
     </>
   );
 }
+
+function score(seed:string,value:string){let hash=2166136261;for(const char of `${seed}:${value}`){hash^=char.charCodeAt(0);hash=Math.imul(hash,16777619);}return hash>>>0;}
+function getRelatedExperiences(current:ExperienceCategory,all:ExperienceCategory[]){const eligible=all.filter((item)=>item.id!==current.id);const sameType=(item:ExperienceCategory)=>current.experienceTypeOptionId&&item.experienceTypeOptionId?current.experienceTypeOptionId===item.experienceTypeOptionId:Boolean(current.type.trim())&&current.type.trim().toLowerCase()===item.type.trim().toLowerCase();const same=eligible.filter(sameType).sort((a,b)=>score(current.id,a.id)-score(current.id,b.id));const fallback=eligible.filter((item)=>!sameType(item)).sort((a,b)=>score(current.id,a.id)-score(current.id,b.id));return [...same.slice(0,3),...fallback].slice(0,3);}

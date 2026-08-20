@@ -5,9 +5,10 @@ import { PageHero } from "@/components/PageHero";
 import { Reveal } from "@/components/Reveal";
 import { SectionHeading } from "@/components/SectionHeading";
 import { CtaBanner } from "@/components/CtaBanner";
+import { getPublicExperienceListingFn } from "@/lib/cms-page-content.functions";
 
 export const Route = createFileRoute("/experiences")({
-  loader: async () => { const [experienceCategories, settings] = await Promise.all([getExperiencesFn(), getPublicSiteSettingsFn()]); return { experienceCategories, images: settings.images }; },
+  loader: async () => { const [experienceCategories, settings, listing] = await Promise.all([getExperiencesFn(), getPublicSiteSettingsFn(), getPublicExperienceListingFn()]); return { experienceCategories, images: settings.images, listing }; },
   head: () => ({
     meta: [
       { title: "Nepal Experiences — Adventure, Culture, Wellness | Nepal Heaven" },
@@ -28,22 +29,22 @@ export const Route = createFileRoute("/experiences")({
 function ExperiencesPage() {
   const pathname = useLocation().pathname;
   if (pathname !== "/experiences" && pathname !== "/experiences/") return <Outlet />;
-  const { experienceCategories, images } = Route.useLoaderData();
+  const { experienceCategories, images, listing } = Route.useLoaderData();
   return (
     <>
       <PageHero
-        image={images.expParagliding}
-        eyebrow="How you travel"
-        title="Nine ways to experience Nepal"
-        description="The same mountains, read nine different ways — pick the one that sounds like your kind of week."
+        image={listing.heroImageUrl ?? images.expParagliding}
+        eyebrow={listing.heroSubtitle}
+        title={listing.heroTitle}
+        description={listing.heroDescription}
         crumbs={[{ label: "Home", to: "/" }, { label: "Experiences" }]}
       />
 
       <section className="container-lux py-20 lg:py-28">
         <SectionHeading
-          eyebrow="Categories"
-          title="Start with a feeling, not an itinerary"
-          description="Every category below can be run privately, combined with another, or extended into a multi-region journey."
+          eyebrow={listing.sectionTwoSubtitle}
+          title={listing.sectionTwoTitle}
+          description={listing.sectionTwoDescription}
         />
 
         <ul className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -61,7 +62,7 @@ function ExperiencesPage() {
                   <h2 className="mt-3 text-2xl text-primary-foreground">{c.name}</h2>
                   <p className="mt-2 text-sm leading-relaxed text-primary-foreground/80">{c.detail}</p>
                   <span className="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-gold transition-transform duration-500 group-hover:translate-x-1">
-                    View journeys
+                    {c.cardLinkText}
                     <ArrowUpRight className="h-4 w-4" aria-hidden />
                   </span>
                 </div>
@@ -74,19 +75,14 @@ function ExperiencesPage() {
       <section className="bg-summit py-24">
         <div className="container-lux grid gap-12 lg:grid-cols-2 lg:items-center">
           <SectionHeading
-            eyebrow="Bespoke"
+            eyebrow={listing.sectionThreeSubtitle}
             tone="light"
-            title="Nothing here quite right?"
-            description="Around a third of our travellers arrive with an idea rather than an itinerary — a festival date, a photograph, a summit their father once climbed. We build from there."
+            title={listing.sectionThreeTitle}
+            description={listing.sectionThreeDescription}
           />
           <div className="glass-dark rounded-3xl p-8">
             <ul className="space-y-5 text-primary-foreground/80">
-              {[
-                "Tell us your dates, pace and altitude appetite",
-                "We draft a route within 24 hours",
-                "Refine it together until it's exactly right",
-                "Travel with a private guide and 24/7 support",
-              ].map((step, i) => (
+              {listing.highlightedTexts.map((step, i) => (
                 <li key={step} className="flex gap-4">
                   <span className="bg-gold-gradient grid h-8 w-8 shrink-0 place-items-center rounded-full text-sm font-bold text-gold-foreground">
                     {i + 1}

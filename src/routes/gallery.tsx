@@ -50,18 +50,18 @@ export const Route =
             search: Record<string, unknown>,
         ) => {
             const category =
-                typeof search.category === "string" &&
-                search.category.trim()
-                    ? search.category
+                typeof search["category"] === "string" &&
+                search["category"].trim()
+                    ? search["category"]
                         .trim()
                         .toLowerCase()
                         .slice(0, 191)
                     : undefined;
 
             const associatedTo =
-                typeof search.associatedTo === "string" &&
-                search.associatedTo.trim()
-                    ? search.associatedTo
+                typeof search["associatedTo"] === "string" &&
+                search["associatedTo"].trim()
+                    ? search["associatedTo"]
                         .trim()
                         .toLowerCase()
                         .slice(0, 191)
@@ -72,6 +72,9 @@ export const Route =
                 associatedTo,
             };
         },
+        loaderDeps: ({ search }) => ({
+            certificatesOnly: search.category === "general" && search.associatedTo === "certificates",
+        }),
 
         /*
          * Always load the complete PUBLIC Gallery dataset.
@@ -80,14 +83,14 @@ export const Route =
          *
          * The URL simply initializes the Category + Associated To filters.
          */
-        loader: async () => {
+        loader: async ({ deps }) => {
             const [
                 settings,
                 galleryItems,
             ] =
                 await Promise.all([
                     getPublicSiteSettingsFn(),
-                    getPublicGalleryItemsFn(),
+                    getPublicGalleryItemsFn({ data: { certificatesOnly: deps.certificatesOnly } }),
                 ]);
 
             return {
@@ -151,6 +154,7 @@ function GalleryPage() {
      */
     const search =
         Route.useSearch();
+    const specialCertificates = search.category === "general" && search.associatedTo === "certificates";
 
     const [
         mediaFilter,
@@ -248,7 +252,8 @@ function GalleryPage() {
 
                     if (
                         item.cmsCategoryValue ===
-                        "general"
+                        "general" &&
+                        !specialCertificates
                     ) {
                         continue;
                     }
@@ -283,6 +288,7 @@ function GalleryPage() {
             },
             [
                 galleryItems,
+                specialCertificates,
             ],
         );
 
@@ -468,7 +474,8 @@ function GalleryPage() {
                          */
                         if (
                             item.cmsCategoryValue ===
-                            "general"
+                            "general" &&
+                            !specialCertificates
                         ) {
                             return false;
                         }
@@ -588,6 +595,7 @@ function GalleryPage() {
                 query,
                 categoryFilter,
                 associatedFilter,
+                specialCertificates,
             ],
         );
 

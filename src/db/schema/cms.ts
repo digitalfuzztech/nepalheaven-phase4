@@ -1,11 +1,12 @@
 import { relations } from "drizzle-orm";
-import { int, mysqlTable, text, varchar } from "drizzle-orm/mysql-core";
+import { int, mysqlEnum, mysqlTable, text, varchar } from "drizzle-orm/mysql-core";
 import {
   defaultMomentColumn,
   momentColumn,
   uuidColumn,
   uuidPrimaryColumn,
 } from "./columns";
+import { cmsOtherSettingsOptions } from "./cms-other-settings";
 
 export const blogCategories = mysqlTable("blog_categories", {
   id: uuidPrimaryColumn("id").primaryKey(),
@@ -18,13 +19,16 @@ export const blogPosts = mysqlTable("blog_posts", {
   categoryId: uuidColumn("category_id").references(() => blogCategories.id, {
     onDelete: "set null",
   }),
+  blogTypeOptionId: uuidColumn("blog_type_option_id").references(() => cmsOtherSettingsOptions.id, { onDelete: "set null" }),
   title: text("title").notNull(),
   slug: varchar("slug", { length: 191 }).notNull().unique(),
   excerpt: text("excerpt"),
   content: text("content"),
   coverImage: text("cover_image"),
+  coverImageStorageKey: text("cover_image_storage_key"),
   authorName: text("author_name"),
   authorRole: text("author_role"),
+  aboutAuthor: text("about_author"),
   readingTimeMinutes: int("reading_time_minutes"),
   status: text("status").default("draft").notNull(),
   seoTitle: text("seo_title"),
@@ -32,6 +36,19 @@ export const blogPosts = mysqlTable("blog_posts", {
   publishedAt: momentColumn("published_at"),
   createdAt: defaultMomentColumn("created_at").notNull(),
   updatedAt: defaultMomentColumn("updated_at").notNull(),
+});
+
+export const blogContentBlocks = mysqlTable("blog_content_blocks", {
+  id: uuidPrimaryColumn("id").primaryKey(),
+  blogPostId: uuidColumn("blog_post_id").notNull().references(() => blogPosts.id, { onDelete: "cascade" }),
+  type: mysqlEnum("type", ["text", "highlight", "image"]).notNull(),
+  content: text("content"), imageUrl: text("image_url"), imageStorageKey: text("image_storage_key"), altText: text("alt_text"), caption: text("caption"),
+  sortOrder: int("sort_order").default(0).notNull(), createdAt: defaultMomentColumn("created_at").notNull(), updatedAt: defaultMomentColumn("updated_at").notNull(),
+});
+
+export const blogHighlights = mysqlTable("blog_highlights", {
+  id: uuidPrimaryColumn("id").primaryKey(), blogPostId: uuidColumn("blog_post_id").notNull().references(() => blogPosts.id, { onDelete: "cascade" }),
+  item: text("item").notNull(), sortOrder: int("sort_order").default(0).notNull(),
 });
 
 export const testimonials = mysqlTable("testimonials", {

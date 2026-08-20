@@ -5,6 +5,7 @@ export const cmsOtherSettingsGroupValues = [
     "package_type",
     "package_pricing_tier",
     "experience_type",
+    "blog_type",
     "general_settings_type",
 ] as const;
 
@@ -152,6 +153,23 @@ export const cmsOtherSettingsGroups: Array<{
 
     {
         key:
+            "blog_type",
+
+        title:
+            "Blog Type",
+
+        description:
+            "Topics used by Blog CMS, public filters and related articles.",
+
+        placeholder:
+            "Enter blog type",
+
+        examples:
+            "Travel Guide, Trekking, Culture, Luxury Travel, Wildlife, Practical Advice",
+    },
+
+    {
+        key:
             "general_settings_type",
 
         title:
@@ -164,6 +182,6 @@ export const cmsOtherSettingsGroups: Array<{
             "Enter general settings type",
 
         examples:
-            "Icons, Logo, Blogs, Certificates, Website Media",
+            "Icons, Logo, Blogs, Team, Certificates, Website Media",
     },
 ];

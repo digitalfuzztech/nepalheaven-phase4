@@ -3,6 +3,8 @@ import { alias } from "drizzle-orm/mysql-core";
 import { db } from "@/db";
 import {
   blogCategories,
+  blogContentBlocks,
+  blogHighlights,
   blogPosts,
   faqs,
   siteSettings,
@@ -28,7 +30,7 @@ import {
   packages,
   packageTiers,
 } from "@/db/schema/packages";
-import { experienceCategories, experienceHighlights, experiencePackages } from "@/db/schema/experiences";
+import { experienceCategories, experienceExclusions, experienceFaqs, experienceHighlights, experienceInclusions, experienceItineraries, experiencePackages } from "@/db/schema/experiences";
 import { media } from "@/db/schema/media";
 import {
   cmsOtherSettingsOptions,
@@ -504,18 +506,31 @@ export async function getExperiences(): Promise<ExperienceCategory[]> {
   const rows = await database.select().from(experienceCategories).where(eq(experienceCategories.status, true)).orderBy(asc(experienceCategories.sortOrder));
   if (!rows.length) return [];
   const ids = rows.map((row) => row.id);
-  const [highlights, links, packageRows, publicPackages] = await Promise.all([
+  const [highlights, links, packageRows, publicPackages, itineraries, faqRows, inclusions, exclusions, experienceMediaRows, categoryRows] = await Promise.all([
     database.select().from(experienceHighlights).where(inArray(experienceHighlights.experienceId, ids)).orderBy(asc(experienceHighlights.sortOrder)),
     database.select().from(experiencePackages).where(inArray(experiencePackages.experienceId, ids)).orderBy(asc(experiencePackages.sortOrder)),
     database.select({ id: packages.id, slug: packages.slug }).from(packages).where(eq(packages.status, true)), getPackages(),
+    database.select().from(experienceItineraries).where(inArray(experienceItineraries.experienceId, ids)).orderBy(asc(experienceItineraries.sortOrder)),
+    database.select().from(experienceFaqs).where(inArray(experienceFaqs.experienceId, ids)).orderBy(asc(experienceFaqs.sortOrder)),
+    database.select().from(experienceInclusions).where(inArray(experienceInclusions.experienceId, ids)).orderBy(asc(experienceInclusions.sortOrder)),
+    database.select().from(experienceExclusions).where(inArray(experienceExclusions.experienceId, ids)).orderBy(asc(experienceExclusions.sortOrder)),
+    database.select().from(media).where(and(eq(media.type, "image"), eq(media.lifecycleStatus, "ready"), inArray(media.associatedExperienceId, ids))).orderBy(asc(media.sortOrder), asc(media.createdAt)),
+    database.select({ id: cmsOtherSettingsOptions.id, value: cmsOtherSettingsOptions.value }).from(cmsOtherSettingsOptions).where(eq(cmsOtherSettingsOptions.groupKey, "category")),
   ]);
   const highlightsByExperience = groupBy(highlights, (item) => item.experienceId);
   const linksByExperience = groupBy(links, (item) => item.experienceId);
   const slugById = new Map(packageRows.map((item) => [item.id, item.slug]));
   const packageBySlug = new Map(publicPackages.map((item) => [item.slug, item]));
+  const itinerariesByExperience = groupBy(itineraries, (item) => item.experienceId); const faqsByExperience = groupBy(faqRows, (item) => item.experienceId); const inclusionsByExperience = groupBy(inclusions, (item) => item.experienceId); const exclusionsByExperience = groupBy(exclusions, (item) => item.experienceId);
+  const categoryById = new Map(categoryRows.map((item) => [item.id, item.value]));
+  const mediaByExperience = groupBy(experienceMediaRows.filter((item) => { const category = item.categoryOptionId ? categoryById.get(item.categoryOptionId) : item.category?.trim().toLowerCase(); return category === "experience" || category === "experiences"; }), (item) => item.associatedExperienceId);
   return rows.map((row) => {
     const related = (linksByExperience.get(row.id) ?? []).map((link) => packageBySlug.get(slugById.get(link.packageId) ?? "")).filter((item): item is Package => Boolean(item));
-    return { slug: row.slug, name: row.name, short: row.shortDescription ?? "", detail: row.shortDescription ?? "", description: row.description ?? "", image: resolveAssetReference(row.heroImage), count: related.length, highlights: (highlightsByExperience.get(row.id) ?? []).map((item) => item.item), packages: related, seoTitle: row.seoTitle ?? `${row.name} Experiences | Nepal Heaven`, seoDescription: row.seoDescription ?? row.shortDescription ?? "" };
+    return { id: row.id, slug: row.slug, name: row.name, short: row.shortDescription ?? "", detail: row.shortDescription ?? "", description: row.description ?? "", type: row.experienceType ?? "Nepal experience", experienceTypeOptionId: row.experienceTypeOptionId, cardLinkText: row.cardLinkText ?? "View journeys", overview: row.overview ?? row.description ?? "", image: resolveAssetReference(row.heroImage), count: related.length, highlights: (highlightsByExperience.get(row.id) ?? []).map((item) => item.item), packages: related,
+      itinerary: (itinerariesByExperience.get(row.id) ?? []).map((item) => ({ day: item.minDay === item.maxDay ? `Day ${item.minDay}` : `Day ${item.minDay}–${item.maxDay}`, title: item.title, detail: item.description ?? "" })),
+      faqs: (faqsByExperience.get(row.id) ?? []).map((item) => ({ q: item.question, a: item.answer })), included: (inclusionsByExperience.get(row.id) ?? []).map((item) => item.item), excluded: (exclusionsByExperience.get(row.id) ?? []).map((item) => item.item),
+      gallery: (mediaByExperience.get(row.id) ?? []).map((item) => ({ id: item.id, image: item.url.startsWith("/") ? item.url : resolveAssetReference(item.url) || item.url, title: item.title ?? "", alt: item.altText ?? item.title ?? row.name, caption: item.caption ?? "" })),
+      seoTitle: row.seoTitle ?? `${row.name} Experiences | Nepal Heaven`, seoDescription: row.seoDescription ?? row.shortDescription ?? "" };
   });
 }
 export async function getExperienceBySlug(slug: string) { return (await getExperiences()).find((item) => item.slug === slug) ?? null; }
@@ -529,19 +544,29 @@ export async function searchPublicContent(query: string): Promise<PublicSearchRe
 
 export async function getBlogPosts(): Promise<Post[]> {
   const database = requireDb();
+  const blogTypeOptions = alias(cmsOtherSettingsOptions, "public_blog_type_options");
   const rows = await database
-    .select({ post: blogPosts, category: blogCategories })
+    .select({ post: blogPosts, category: blogCategories, blogType: blogTypeOptions.name })
     .from(blogPosts)
     .leftJoin(blogCategories, eq(blogPosts.categoryId, blogCategories.id))
+    .leftJoin(blogTypeOptions, eq(blogPosts.blogTypeOptionId, blogTypeOptions.id))
     .where(eq(blogPosts.status, "published"))
     .orderBy(asc(blogPosts.publishedAt));
 
+  const ids = rows.map(({ post }) => post.id);
+  const [blocks, highlights] = ids.length ? await Promise.all([
+    database.select().from(blogContentBlocks).where(inArray(blogContentBlocks.blogPostId, ids)).orderBy(asc(blogContentBlocks.sortOrder)),
+    database.select().from(blogHighlights).where(inArray(blogHighlights.blogPostId, ids)).orderBy(asc(blogHighlights.sortOrder)),
+  ]) : [[], []];
+  const blocksByPost = groupBy(blocks, (item) => item.blogPostId); const highlightsByPost = groupBy(highlights, (item) => item.blogPostId);
   return rows
-    .map(({ post, category }) => ({
+    .map(({ post, category, blogType }) => ({
+      id: post.id,
       slug: post.slug,
       title: post.title,
       excerpt: post.excerpt ?? "",
-      category: category?.name ?? "",
+      category: blogType ?? category?.name ?? "",
+      blogTypeOptionId: post.blogTypeOptionId,
       date: post.publishedAt
         ? new Intl.DateTimeFormat("en-GB", {
             day: "2-digit",
@@ -556,6 +581,9 @@ export async function getBlogPosts(): Promise<Post[]> {
       author: { name: post.authorName ?? "", role: post.authorRole ?? "" },
       image: resolveAssetReference(post.coverImage),
       body: (post.content ?? "").split(/\r?\n\s*\r?\n/).filter(Boolean),
+      highlights: (highlightsByPost.get(post.id) ?? []).map((item) => item.item),
+      aboutAuthor: post.aboutAuthor ?? "",
+      blocks: (blocksByPost.get(post.id) ?? []).map((item) => ({ id: item.id, type: item.type, content: item.content ?? "", ...(item.imageUrl ? { image: item.imageUrl.startsWith("/") ? item.imageUrl : resolveAssetReference(item.imageUrl) || item.imageUrl } : {}), alt: item.altText ?? post.title, caption: item.caption ?? "" })),
       publishedAt: post.publishedAt?.getTime() ?? 0,
     }))
     .sort((a, b) => b.publishedAt - a.publishedAt)
@@ -1035,7 +1063,7 @@ export async function getPublicSiteSettings(): Promise<PublicSiteSettings> {
   };
 }
 
-export async function getPublicGalleryItems():
+export async function getPublicGalleryItems(certificatesOnly = false):
     Promise<GalleryItem[]> {
 
   const database =
@@ -1044,6 +1072,7 @@ export async function getPublicGalleryItems():
       cmsOtherSettingsOptions,
       "gallery_package_type_options",
   );
+  const generalTypeOptions = alias(cmsOtherSettingsOptions, "gallery_general_type_options");
 
   /*
    * Load actual Media Library records,
@@ -1090,6 +1119,12 @@ export async function getPublicGalleryItems():
 
             generalSettingsTypeOptionId:
             media.generalSettingsTypeOptionId,
+
+            generalTypeName:
+            generalTypeOptions.name,
+
+            generalTypeValue:
+            generalTypeOptions.value,
 
             associatedDestinationId:
             media.associatedDestinationId,
@@ -1179,6 +1214,10 @@ export async function getPublicGalleryItems():
                   experienceCategories.id,
               ),
           )
+          .leftJoin(
+              generalTypeOptions,
+              and(eq(media.generalSettingsTypeOptionId, generalTypeOptions.id), eq(generalTypeOptions.groupKey, "general_settings_type")),
+          )
           .where(
               eq(
                   media.lifecycleStatus,
@@ -1222,11 +1261,8 @@ export async function getPublicGalleryItems():
              * Website assets
              * etc.
              */
-            if (
-                cmsCategoryValue ===
-                "general" ||
-                item.generalSettingsTypeOptionId
-            ) {
+            const isCertificate = cmsCategoryValue === "general" && ["certificate", "certificates"].includes(normalizePublicMediaCategory(item.generalTypeValue ?? item.generalTypeName));
+            if ((certificatesOnly && !isCertificate) || (!certificatesOnly && (cmsCategoryValue === "general" || item.generalSettingsTypeOptionId))) {
               return [];
             }
 
@@ -1239,6 +1275,7 @@ export async function getPublicGalleryItems():
                 | "destination"
                 | "package"
                 | "experience"
+                | "general"
                 | undefined;
 
             let associatedToName:
@@ -1249,7 +1286,13 @@ export async function getPublicGalleryItems():
                 string |
                 undefined;
 
-            if (
+            if (certificatesOnly && isCertificate) {
+              associatedToKind = "general";
+              associatedToName = "Certificates";
+              associatedToSlug = "certificates";
+            }
+
+            if (!associatedToKind &&
                 item.associatedDestinationId &&
                 item.destinationName &&
                 item.destinationSlug
@@ -1350,7 +1393,7 @@ export async function getPublicGalleryItems():
                   mosaicPattern[
                   index %
                   mosaicPattern.length
-                      ];
+                      ] ?? "normal";
             }
 
             return [
@@ -1410,6 +1453,9 @@ export async function getPublicGalleryItems():
                  * Existing Gallery Subject field.
                  */
                 category:
+                    certificatesOnly
+                        ? "Certificates"
+                        :
                     associatedToKind === "destination"
                         ? item.destinationType?.trim() ||
                         "Uncategorised"

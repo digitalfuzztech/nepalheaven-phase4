@@ -107,6 +107,7 @@ export function CmsMediaPicker({
                                    value,
                                    images,
                                    websiteMediaOnly = false,
+                                   generalSettingsTypeValue,
                                    onChange,
                                }: {
     label:
@@ -124,6 +125,9 @@ export function CmsMediaPicker({
 
     websiteMediaOnly?:
         boolean;
+
+    generalSettingsTypeValue?:
+        "website-media" | "blog" | "team";
 
     onChange: (
         id:
@@ -250,15 +254,27 @@ export function CmsMediaPicker({
         null;
 
     const eligiblePickerImages = useMemo(() => {
-        if (!websiteMediaOnly || classificationOptions.categories.length === 0) return pickerImages;
+        const requiredGeneralType = generalSettingsTypeValue ?? (websiteMediaOnly ? "website-media" : null);
+        if (!requiredGeneralType) return pickerImages;
+        if (classificationOptions.categories.length === 0) {
+            // Explicit subtype pickers must never briefly expose unrelated
+            // General media while their live classification data is loading.
+            // The legacy `websiteMediaOnly` path keeps its existing loader
+            // fallback so Destination/Package listing pickers are unchanged.
+            return generalSettingsTypeValue ? [] : pickerImages;
+        }
         return pickerImages.filter((image) => {
             const category = resolveMediaCategory(image, classificationOptions);
-            if (!category) return true;
+            if (!category) return websiteMediaOnly && !generalSettingsTypeValue;
             if (!matchesStableOption(category, "general")) return false;
             const generalType = classificationOptions.generalSettingsTypes.find((option) => option.id === image.generalSettingsTypeOptionId);
-            return generalType ? matchesStableOption(generalType, "website-media") : false;
+            if (!generalType) return false;
+            if (requiredGeneralType === "blog") {
+                return matchesStableOption(generalType, "blog") || matchesStableOption(generalType, "blogs");
+            }
+            return matchesStableOption(generalType, requiredGeneralType);
         });
-    }, [classificationOptions, pickerImages, websiteMediaOnly]);
+    }, [classificationOptions, generalSettingsTypeValue, pickerImages, websiteMediaOnly]);
 
     /*
     |--------------------------------------------------------------------------

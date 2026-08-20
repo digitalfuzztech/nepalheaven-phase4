@@ -46,7 +46,7 @@ function PackagesPage() {
   const { images, packages, listingPage } = Route.useLoaderData();
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
-  const update = (patch: Partial<PackageSearch>) => void navigate({ search: (current) => ({ ...current, ...patch }), replace: true });
+  const update = (patch: Partial<PackageSearch>) => void navigate({ search: (current) => ({ ...current, ...patch }), replace: true, resetScroll: false });
   const [sort, setSort] = useState<(typeof sorts)[number]>("Recommended");
   const windowDays = search.arrival && search.departure && search.departure > search.arrival ? Math.ceil((Date.parse(`${search.departure}T00:00:00Z`) - Date.parse(`${search.arrival}T00:00:00Z`)) / 86400000) : undefined;
   const highestPrice = Math.max(0, ...packages.map((item) => item.price));
@@ -84,7 +84,7 @@ function PackagesPage() {
       />
 
       <section className="container-lux py-20 lg:py-28">
-        {Object.values(search).some((value) => value !== undefined) ? <div className="mb-6 flex flex-wrap items-center gap-2"><span className="text-sm font-semibold">Active filters</span>{search.destination ? <span className="rounded-full bg-accent px-3 py-1 text-xs">{search.destination.replaceAll("-", " ")}</span> : null}{search.budget ? <span className="rounded-full bg-accent px-3 py-1 text-xs">Budget {search.budget}</span> : null}{windowDays ? <span className="rounded-full bg-accent px-3 py-1 text-xs">{windowDays}-day trip window</span> : null}{search.travellers ? <span className="rounded-full bg-accent px-3 py-1 text-xs">{search.travellers} travellers</span> : null}<button type="button" onClick={() => void navigate({ search: {}, replace: true })} className="rounded-full border border-border px-3 py-1 text-xs font-semibold">Clear filters</button></div> : null}
+        {Object.values(search).some((value) => value !== undefined) ? <div className="mb-6 flex flex-wrap items-center gap-2"><span className="text-sm font-semibold">Active filters</span>{search.destination ? <span className="rounded-full bg-accent px-3 py-1 text-xs">{search.destination.replaceAll("-", " ")}</span> : null}{search.budget ? <span className="rounded-full bg-accent px-3 py-1 text-xs">Budget {search.budget}</span> : null}{windowDays ? <span className="rounded-full bg-accent px-3 py-1 text-xs">{windowDays}-day trip window</span> : null}{search.travellers ? <span className="rounded-full bg-accent px-3 py-1 text-xs">{search.travellers} travellers</span> : null}<button type="button" onClick={() => void navigate({ search: {}, replace: true, resetScroll: false })} className="rounded-full border border-border px-3 py-1 text-xs font-semibold">Clear filters</button></div> : null}
         <div className="flex flex-wrap items-center justify-between gap-4">
           <label className="flex min-w-[16rem] flex-1 items-center gap-2 rounded-2xl border border-border bg-card px-4 py-3">
             <Search className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />

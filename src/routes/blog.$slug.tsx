@@ -6,6 +6,7 @@ import { Reveal } from "@/components/Reveal";
 import { CtaBanner } from "@/components/CtaBanner";
 import { BlogEngagement } from "@/components/BlogEngagement";
 import { getBlogEngagementFn } from "@/lib/blog-engagement.functions";
+import type { Post } from "@/lib/content.types";
 
 export const Route = createFileRoute("/blog/$slug")({
   loader: async ({ params }) => {
@@ -53,7 +54,7 @@ export const Route = createFileRoute("/blog/$slug")({
 
 function BlogPost() {
   const { post, posts, engagement } = Route.useLoaderData();
-  const related = posts.filter((p) => p.slug !== post.slug).slice(0, 3);
+  const related = getRelatedBlogs(post, posts);
 
   return (
     <>
@@ -82,8 +83,9 @@ function BlogPost() {
 
           <p className="mt-10 text-xl leading-relaxed text-foreground">{post.excerpt}</p>
 
+          {post.highlights.length ? <div className="mt-8 space-y-4">{post.highlights.map((item)=><blockquote key={item} className="rounded-2xl border-l-4 border-gold bg-sand p-5 text-lg">{item}</blockquote>)}</div> : null}
           <div className="mt-8 space-y-6">
-            {post.body.map((para, i) => (
+            {post.blocks.length ? post.blocks.map((block) => block.type === "image" && block.image ? <figure key={block.id}><img src={block.image} alt={block.alt} className="w-full rounded-3xl"/>{block.caption?<figcaption className="mt-2 text-center text-sm text-muted-foreground">{block.caption}</figcaption>:null}</figure> : block.type === "highlight" ? <blockquote key={block.id} className="rounded-2xl border-l-4 border-gold bg-sand p-6 text-xl leading-relaxed">{block.content}</blockquote> : <p key={block.id} className="whitespace-pre-line text-base leading-[1.85] text-muted-foreground">{block.content}</p>) : post.body.map((para, i) => (
               <p key={i} className="text-base leading-[1.85] text-muted-foreground">
                 {para}
               </p>
@@ -96,7 +98,7 @@ function BlogPost() {
             <p className="eyebrow text-gold">About the author</p>
             <h2 className="mt-3 text-xl">{post.author.name}</h2>
             <p className="mt-2 text-sm text-muted-foreground">
-              {post.author.role} at Nepal Heaven. Based in Kathmandu, on the trail roughly half the year.
+              {post.aboutAuthor || `${post.author.role} at Nepal Heaven. Based in Kathmandu, on the trail roughly half the year.`}
             </p>
           </div>
         </div>
@@ -135,3 +137,6 @@ function BlogPost() {
     </>
   );
 }
+
+function relatedScore(seed:string,value:string){let hash=2166136261;for(const char of `${seed}:${value}`){hash^=char.charCodeAt(0);hash=Math.imul(hash,16777619);}return hash>>>0;}
+function getRelatedBlogs(current:Post,posts:Post[]){const eligible=posts.filter((post)=>post.id!==current.id);const sameType=(post:Post)=>current.blogTypeOptionId&&post.blogTypeOptionId?current.blogTypeOptionId===post.blogTypeOptionId:Boolean(current.category)&&current.category.trim().toLowerCase()===post.category.trim().toLowerCase();const same=eligible.filter(sameType).sort((a,b)=>relatedScore(current.id,a.id)-relatedScore(current.id,b.id));const fallback=eligible.filter((post)=>!sameType(post)).sort((a,b)=>relatedScore(current.id,a.id)-relatedScore(current.id,b.id));return[...same.slice(0,7),...fallback].slice(0,7);}

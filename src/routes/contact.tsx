@@ -15,16 +15,18 @@ import {
 } from "@/lib/lead.functions";
 import { useAuth } from "@/lib/auth";
 import { buildWhatsAppEntryPath } from "@/lib/whatsapp.functions";
+import { getPublicContactPageFn } from "@/lib/cms-page-content.functions";
 
 export const Route = createFileRoute("/contact")({
   validateSearch: (search: Record<string, unknown>): { package?: string } =>
     typeof search["package"] === "string" ? { package: search["package"] } : {},
   loader: async () => {
-    const [packages, settings] = await Promise.all([
+    const [packages, settings, page] = await Promise.all([
       getPackagesFn(),
       getPublicSiteSettingsFn(),
+      getPublicContactPageFn(),
     ]);
-    return { company: settings.company, images: settings.images, packages };
+    return { company: settings.company, images: settings.images, packages, page };
   },
   head: () => ({
     meta: [
@@ -47,7 +49,7 @@ export const Route = createFileRoute("/contact")({
 });
 
 function ContactPage() {
-  const { company, images, packages } = Route.useLoaderData();
+  const { company, images, packages, page } = Route.useLoaderData();
   const { user } = useAuth();
   const search = Route.useSearch();
   const [sent, setSent] = useState(false);
@@ -94,10 +96,10 @@ function ContactPage() {
     <>
       <PageHero
         compact
-        image={images.destKathmandu}
-        eyebrow="Get in touch"
-        title="Let's start planning"
-        description="Every enquiry is answered by a specialist in Kathmandu, usually within a few hours."
+        image={page.heroImageUrl ?? images.destKathmandu}
+        eyebrow={page.heroSubtitle}
+        title={page.heroTitle}
+        description={page.heroDescription}
         crumbs={[{ label: "Home", to: "/" }, { label: "Contact" }]}
       />
 
@@ -313,20 +315,7 @@ function ContactPage() {
           />
           <div className="mt-10">
             <FaqAccordion
-              items={[
-                {
-                  q: "How fast do you reply?",
-                  a: "Within 24 hours on weekdays, usually much sooner. Urgent trek-support calls are answered around the clock.",
-                },
-                {
-                  q: "Can you build a fully custom trip?",
-                  a: "Yes — most of our travellers end up with something tailored. Send dates and interests and we will draft a route.",
-                },
-                {
-                  q: "Do you work with travel agents?",
-                  a: "We do. Ask for our trade rates and we will connect you with our partnerships team.",
-                },
-              ]}
+              items={page.faqs.map((item) => ({ q: item.question, a: item.answer }))}
             />
           </div>
         </div>

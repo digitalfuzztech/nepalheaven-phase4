@@ -720,6 +720,7 @@ function GalleryPreview() {
           />
           <Link
             to="/gallery"
+            search={{ category: undefined, associatedTo: undefined }}
             className="group inline-flex items-center gap-2 text-sm font-bold text-primary transition-colors hover:text-gold"
           >
             Open gallery

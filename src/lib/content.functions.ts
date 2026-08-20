@@ -3,6 +3,7 @@ import { z } from "zod";
 
 const slugSchema = z.object({ slug: z.string().trim().min(1).max(200) });
 const searchSchema = z.object({ q: z.string().trim().max(200) });
+const gallerySchema = z.object({ certificatesOnly: z.boolean().default(false) });
 
 export const getDestinationsFn = createServerFn({ method: "GET" }).handler(
   async () => {
@@ -71,8 +72,8 @@ export const getPublicSiteSettingsFn = createServerFn({
 export const getPublicGalleryItemsFn =
     createServerFn({
         method: "GET",
-    }).handler(
-        async () => {
+    }).validator(gallerySchema).handler(
+        async ({ data }) => {
             const {
                 getPublicGalleryItems,
             } =
@@ -80,7 +81,7 @@ export const getPublicGalleryItemsFn =
                     "@/lib/content.server"
                     );
 
-            return getPublicGalleryItems();
+            return getPublicGalleryItems(data.certificatesOnly);
         },
     );
 

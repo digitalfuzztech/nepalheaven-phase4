@@ -149,7 +149,7 @@ function AdminCmsPage() {
       icon: Mountain,
       value: overview.experiences,
       valueLabel: "experiences",
-      to: null,
+      to: "/admin/cms/experiences" as const,
     },
 
     {
@@ -159,7 +159,25 @@ function AdminCmsPage() {
       icon: FileText,
       value: overview.blogPosts,
       valueLabel: "articles",
-      to: null,
+      to: "/admin/cms/blog" as const,
+    },
+
+    {
+      title: "About Page",
+      description: "Mission, vision, story, counters, team, milestones, awards and partners.",
+      icon: BookOpen,
+      value: 1,
+      valueLabel: "page",
+      to: "/admin/cms/about" as const,
+    },
+
+    {
+      title: "Contact Page",
+      description: "Contact hero and frequently asked questions.",
+      icon: MessageCircleQuestion,
+      value: 1,
+      valueLabel: "page",
+      to: "/admin/cms/contact" as const,
     },
 
     {

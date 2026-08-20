@@ -84,15 +84,20 @@ export type Package = {
 };
 
 export type Post = {
+  id: string;
   slug: string;
   title: string;
   excerpt: string;
   category: string;
+  blogTypeOptionId: string | null;
   date: string;
   readingTime: string;
   author: { name: string; role: string };
   image: string;
   body: string[];
+  highlights: string[];
+  aboutAuthor: string;
+  blocks: Array<{ id: string; type: "text" | "highlight" | "image"; content: string; image?: string; alt: string; caption: string }>;
 };
 
 export type Testimonial = {
@@ -188,14 +193,24 @@ export type PublicFooterContent = {
 
 export type Activity = { name: string; detail: string; icon: string };
 export type ExperienceCategory = {
+  id: string;
   slug: string;
   name: string;
   short: string;
   description: string;
   detail: string;
+  type: string;
+  experienceTypeOptionId: string | null;
+  cardLinkText: string;
+  overview: string;
   image: string;
   count: number;
   highlights: string[];
+  itinerary: { day: string; title: string; detail: string }[];
+  included: string[];
+  excluded: string[];
+  faqs: { q: string; a: string }[];
+  gallery: { id: string; image: string; title: string; alt: string; caption: string }[];
   packages: Package[];
   seoTitle: string;
   seoDescription: string;
@@ -245,7 +260,8 @@ export type GalleryItem = {
   associatedToKind?:
       | "destination"
       | "package"
-      | "experience";
+      | "experience"
+      | "general";
 
   associatedToName?: string;
   associatedToSlug?: string;

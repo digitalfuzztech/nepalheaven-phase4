@@ -45,18 +45,28 @@ import { Route as MediaSplatRouteImport } from './routes/media.$'
 import { Route as PackagesIndexRouteImport } from './routes/packages.index'
 import { Route as PackagesSlugRouteImport } from './routes/packages.$slug'
 import { Route as AccountBookingsReferenceRouteImport } from './routes/account_.bookings.$reference'
+import { Route as AdminCmsAboutRouteImport } from './routes/admin_.cms_.about'
+import { Route as AdminCmsBlogRouteImport } from './routes/admin_.cms_.blog'
+import { Route as AdminCmsContactRouteImport } from './routes/admin_.cms_.contact'
 import { Route as AdminCmsDestinationsRouteImport } from './routes/admin_.cms_.destinations'
 import { Route as AdminCmsEmailTemplatesRouteImport } from './routes/admin_.cms_.email-templates'
+import { Route as AdminCmsExperiencesRouteImport } from './routes/admin_.cms_.experiences'
 import { Route as AdminCmsFooterRouteImport } from './routes/admin_.cms_.footer'
 import { Route as AdminCmsGeneralRouteImport } from './routes/admin_.cms_.general'
 import { Route as AdminCmsMediaRouteImport } from './routes/admin_.cms_.media'
 import { Route as AdminCmsNavigationRouteImport } from './routes/admin_.cms_.navigation'
 import { Route as AdminCmsOtherSettingsRouteImport } from './routes/admin_.cms_.other-settings'
 import { Route as AdminCmsPackagesRouteImport } from './routes/admin_.cms_.packages'
+import { Route as AdminCmsBlogIdRouteImport } from './routes/admin_.cms_.blog_.$id'
+import { Route as AdminCmsBlogListingPageRouteImport } from './routes/admin_.cms_.blog_.listing-page'
+import { Route as AdminCmsBlogNewRouteImport } from './routes/admin_.cms_.blog_.new'
 import { Route as AdminCmsDestinationsIdRouteImport } from './routes/admin_.cms_.destinations_.$id'
 import { Route as AdminCmsDestinationsListingPageRouteImport } from './routes/admin_.cms_.destinations_.listing-page'
 import { Route as AdminCmsDestinationsNewRouteImport } from './routes/admin_.cms_.destinations_.new'
 import { Route as AdminCmsEmailTemplatesKeyRouteImport } from './routes/admin_.cms_.email-templates_.$key'
+import { Route as AdminCmsExperiencesIdRouteImport } from './routes/admin_.cms_.experiences_.$id'
+import { Route as AdminCmsExperiencesListingPageRouteImport } from './routes/admin_.cms_.experiences_.listing-page'
+import { Route as AdminCmsExperiencesNewRouteImport } from './routes/admin_.cms_.experiences_.new'
 import { Route as AdminCmsMediaIdRouteImport } from './routes/admin_.cms_.media_.$id'
 import { Route as AdminCmsNavigationKeyRouteImport } from './routes/admin_.cms_.navigation_.$key'
 import { Route as AdminCmsPackagesIdRouteImport } from './routes/admin_.cms_.packages_.$id'
@@ -246,6 +256,21 @@ const AccountBookingsReferenceRoute =
     path: '/account/bookings/$reference',
     getParentRoute: () => rootRouteImport,
   } as any)
+const AdminCmsAboutRoute = AdminCmsAboutRouteImport.update({
+  id: '/admin_/cms_/about',
+  path: '/admin/cms/about',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminCmsBlogRoute = AdminCmsBlogRouteImport.update({
+  id: '/admin_/cms_/blog',
+  path: '/admin/cms/blog',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminCmsContactRoute = AdminCmsContactRouteImport.update({
+  id: '/admin_/cms_/contact',
+  path: '/admin/cms/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminCmsDestinationsRoute = AdminCmsDestinationsRouteImport.update({
   id: '/admin_/cms_/destinations',
   path: '/admin/cms/destinations',
@@ -254,6 +279,11 @@ const AdminCmsDestinationsRoute = AdminCmsDestinationsRouteImport.update({
 const AdminCmsEmailTemplatesRoute = AdminCmsEmailTemplatesRouteImport.update({
   id: '/admin_/cms_/email-templates',
   path: '/admin/cms/email-templates',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminCmsExperiencesRoute = AdminCmsExperiencesRouteImport.update({
+  id: '/admin_/cms_/experiences',
+  path: '/admin/cms/experiences',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminCmsFooterRoute = AdminCmsFooterRouteImport.update({
@@ -286,6 +316,21 @@ const AdminCmsPackagesRoute = AdminCmsPackagesRouteImport.update({
   path: '/admin/cms/packages',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminCmsBlogIdRoute = AdminCmsBlogIdRouteImport.update({
+  id: '/admin_/cms_/blog_/$id',
+  path: '/admin/cms/blog/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminCmsBlogListingPageRoute = AdminCmsBlogListingPageRouteImport.update({
+  id: '/admin_/cms_/blog_/listing-page',
+  path: '/admin/cms/blog/listing-page',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminCmsBlogNewRoute = AdminCmsBlogNewRouteImport.update({
+  id: '/admin_/cms_/blog_/new',
+  path: '/admin/cms/blog/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminCmsDestinationsIdRoute = AdminCmsDestinationsIdRouteImport.update({
   id: '/admin_/cms_/destinations_/$id',
   path: '/admin/cms/destinations/$id',
@@ -308,6 +353,22 @@ const AdminCmsEmailTemplatesKeyRoute =
     path: '/admin/cms/email-templates/$key',
     getParentRoute: () => rootRouteImport,
   } as any)
+const AdminCmsExperiencesIdRoute = AdminCmsExperiencesIdRouteImport.update({
+  id: '/admin_/cms_/experiences_/$id',
+  path: '/admin/cms/experiences/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminCmsExperiencesListingPageRoute =
+  AdminCmsExperiencesListingPageRouteImport.update({
+    id: '/admin_/cms_/experiences_/listing-page',
+    path: '/admin/cms/experiences/listing-page',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AdminCmsExperiencesNewRoute = AdminCmsExperiencesNewRouteImport.update({
+  id: '/admin_/cms_/experiences_/new',
+  path: '/admin/cms/experiences/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminCmsMediaIdRoute = AdminCmsMediaIdRouteImport.update({
   id: '/admin_/cms_/media_/$id',
   path: '/admin/cms/media/$id',
@@ -384,18 +445,28 @@ export interface FileRoutesByFullPath {
   '/destinations/': typeof DestinationsIndexRoute
   '/packages/': typeof PackagesIndexRoute
   '/account/bookings/$reference': typeof AccountBookingsReferenceRoute
+  '/admin/cms/about': typeof AdminCmsAboutRoute
+  '/admin/cms/blog': typeof AdminCmsBlogRoute
+  '/admin/cms/contact': typeof AdminCmsContactRoute
   '/admin/cms/destinations': typeof AdminCmsDestinationsRoute
   '/admin/cms/email-templates': typeof AdminCmsEmailTemplatesRoute
+  '/admin/cms/experiences': typeof AdminCmsExperiencesRoute
   '/admin/cms/footer': typeof AdminCmsFooterRoute
   '/admin/cms/general': typeof AdminCmsGeneralRoute
   '/admin/cms/media': typeof AdminCmsMediaRoute
   '/admin/cms/navigation': typeof AdminCmsNavigationRoute
   '/admin/cms/other-settings': typeof AdminCmsOtherSettingsRoute
   '/admin/cms/packages': typeof AdminCmsPackagesRoute
+  '/admin/cms/blog/$id': typeof AdminCmsBlogIdRoute
+  '/admin/cms/blog/listing-page': typeof AdminCmsBlogListingPageRoute
+  '/admin/cms/blog/new': typeof AdminCmsBlogNewRoute
   '/admin/cms/destinations/$id': typeof AdminCmsDestinationsIdRoute
   '/admin/cms/destinations/listing-page': typeof AdminCmsDestinationsListingPageRoute
   '/admin/cms/destinations/new': typeof AdminCmsDestinationsNewRoute
   '/admin/cms/email-templates/$key': typeof AdminCmsEmailTemplatesKeyRoute
+  '/admin/cms/experiences/$id': typeof AdminCmsExperiencesIdRoute
+  '/admin/cms/experiences/listing-page': typeof AdminCmsExperiencesListingPageRoute
+  '/admin/cms/experiences/new': typeof AdminCmsExperiencesNewRoute
   '/admin/cms/media/$id': typeof AdminCmsMediaIdRoute
   '/admin/cms/navigation/$key': typeof AdminCmsNavigationKeyRoute
   '/admin/cms/packages/$id': typeof AdminCmsPackagesIdRoute
@@ -441,18 +512,28 @@ export interface FileRoutesByTo {
   '/destinations': typeof DestinationsIndexRoute
   '/packages': typeof PackagesIndexRoute
   '/account/bookings/$reference': typeof AccountBookingsReferenceRoute
+  '/admin/cms/about': typeof AdminCmsAboutRoute
+  '/admin/cms/blog': typeof AdminCmsBlogRoute
+  '/admin/cms/contact': typeof AdminCmsContactRoute
   '/admin/cms/destinations': typeof AdminCmsDestinationsRoute
   '/admin/cms/email-templates': typeof AdminCmsEmailTemplatesRoute
+  '/admin/cms/experiences': typeof AdminCmsExperiencesRoute
   '/admin/cms/footer': typeof AdminCmsFooterRoute
   '/admin/cms/general': typeof AdminCmsGeneralRoute
   '/admin/cms/media': typeof AdminCmsMediaRoute
   '/admin/cms/navigation': typeof AdminCmsNavigationRoute
   '/admin/cms/other-settings': typeof AdminCmsOtherSettingsRoute
   '/admin/cms/packages': typeof AdminCmsPackagesRoute
+  '/admin/cms/blog/$id': typeof AdminCmsBlogIdRoute
+  '/admin/cms/blog/listing-page': typeof AdminCmsBlogListingPageRoute
+  '/admin/cms/blog/new': typeof AdminCmsBlogNewRoute
   '/admin/cms/destinations/$id': typeof AdminCmsDestinationsIdRoute
   '/admin/cms/destinations/listing-page': typeof AdminCmsDestinationsListingPageRoute
   '/admin/cms/destinations/new': typeof AdminCmsDestinationsNewRoute
   '/admin/cms/email-templates/$key': typeof AdminCmsEmailTemplatesKeyRoute
+  '/admin/cms/experiences/$id': typeof AdminCmsExperiencesIdRoute
+  '/admin/cms/experiences/listing-page': typeof AdminCmsExperiencesListingPageRoute
+  '/admin/cms/experiences/new': typeof AdminCmsExperiencesNewRoute
   '/admin/cms/media/$id': typeof AdminCmsMediaIdRoute
   '/admin/cms/navigation/$key': typeof AdminCmsNavigationKeyRoute
   '/admin/cms/packages/$id': typeof AdminCmsPackagesIdRoute
@@ -499,18 +580,28 @@ export interface FileRoutesById {
   '/destinations/': typeof DestinationsIndexRoute
   '/packages/': typeof PackagesIndexRoute
   '/account_/bookings/$reference': typeof AccountBookingsReferenceRoute
+  '/admin_/cms_/about': typeof AdminCmsAboutRoute
+  '/admin_/cms_/blog': typeof AdminCmsBlogRoute
+  '/admin_/cms_/contact': typeof AdminCmsContactRoute
   '/admin_/cms_/destinations': typeof AdminCmsDestinationsRoute
   '/admin_/cms_/email-templates': typeof AdminCmsEmailTemplatesRoute
+  '/admin_/cms_/experiences': typeof AdminCmsExperiencesRoute
   '/admin_/cms_/footer': typeof AdminCmsFooterRoute
   '/admin_/cms_/general': typeof AdminCmsGeneralRoute
   '/admin_/cms_/media': typeof AdminCmsMediaRoute
   '/admin_/cms_/navigation': typeof AdminCmsNavigationRoute
   '/admin_/cms_/other-settings': typeof AdminCmsOtherSettingsRoute
   '/admin_/cms_/packages': typeof AdminCmsPackagesRoute
+  '/admin_/cms_/blog_/$id': typeof AdminCmsBlogIdRoute
+  '/admin_/cms_/blog_/listing-page': typeof AdminCmsBlogListingPageRoute
+  '/admin_/cms_/blog_/new': typeof AdminCmsBlogNewRoute
   '/admin_/cms_/destinations_/$id': typeof AdminCmsDestinationsIdRoute
   '/admin_/cms_/destinations_/listing-page': typeof AdminCmsDestinationsListingPageRoute
   '/admin_/cms_/destinations_/new': typeof AdminCmsDestinationsNewRoute
   '/admin_/cms_/email-templates_/$key': typeof AdminCmsEmailTemplatesKeyRoute
+  '/admin_/cms_/experiences_/$id': typeof AdminCmsExperiencesIdRoute
+  '/admin_/cms_/experiences_/listing-page': typeof AdminCmsExperiencesListingPageRoute
+  '/admin_/cms_/experiences_/new': typeof AdminCmsExperiencesNewRoute
   '/admin_/cms_/media_/$id': typeof AdminCmsMediaIdRoute
   '/admin_/cms_/navigation_/$key': typeof AdminCmsNavigationKeyRoute
   '/admin_/cms_/packages_/$id': typeof AdminCmsPackagesIdRoute
@@ -558,18 +649,28 @@ export interface FileRouteTypes {
     | '/destinations/'
     | '/packages/'
     | '/account/bookings/$reference'
+    | '/admin/cms/about'
+    | '/admin/cms/blog'
+    | '/admin/cms/contact'
     | '/admin/cms/destinations'
     | '/admin/cms/email-templates'
+    | '/admin/cms/experiences'
     | '/admin/cms/footer'
     | '/admin/cms/general'
     | '/admin/cms/media'
     | '/admin/cms/navigation'
     | '/admin/cms/other-settings'
     | '/admin/cms/packages'
+    | '/admin/cms/blog/$id'
+    | '/admin/cms/blog/listing-page'
+    | '/admin/cms/blog/new'
     | '/admin/cms/destinations/$id'
     | '/admin/cms/destinations/listing-page'
     | '/admin/cms/destinations/new'
     | '/admin/cms/email-templates/$key'
+    | '/admin/cms/experiences/$id'
+    | '/admin/cms/experiences/listing-page'
+    | '/admin/cms/experiences/new'
     | '/admin/cms/media/$id'
     | '/admin/cms/navigation/$key'
     | '/admin/cms/packages/$id'
@@ -615,18 +716,28 @@ export interface FileRouteTypes {
     | '/destinations'
     | '/packages'
     | '/account/bookings/$reference'
+    | '/admin/cms/about'
+    | '/admin/cms/blog'
+    | '/admin/cms/contact'
     | '/admin/cms/destinations'
     | '/admin/cms/email-templates'
+    | '/admin/cms/experiences'
     | '/admin/cms/footer'
     | '/admin/cms/general'
     | '/admin/cms/media'
     | '/admin/cms/navigation'
     | '/admin/cms/other-settings'
     | '/admin/cms/packages'
+    | '/admin/cms/blog/$id'
+    | '/admin/cms/blog/listing-page'
+    | '/admin/cms/blog/new'
     | '/admin/cms/destinations/$id'
     | '/admin/cms/destinations/listing-page'
     | '/admin/cms/destinations/new'
     | '/admin/cms/email-templates/$key'
+    | '/admin/cms/experiences/$id'
+    | '/admin/cms/experiences/listing-page'
+    | '/admin/cms/experiences/new'
     | '/admin/cms/media/$id'
     | '/admin/cms/navigation/$key'
     | '/admin/cms/packages/$id'
@@ -672,18 +783,28 @@ export interface FileRouteTypes {
     | '/destinations/'
     | '/packages/'
     | '/account_/bookings/$reference'
+    | '/admin_/cms_/about'
+    | '/admin_/cms_/blog'
+    | '/admin_/cms_/contact'
     | '/admin_/cms_/destinations'
     | '/admin_/cms_/email-templates'
+    | '/admin_/cms_/experiences'
     | '/admin_/cms_/footer'
     | '/admin_/cms_/general'
     | '/admin_/cms_/media'
     | '/admin_/cms_/navigation'
     | '/admin_/cms_/other-settings'
     | '/admin_/cms_/packages'
+    | '/admin_/cms_/blog_/$id'
+    | '/admin_/cms_/blog_/listing-page'
+    | '/admin_/cms_/blog_/new'
     | '/admin_/cms_/destinations_/$id'
     | '/admin_/cms_/destinations_/listing-page'
     | '/admin_/cms_/destinations_/new'
     | '/admin_/cms_/email-templates_/$key'
+    | '/admin_/cms_/experiences_/$id'
+    | '/admin_/cms_/experiences_/listing-page'
+    | '/admin_/cms_/experiences_/new'
     | '/admin_/cms_/media_/$id'
     | '/admin_/cms_/navigation_/$key'
     | '/admin_/cms_/packages_/$id'
@@ -729,18 +850,28 @@ export interface RootRouteChildren {
   DestinationsIndexRoute: typeof DestinationsIndexRoute
   PackagesIndexRoute: typeof PackagesIndexRoute
   AccountBookingsReferenceRoute: typeof AccountBookingsReferenceRoute
+  AdminCmsAboutRoute: typeof AdminCmsAboutRoute
+  AdminCmsBlogRoute: typeof AdminCmsBlogRoute
+  AdminCmsContactRoute: typeof AdminCmsContactRoute
   AdminCmsDestinationsRoute: typeof AdminCmsDestinationsRoute
   AdminCmsEmailTemplatesRoute: typeof AdminCmsEmailTemplatesRoute
+  AdminCmsExperiencesRoute: typeof AdminCmsExperiencesRoute
   AdminCmsFooterRoute: typeof AdminCmsFooterRoute
   AdminCmsGeneralRoute: typeof AdminCmsGeneralRoute
   AdminCmsMediaRoute: typeof AdminCmsMediaRoute
   AdminCmsNavigationRoute: typeof AdminCmsNavigationRoute
   AdminCmsOtherSettingsRoute: typeof AdminCmsOtherSettingsRoute
   AdminCmsPackagesRoute: typeof AdminCmsPackagesRoute
+  AdminCmsBlogIdRoute: typeof AdminCmsBlogIdRoute
+  AdminCmsBlogListingPageRoute: typeof AdminCmsBlogListingPageRoute
+  AdminCmsBlogNewRoute: typeof AdminCmsBlogNewRoute
   AdminCmsDestinationsIdRoute: typeof AdminCmsDestinationsIdRoute
   AdminCmsDestinationsListingPageRoute: typeof AdminCmsDestinationsListingPageRoute
   AdminCmsDestinationsNewRoute: typeof AdminCmsDestinationsNewRoute
   AdminCmsEmailTemplatesKeyRoute: typeof AdminCmsEmailTemplatesKeyRoute
+  AdminCmsExperiencesIdRoute: typeof AdminCmsExperiencesIdRoute
+  AdminCmsExperiencesListingPageRoute: typeof AdminCmsExperiencesListingPageRoute
+  AdminCmsExperiencesNewRoute: typeof AdminCmsExperiencesNewRoute
   AdminCmsMediaIdRoute: typeof AdminCmsMediaIdRoute
   AdminCmsNavigationKeyRoute: typeof AdminCmsNavigationKeyRoute
   AdminCmsPackagesIdRoute: typeof AdminCmsPackagesIdRoute
@@ -1002,6 +1133,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AccountBookingsReferenceRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin_/cms_/about': {
+      id: '/admin_/cms_/about'
+      path: '/admin/cms/about'
+      fullPath: '/admin/cms/about'
+      preLoaderRoute: typeof AdminCmsAboutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin_/cms_/blog': {
+      id: '/admin_/cms_/blog'
+      path: '/admin/cms/blog'
+      fullPath: '/admin/cms/blog'
+      preLoaderRoute: typeof AdminCmsBlogRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin_/cms_/contact': {
+      id: '/admin_/cms_/contact'
+      path: '/admin/cms/contact'
+      fullPath: '/admin/cms/contact'
+      preLoaderRoute: typeof AdminCmsContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin_/cms_/destinations': {
       id: '/admin_/cms_/destinations'
       path: '/admin/cms/destinations'
@@ -1014,6 +1166,13 @@ declare module '@tanstack/react-router' {
       path: '/admin/cms/email-templates'
       fullPath: '/admin/cms/email-templates'
       preLoaderRoute: typeof AdminCmsEmailTemplatesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin_/cms_/experiences': {
+      id: '/admin_/cms_/experiences'
+      path: '/admin/cms/experiences'
+      fullPath: '/admin/cms/experiences'
+      preLoaderRoute: typeof AdminCmsExperiencesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin_/cms_/footer': {
@@ -1058,6 +1217,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminCmsPackagesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin_/cms_/blog_/$id': {
+      id: '/admin_/cms_/blog_/$id'
+      path: '/admin/cms/blog/$id'
+      fullPath: '/admin/cms/blog/$id'
+      preLoaderRoute: typeof AdminCmsBlogIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin_/cms_/blog_/listing-page': {
+      id: '/admin_/cms_/blog_/listing-page'
+      path: '/admin/cms/blog/listing-page'
+      fullPath: '/admin/cms/blog/listing-page'
+      preLoaderRoute: typeof AdminCmsBlogListingPageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin_/cms_/blog_/new': {
+      id: '/admin_/cms_/blog_/new'
+      path: '/admin/cms/blog/new'
+      fullPath: '/admin/cms/blog/new'
+      preLoaderRoute: typeof AdminCmsBlogNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin_/cms_/destinations_/$id': {
       id: '/admin_/cms_/destinations_/$id'
       path: '/admin/cms/destinations/$id'
@@ -1084,6 +1264,27 @@ declare module '@tanstack/react-router' {
       path: '/admin/cms/email-templates/$key'
       fullPath: '/admin/cms/email-templates/$key'
       preLoaderRoute: typeof AdminCmsEmailTemplatesKeyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin_/cms_/experiences_/$id': {
+      id: '/admin_/cms_/experiences_/$id'
+      path: '/admin/cms/experiences/$id'
+      fullPath: '/admin/cms/experiences/$id'
+      preLoaderRoute: typeof AdminCmsExperiencesIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin_/cms_/experiences_/listing-page': {
+      id: '/admin_/cms_/experiences_/listing-page'
+      path: '/admin/cms/experiences/listing-page'
+      fullPath: '/admin/cms/experiences/listing-page'
+      preLoaderRoute: typeof AdminCmsExperiencesListingPageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin_/cms_/experiences_/new': {
+      id: '/admin_/cms_/experiences_/new'
+      path: '/admin/cms/experiences/new'
+      fullPath: '/admin/cms/experiences/new'
+      preLoaderRoute: typeof AdminCmsExperiencesNewRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin_/cms_/media_/$id': {
@@ -1202,18 +1403,28 @@ const rootRouteChildren: RootRouteChildren = {
   DestinationsIndexRoute: DestinationsIndexRoute,
   PackagesIndexRoute: PackagesIndexRoute,
   AccountBookingsReferenceRoute: AccountBookingsReferenceRoute,
+  AdminCmsAboutRoute: AdminCmsAboutRoute,
+  AdminCmsBlogRoute: AdminCmsBlogRoute,
+  AdminCmsContactRoute: AdminCmsContactRoute,
   AdminCmsDestinationsRoute: AdminCmsDestinationsRoute,
   AdminCmsEmailTemplatesRoute: AdminCmsEmailTemplatesRoute,
+  AdminCmsExperiencesRoute: AdminCmsExperiencesRoute,
   AdminCmsFooterRoute: AdminCmsFooterRoute,
   AdminCmsGeneralRoute: AdminCmsGeneralRoute,
   AdminCmsMediaRoute: AdminCmsMediaRoute,
   AdminCmsNavigationRoute: AdminCmsNavigationRoute,
   AdminCmsOtherSettingsRoute: AdminCmsOtherSettingsRoute,
   AdminCmsPackagesRoute: AdminCmsPackagesRoute,
+  AdminCmsBlogIdRoute: AdminCmsBlogIdRoute,
+  AdminCmsBlogListingPageRoute: AdminCmsBlogListingPageRoute,
+  AdminCmsBlogNewRoute: AdminCmsBlogNewRoute,
   AdminCmsDestinationsIdRoute: AdminCmsDestinationsIdRoute,
   AdminCmsDestinationsListingPageRoute: AdminCmsDestinationsListingPageRoute,
   AdminCmsDestinationsNewRoute: AdminCmsDestinationsNewRoute,
   AdminCmsEmailTemplatesKeyRoute: AdminCmsEmailTemplatesKeyRoute,
+  AdminCmsExperiencesIdRoute: AdminCmsExperiencesIdRoute,
+  AdminCmsExperiencesListingPageRoute: AdminCmsExperiencesListingPageRoute,
+  AdminCmsExperiencesNewRoute: AdminCmsExperiencesNewRoute,
   AdminCmsMediaIdRoute: AdminCmsMediaIdRoute,
   AdminCmsNavigationKeyRoute: AdminCmsNavigationKeyRoute,
   AdminCmsPackagesIdRoute: AdminCmsPackagesIdRoute,

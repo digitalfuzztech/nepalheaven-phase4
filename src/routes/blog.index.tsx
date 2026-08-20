@@ -5,11 +5,12 @@ import { getBlogPostsFn, getPublicSiteSettingsFn } from "@/lib/content.functions
 import { PageHero } from "@/components/PageHero";
 import { Reveal } from "@/components/Reveal";
 import { cn } from "@/lib/utils";
+import { getPublicBlogListingFn } from "@/lib/cms-page-content.functions";
 
 export const Route = createFileRoute("/blog/")({
   loader: async () => {
-    const [posts, settings] = await Promise.all([getBlogPostsFn(), getPublicSiteSettingsFn()]);
-    return { posts, images: settings.images };
+    const [posts, settings, listing] = await Promise.all([getBlogPostsFn(), getPublicSiteSettingsFn(), getPublicBlogListingFn()]);
+    return { posts, images: settings.images, listing };
   },
   head: () => ({
     meta: [
@@ -29,20 +30,20 @@ export const Route = createFileRoute("/blog/")({
 });
 
 function BlogIndex() {
-  const { images, posts } = Route.useLoaderData();
-  const categories = ["All", ...Array.from(new Set(posts.map((p) => p.category)))];
+  const { images, posts, listing } = Route.useLoaderData();
+  const categories = [{ id: "", name: "All" }, ...listing.blogTypes];
   const [category, setCategory] = useState("All");
   const [query, setQuery] = useState("");
 
-  const featured = posts[0];
-  const rest = posts.slice(1);
+  const featured = posts.find((post) => post.id === listing.primaryBlogId) ?? posts[0];
+  const rest = posts.filter((post) => post.id !== featured?.id);
 
 
   const filtered = useMemo(
     () =>
       rest.filter(
         (p) =>
-          (category === "All" || p.category === category) &&
+          (category === "All" || p.blogTypeOptionId === category || (!p.blogTypeOptionId && p.category === listing.blogTypes.find((type) => type.id === category)?.name)) &&
           (!query || `${p.title} ${p.excerpt}`.toLowerCase().includes(query.toLowerCase())),
       ),
     [category, query, rest],
@@ -56,10 +57,10 @@ function BlogIndex() {
     <>
       <PageHero
         compact
-        image={images.destMustang}
-        eyebrow="The journal"
-        title="Notes from the Himalaya"
-        description="Season guides, altitude science, packing lists and festival calendars — written by the people who guide them."
+        image={listing.heroImageUrl ?? images.destMustang}
+        eyebrow={listing.heroSubtitle}
+        title={listing.heroTitle}
+        description={listing.heroDescription}
         crumbs={[{ label: "Home", to: "/" }, { label: "Blog" }]}
       />
 
@@ -88,7 +89,7 @@ function BlogIndex() {
                 </span>
               </p>
               <span className="mt-7 inline-flex items-center gap-1.5 text-sm font-bold text-gold transition-transform duration-500 group-hover:translate-x-1">
-                Read the story
+                {listing.primaryLinkText}
                 <ArrowUpRight className="h-4 w-4" aria-hidden />
               </span>
             </div>
@@ -98,19 +99,19 @@ function BlogIndex() {
         <div className="mt-16 flex flex-wrap items-center justify-between gap-4">
           <ul className="flex flex-wrap gap-2">
             {categories.map((c) => (
-              <li key={c}>
+              <li key={c.id || "all"}>
                 <button
                   type="button"
-                  aria-pressed={category === c}
-                  onClick={() => setCategory(c)}
+                  aria-pressed={category === (c.id || "All")}
+                  onClick={() => setCategory(c.id || "All")}
                   className={cn(
                     "rounded-full border px-4 py-2 text-xs font-semibold transition-colors",
-                    category === c
+                    category === (c.id || "All")
                       ? "border-primary bg-primary text-primary-foreground"
                       : "border-border text-muted-foreground hover:border-gold hover:text-gold",
                   )}
                 >
-                  {c}
+                  {c.name}
                 </button>
               </li>
             ))}
@@ -160,9 +161,9 @@ function BlogIndex() {
 
         <Reveal className="mt-20">
           <div className="bg-summit rounded-[2rem] px-8 py-14 text-center sm:px-14">
-            <p className="eyebrow">Newsletter</p>
+            <p className="eyebrow">{listing.newsletterSubtitle}</p>
             <h2 className="mx-auto mt-4 max-w-xl text-3xl text-primary-foreground">
-              One thoughtful Nepal letter each month
+              {listing.newsletterTitle}
             </h2>
             <form
               onSubmit={(e) => e.preventDefault()}
