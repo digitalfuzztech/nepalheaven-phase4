@@ -68,6 +68,22 @@ export const getPublicSiteSettingsFn = createServerFn({
   return getPublicSiteSettings();
 });
 
+export const getPublicGalleryItemsFn =
+    createServerFn({
+        method: "GET",
+    }).handler(
+        async () => {
+            const {
+                getPublicGalleryItems,
+            } =
+                await import(
+                    "@/lib/content.server"
+                    );
+
+            return getPublicGalleryItems();
+        },
+    );
+
 export const getHomeContentFn = createServerFn({ method: "GET" }).handler(
   async () => {
     const { getHomeContent } = await import("@/lib/content.server");

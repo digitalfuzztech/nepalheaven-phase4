@@ -27,6 +27,9 @@ import {
 } from "@/db/schema/packages";
 import { experienceCategories, experienceHighlights, experiencePackages } from "@/db/schema/experiences";
 import { media } from "@/db/schema/media";
+import {
+  cmsOtherSettingsOptions,
+} from "@/db/schema/cms-other-settings";
 import { resolveAssetReference } from "@/lib/asset-resolver";
 import type {
   Activity,
@@ -85,6 +88,7 @@ function titleCaseDifficulty(value: string | null): string {
   if (value === "extreme") return "Strenuous";
   return `${value.charAt(0).toUpperCase()}${value.slice(1)}`;
 }
+
 
 function parseJsonSetting<T>(
   values: Map<string, string | null>,
@@ -680,6 +684,48 @@ function legacyPrimaryNavigation():
   ];
 }
 
+function normalizePublicMediaCategory(
+    value:
+        string |
+        null |
+        undefined,
+) {
+  const normalized =
+      (value ?? "")
+          .trim()
+          .toLowerCase()
+          .replace(
+              /[^a-z0-9]+/g,
+              "-",
+          )
+          .replace(
+              /^-+|-+$/g,
+              "",
+          );
+
+  if (
+      normalized ===
+      "destinations"
+  ) {
+    return "destination";
+  }
+
+  if (
+      normalized ===
+      "packages"
+  ) {
+    return "package";
+  }
+
+  if (
+      normalized ===
+      "experiences"
+  ) {
+    return "experience";
+  }
+
+  return normalized;
+}
 export async function getPublicSiteSettings(): Promise<PublicSiteSettings> {
   const database = requireDb();
   const rows = await database
@@ -778,22 +824,121 @@ export async function getPublicSiteSettings(): Promise<PublicSiteSettings> {
     ),
   );
   const stats = parseJsonSetting<Stat[]>(values, "home.stats", [], isArray);
-  const settingGalleryItems = parseJsonSetting<GalleryItem[]>(values, "gallery.items", [], isArray).map((item) => ({ ...item, type: item.type === "video" ? "video" as const : "image" as const, ...(item.image ? { image: resolveAssetReference(item.image) } : {}), ...(item.thumbnail ? { thumbnail: resolveAssetReference(item.thumbnail) } : {}) }));
-  const mediaRows = await database.select().from(media).orderBy(asc(media.createdAt));
-  const mediaUrl = (value: string) => value.startsWith("/") ? value : resolveAssetReference(value) || value;
-  const galleryItems: GalleryItem[] = [
+
+  const settingGalleryItems =
+      parseJsonSetting<GalleryItem[]>(
+          values,
+          "gallery.items",
+          [],
+          isArray,
+      ).map((item) => ({
+        ...item,
+
+        type:
+            item.type === "video"
+                ? ("video" as const)
+                : ("image" as const),
+
+        ...(item.image
+            ? {
+              image:
+                  resolveAssetReference(
+                      item.image,
+                  ),
+            }
+            : {}),
+
+        ...(item.thumbnail
+            ? {
+              thumbnail:
+                  resolveAssetReference(
+                      item.thumbnail,
+                  ),
+            }
+            : {}),
+      }));
+
+  const mediaRows =
+      await database
+          .select()
+          .from(media)
+          .orderBy(
+              asc(media.createdAt),
+          );
+
+  const mediaUrl = (
+      value: string,
+  ) =>
+      value.startsWith("/")
+          ? value
+          : resolveAssetReference(
+          value,
+      ) || value;
+
+  const galleryItems:
+      GalleryItem[] = [
     ...settingGalleryItems,
-    ...mediaRows.map((item) => ({
-      type: item.type,
-      ...(item.type === "image" ? { image: mediaUrl(item.url) } : { videoUrl: mediaUrl(item.url) }),
-      ...(item.thumbnailUrl ? { thumbnail: mediaUrl(item.thumbnailUrl) } : {}),
-      ...(item.provider ? { provider: item.provider } : {}),
-      ...(item.caption ? { caption: item.caption } : {}),
-      title: item.title ?? item.altText ?? (item.type === "video" ? "Nepal Heaven video" : "Nepal Heaven photograph"),
-      category: "Uncategorised",
-      span: "normal",
-    })),
+
+    ...mediaRows.map(
+        (item) => ({
+          type:
+          item.type,
+
+          ...(item.type === "image"
+              ? {
+                image:
+                    mediaUrl(
+                        item.url,
+                    ),
+              }
+              : {
+                videoUrl:
+                    mediaUrl(
+                        item.url,
+                    ),
+              }),
+
+          ...(item.thumbnailUrl
+              ? {
+                thumbnail:
+                    mediaUrl(
+                        item.thumbnailUrl,
+                    ),
+              }
+              : {}),
+
+          ...(item.provider
+              ? {
+                provider:
+                item.provider,
+              }
+              : {}),
+
+          ...(item.caption
+              ? {
+                caption:
+                item.caption,
+              }
+              : {}),
+
+          title:
+              item.title ??
+              item.altText ??
+              (
+                  item.type === "video"
+                      ? "Nepal Heaven video"
+                      : "Nepal Heaven photograph"
+              ),
+
+          category:
+              "Uncategorised",
+
+          span:
+              "normal",
+        }),
+    ),
   ];
+
   const team = parseJsonSetting<TeamMember[]>(
     values,
     "about.team",
@@ -855,6 +1000,400 @@ export async function getPublicSiteSettings(): Promise<PublicSiteSettings> {
   };
 }
 
+export async function getPublicGalleryItems():
+    Promise<GalleryItem[]> {
+
+  const database =
+      requireDb();
+
+  /*
+   * Load actual Media Library records,
+   * including CMS Category + Associated To.
+   */
+  const mediaRows =
+      await database
+          .select({
+            type:
+            media.type,
+
+            url:
+            media.url,
+
+            thumbnailUrl:
+            media.thumbnailUrl,
+
+            width:
+            media.width,
+
+            height:
+            media.height,
+
+            altText:
+            media.altText,
+
+            title:
+            media.title,
+
+            caption:
+            media.caption,
+
+            provider:
+            media.provider,
+
+            legacyCategory:
+            media.category,
+
+            categoryName:
+            cmsOtherSettingsOptions.name,
+
+            categoryValue:
+            cmsOtherSettingsOptions.value,
+
+            generalSettingsTypeOptionId:
+            media.generalSettingsTypeOptionId,
+
+            associatedDestinationId:
+            media.associatedDestinationId,
+
+            destinationName:
+            destinations.name,
+
+            destinationSlug:
+            destinations.slug,
+
+            destinationType:
+            destinations.category,
+
+            associatedPackageId:
+            media.associatedPackageId,
+
+            packageName:
+            packages.title,
+
+            packageSlug:
+            packages.slug,
+
+            associatedExperienceId:
+            media.associatedExperienceId,
+
+            experienceName:
+            experienceCategories.name,
+
+            experienceSlug:
+            experienceCategories.slug,
+          })
+          .from(
+              media,
+          )
+          .leftJoin(
+              cmsOtherSettingsOptions,
+
+              and(
+                  eq(
+                      media.categoryOptionId,
+                      cmsOtherSettingsOptions.id,
+                  ),
+
+                  eq(
+                      cmsOtherSettingsOptions.groupKey,
+                      "category",
+                  ),
+              ),
+          )
+          .leftJoin(
+              destinations,
+
+              eq(
+                  media.associatedDestinationId,
+                  destinations.id,
+              ),
+          )
+          .leftJoin(
+              packages,
+
+              eq(
+                  media.associatedPackageId,
+                  packages.id,
+              ),
+          )
+          .leftJoin(
+              experienceCategories,
+
+              eq(
+                  media.associatedExperienceId,
+                  experienceCategories.id,
+              ),
+          )
+          .where(
+              eq(
+                  media.lifecycleStatus,
+                  "ready",
+              ),
+          )
+          .orderBy(
+              asc(
+                  media.createdAt,
+              ),
+          );
+
+  const mediaUrl = (
+      value: string,
+  ) =>
+      value.startsWith("/")
+          ? value
+          : resolveAssetReference(
+          value,
+      ) || value;
+
+  const publicMediaItems:
+      GalleryItem[] =
+      mediaRows.flatMap(
+          (item, index) => {
+            const cmsCategoryValue =
+                normalizePublicMediaCategory(
+                    item.categoryValue ??
+                    item.legacyCategory,
+                ) ||
+                "uncategorized";
+
+            /*
+             * IMPORTANT:
+             *
+             * Never show General media:
+             *
+             * Logo
+             * Icons
+             * Certificates
+             * Website assets
+             * etc.
+             */
+            if (
+                cmsCategoryValue ===
+                "general" ||
+                item.generalSettingsTypeOptionId
+            ) {
+              return [];
+            }
+
+            const cmsCategory =
+                item.categoryName ??
+                item.legacyCategory ??
+                "Uncategorized";
+
+            let associatedToKind:
+                | "destination"
+                | "package"
+                | "experience"
+                | undefined;
+
+            let associatedToName:
+                string |
+                undefined;
+
+            let associatedToSlug:
+                string |
+                undefined;
+
+            if (
+                item.associatedDestinationId &&
+                item.destinationName &&
+                item.destinationSlug
+            ) {
+              associatedToKind =
+                  "destination";
+
+              associatedToName =
+                  item.destinationName;
+
+              associatedToSlug =
+                  item.destinationSlug;
+            } else if (
+                item.associatedPackageId &&
+                item.packageName &&
+                item.packageSlug
+            ) {
+              associatedToKind =
+                  "package";
+
+              associatedToName =
+                  item.packageName;
+
+              associatedToSlug =
+                  item.packageSlug;
+            } else if (
+                item.associatedExperienceId &&
+                item.experienceName &&
+                item.experienceSlug
+            ) {
+              associatedToKind =
+                  "experience";
+
+              associatedToName =
+                  item.experienceName;
+
+              associatedToSlug =
+                  item.experienceSlug;
+            }
+
+            const fallbackTitle =
+                item.type === "video"
+                    ? "Nepal Heaven video"
+                    : "Nepal Heaven photograph";
+
+            let gallerySpan:
+                | "normal"
+                | "tall"
+                | "wide" =
+                "normal";
+
+            if (
+                item.width &&
+                item.height
+            ) {
+              const ratio =
+                  item.width /
+                  item.height;
+
+              if (
+                  ratio <
+                  0.85
+              ) {
+                gallerySpan =
+                    "tall";
+              } else if (
+                  ratio >
+                  1.65
+              ) {
+                gallerySpan =
+                    "wide";
+              }
+            }
+
+            /*
+             * If the image is neither clearly portrait nor clearly panoramic,
+             * use a repeating editorial pattern so uploaded Media Library
+             * items still create the same varied mosaic feel as the legacy Gallery.
+             */
+            if (
+                gallerySpan ===
+                "normal"
+            ) {
+              const mosaicPattern = [
+                "normal",
+                "wide",
+                "normal",
+                "tall",
+                "normal",
+                "normal",
+                "wide",
+                "normal",
+                "tall",
+                "normal",
+              ] as const;
+
+              gallerySpan =
+                  mosaicPattern[
+                  index %
+                  mosaicPattern.length
+                      ];
+            }
+
+            return [
+              {
+                type:
+                item.type,
+
+                ...(item.type ===
+                "image"
+                    ? {
+                      image:
+                          mediaUrl(
+                              item.url,
+                          ),
+                    }
+                    : {
+                      videoUrl:
+                          mediaUrl(
+                              item.url,
+                          ),
+                    }),
+
+                ...(item.thumbnailUrl
+                    ? {
+                      thumbnail:
+                          mediaUrl(
+                              item.thumbnailUrl,
+                          ),
+                    }
+                    : {}),
+
+                ...(item.provider
+                    ? {
+                      provider:
+                      item.provider,
+                    }
+                    : {}),
+
+                title:
+                    item.title ??
+                    item.altText ??
+                    fallbackTitle,
+
+                alt:
+                    item.altText ??
+                    item.title ??
+                    fallbackTitle,
+
+                ...(item.caption
+                    ? {
+                      caption:
+                      item.caption,
+                    }
+                    : {}),
+
+                /*
+                 * Existing Gallery Subject field.
+                 */
+                category:
+                    associatedToKind === "destination"
+                        ? item.destinationType?.trim() ||
+                        "Uncategorised"
+                        : "Uncategorised",
+
+                span:
+                gallerySpan,
+
+                /*
+                 * CMS Category.
+                 */
+                cmsCategory,
+
+                cmsCategoryValue,
+
+                ...(associatedToKind
+                    ? {
+                      associatedToKind,
+                    }
+                    : {}),
+
+                ...(associatedToName
+                    ? {
+                      associatedToName,
+                    }
+                    : {}),
+
+                ...(associatedToSlug
+                    ? {
+                      associatedToSlug,
+                    }
+                    : {}),
+              },
+            ];
+          },
+      );
+
+  return publicMediaItems;
+}
 export async function getHomeContent(): Promise<HomeContent> {
   const [destinations, packages, posts, testimonials, settings] =
     await Promise.all([

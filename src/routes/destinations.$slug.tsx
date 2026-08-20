@@ -1,5 +1,5 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import {
   CalendarDays,
   Check,
@@ -89,6 +89,73 @@ function DestinationDetail() {
   const [sent, setSent] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
+  const [
+    galleryPreviewId,
+    setGalleryPreviewId,
+  ] =
+      useState<
+          string | null
+      >(null);
+
+  const activeGalleryImage =
+      galleryPreviewId
+          ? d.gallery.find(
+          (
+              item,
+          ) =>
+              item.id ===
+              galleryPreviewId,
+      ) ?? null
+          : null;
+  useEffect(
+      () => {
+        if (
+            !activeGalleryImage
+        ) {
+          return;
+        }
+
+        const closeOnEscape =
+            (
+                event:
+                KeyboardEvent,
+            ) => {
+              if (
+                  event.key ===
+                  "Escape"
+              ) {
+                setGalleryPreviewId(
+                    null,
+                );
+              }
+            };
+
+        const previousOverflow =
+            document.body.style
+                .overflow;
+
+        document.body.style.overflow =
+            "hidden";
+
+        window.addEventListener(
+            "keydown",
+            closeOnEscape,
+        );
+
+        return () => {
+          document.body.style.overflow =
+              previousOverflow;
+
+          window.removeEventListener(
+              "keydown",
+              closeOnEscape,
+          );
+        };
+      },
+      [
+        activeGalleryImage,
+      ],
+  );
   const latitude =
       d.latitude;
 
@@ -205,9 +272,30 @@ function DestinationDetail() {
 
           {d.gallery.length ? (
               <Reveal as="section">
-                <h2 className="text-3xl">
-                  Gallery
-                </h2>
+                <div className="flex items-center justify-between gap-4">
+                  <h2 className="text-3xl">
+                    Gallery
+                  </h2>
+
+                  {d.gallery.length >
+                  6 ? (
+                      <Link
+                          to="/gallery"
+                          search={{
+                            category:
+                                "destination",
+
+                            associatedTo:
+                            d.slug,
+                          }}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-sm font-semibold text-gold transition-colors hover:text-foreground"
+                      >
+                        See More
+                      </Link>
+                  ) : null}
+                </div>
 
                 <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3">
                   {d.gallery
@@ -219,11 +307,22 @@ function DestinationDetail() {
                           (
                               item,
                           ) => (
-                              <figure
+                              <button
                                   key={
                                     item.id
                                   }
-                                  className="zoom-media overflow-hidden rounded-2xl"
+                                  type="button"
+                                  onClick={() =>
+                                      setGalleryPreviewId(
+                                          item.id,
+                                      )
+                                  }
+                                  aria-label={`Preview ${
+                                      item.title ||
+                                      item.alt ||
+                                      "gallery image"
+                                  }`}
+                                  className="zoom-media group block overflow-hidden rounded-2xl text-left"
                               >
                                 <div className="aspect-[4/3] overflow-hidden">
                                   <img
@@ -234,11 +333,10 @@ function DestinationDetail() {
                                         item.alt
                                       }
                                       loading="lazy"
-                                      className="h-full w-full object-cover"
+                                      className="h-full w-full cursor-zoom-in object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                                   />
                                 </div>
-
-                              </figure>
+                              </button>
                           ),
                       )}
                 </div>
@@ -527,12 +625,86 @@ function DestinationDetail() {
 
       <div className="container-lux py-20 text-center">
         <Link
-          to="/destinations"
-          className="text-sm font-bold text-primary hover:text-gold"
+            to="/destinations"
+            className="text-sm font-bold text-primary hover:text-gold"
         >
           ← Back to all destinations
         </Link>
       </div>
+
+      {/* Destination gallery image preview */}
+      {activeGalleryImage ? (
+          <div
+              role="dialog"
+              aria-modal="true"
+              aria-label={
+                  activeGalleryImage.title ||
+                  activeGalleryImage.alt ||
+                  "Destination gallery preview"
+              }
+              className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-4 backdrop-blur-sm sm:p-6"
+              onClick={() =>
+                  setGalleryPreviewId(null)
+              }
+          >
+            <figure
+                className="relative max-h-[92vh] max-w-6xl overflow-hidden rounded-2xl bg-black shadow-2xl"
+                onClick={(event) =>
+                    event.stopPropagation()
+                }
+            >
+              <div className="relative flex max-h-[92vh] items-center justify-center">
+
+                {/* Large preview image */}
+                <img
+                    src={activeGalleryImage.image}
+                    alt={activeGalleryImage.alt}
+                    className="max-h-[92vh] max-w-full object-contain"
+                />
+
+                {/* Close button */}
+                <button
+                    type="button"
+                    onClick={() =>
+                        setGalleryPreviewId(null)
+                    }
+                    className="absolute right-4 top-4 z-20 grid h-10 w-10 place-items-center rounded-full border border-white/25 bg-black/50 text-white backdrop-blur-md transition-colors hover:border-gold hover:text-gold"
+                >
+          <span className="sr-only">
+            Close image preview
+          </span>
+
+                  <X
+                      className="h-5 w-5"
+                      aria-hidden
+                  />
+                </button>
+
+                {/* Title + caption overlay */}
+                {activeGalleryImage.title ||
+                activeGalleryImage.caption ? (
+                    <figcaption className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/95 via-black/60 to-transparent px-5 pb-5 pt-20 sm:px-6 sm:pb-6">
+
+                      {activeGalleryImage.title ? (
+                          <p className="text-sm font-semibold text-white">
+                            {activeGalleryImage.title}
+                          </p>
+                      ) : null}
+
+                      {activeGalleryImage.caption ? (
+                          <p className="mt-1 max-w-3xl text-xs leading-relaxed text-white/75">
+                            {activeGalleryImage.caption}
+                          </p>
+                      ) : null}
+
+                    </figcaption>
+                ) : null}
+
+              </div>
+            </figure>
+          </div>
+      ) : null}
+
     </>
   );
 }

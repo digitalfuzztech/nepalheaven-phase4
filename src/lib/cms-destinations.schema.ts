@@ -42,6 +42,17 @@ export const cmsDestinationIdInputSchema =
                 .uuid(),
     });
 
+export const cmsDestinationStatusInputSchema =
+    z.object({
+        id:
+            z
+                .string()
+                .uuid(),
+
+        status:
+            z.boolean(),
+    });
+
 export const cmsDestinationSlugSchema =
     z
         .string()
@@ -310,4 +321,9 @@ export type CmsDestinationCoreUpdateInput =
 export type CmsDestinationBestSeasonInput =
     z.infer<
         typeof cmsDestinationBestSeasonSchema
+    >;
+
+export type CmsDestinationStatusInput =
+    z.infer<
+        typeof cmsDestinationStatusInputSchema
     >;

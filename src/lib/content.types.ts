@@ -186,14 +186,52 @@ export type ExperienceCategory = {
 export type Stat = { value: number; suffix: string; label: string };
 export type GalleryItem = {
   type: "image" | "video";
+
   image?: string;
   videoUrl?: string;
   thumbnail?: string;
   provider?: string;
+
   title: string;
-  category: string;
-  span: string;
+  alt?: string;
   caption?: string;
+
+  /*
+   * Existing public Gallery subject.
+   *
+   * Examples:
+   * Mountains
+   * Culture
+   * Wildlife
+   * Lakes
+   */
+  category: string;
+
+  span: string;
+
+  /*
+   * Media Library CMS classification.
+   *
+   * Examples:
+   * Destination
+   * Packages
+   * Experience
+   *
+   * General media is excluded from the public Gallery.
+   */
+  cmsCategory?: string;
+  cmsCategoryValue?: string;
+
+  /*
+   * Media Library "Associated To" information.
+   */
+  associatedToKind?:
+      | "destination"
+      | "package"
+      | "experience";
+
+  associatedToName?: string;
+  associatedToSlug?: string;
 };
 export type BlogComment = { id: string; customerName: string; avatarUrl?: string; content: string; createdAt: string };
 export type BlogEngagement = { likeCount: number; hasLiked: boolean; averageRating: number | null; ratingCount: number; currentUserRating: number | null; comments: BlogComment[] };

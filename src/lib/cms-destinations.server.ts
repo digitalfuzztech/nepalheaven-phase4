@@ -35,6 +35,7 @@ import {
     cmsDestinationCreateInputSchema,
     type CmsDestinationCoreUpdateInput,
     type CmsDestinationCreateInput,
+    type CmsDestinationStatusInput,
 } from "@/lib/cms-destinations.schema";
 
 import type {
@@ -823,6 +824,211 @@ export async function getCmsDestinationById(
         inclusions,
         exclusions,
         faqs,
+    };
+}
+
+/*
+|--------------------------------------------------------------------------
+| K12 - Publish / Unpublish Destination
+|--------------------------------------------------------------------------
+*/
+
+export async function updateCmsDestinationStatus(
+    input:
+    CmsDestinationStatusInput,
+) {
+    await requireAdmin();
+
+    const database =
+        requireCmsDb();
+
+    const [
+        existing,
+    ] =
+        await database
+            .select({
+                id:
+                destinations.id,
+
+                name:
+                destinations.name,
+
+                status:
+                destinations.status,
+            })
+            .from(
+                destinations,
+            )
+            .where(
+                eq(
+                    destinations.id,
+                    input.id,
+                ),
+            )
+            .limit(1);
+
+    if (
+        !existing
+    ) {
+        throw new Error(
+            "Destination could not be found.",
+        );
+    }
+
+    /*
+     * Nothing to update.
+     */
+    if (
+        existing.status ===
+        input.status
+    ) {
+        return {
+            id:
+            existing.id,
+
+            status:
+            existing.status,
+        };
+    }
+
+    await database
+        .update(
+            destinations,
+        )
+        .set({
+            status:
+            input.status,
+
+            updatedAt:
+                new Date(),
+        })
+        .where(
+            eq(
+                destinations.id,
+                input.id,
+            ),
+        );
+
+    return {
+        id:
+        existing.id,
+
+        status:
+        input.status,
+    };
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| K12 - Delete Destination
+|--------------------------------------------------------------------------
+|
+| Database foreign-key behaviour already protects related data:
+|
+| - Destination structured content -> deleted by cascade
+| - package_destinations links -> deleted by cascade
+| - packages.destinationId -> set NULL
+| - Media Library associatedDestinationId -> set NULL
+| - Leads destinationId -> set NULL
+| - WhatsApp attribution destinationId -> set NULL
+|
+| Media Library files themselves are NOT deleted.
+|
+| The direct Destination hero image is independent from Media Library,
+| so its stored file is removed after the Destination row is deleted.
+|
+*/
+
+export async function deleteCmsDestination(
+    id:
+    string,
+) {
+    await requireAdmin();
+
+    const database =
+        requireCmsDb();
+
+    const [
+        existing,
+    ] =
+        await database
+            .select({
+                id:
+                destinations.id,
+
+                name:
+                destinations.name,
+
+                heroImageStorageKey:
+                destinations.heroImageStorageKey,
+            })
+            .from(
+                destinations,
+            )
+            .where(
+                eq(
+                    destinations.id,
+                    id,
+                ),
+            )
+            .limit(1);
+
+    if (
+        !existing
+    ) {
+        throw new Error(
+            "Destination could not be found.",
+        );
+    }
+
+    /*
+     * Delete the Destination row.
+     *
+     * Its configured foreign keys take care of the
+     * related database records/associations.
+     */
+    await database
+        .delete(
+            destinations,
+        )
+        .where(
+            eq(
+                destinations.id,
+                id,
+            ),
+        );
+
+    /*
+     * Only delete a physical hero image when it is a
+     * known DIRECT Destination CMS upload.
+     *
+     * Legacy image URLs without heroImageStorageKey
+     * are deliberately left untouched.
+     */
+    if (
+        existing.heroImageStorageKey
+    ) {
+        await removeCmsMediaStoredFile(
+            existing.heroImageStorageKey,
+        ).catch(
+            (
+                error,
+            ) => {
+                console.error(
+                    "Deleted Destination hero image cleanup failed.",
+                    error,
+                );
+            },
+        );
+    }
+
+    return {
+        id:
+        existing.id,
+
+        name:
+        existing.name,
     };
 }
 

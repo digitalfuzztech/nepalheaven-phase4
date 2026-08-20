@@ -5,6 +5,7 @@ import {
 import {
     cmsDestinationCoreUpdateInputSchema,
     cmsDestinationIdInputSchema,
+    cmsDestinationStatusInputSchema,
 } from "@/lib/cms-destinations.schema";
 
 import {
@@ -130,6 +131,69 @@ export const updateCmsDestinationCoreFn =
                     );
             },
         );
+
+/*
+|--------------------------------------------------------------------------
+| K12 - Publish / Unpublish
+|--------------------------------------------------------------------------
+*/
+
+export const updateCmsDestinationStatusFn =
+    createServerFn({
+        method:
+            "POST",
+    })
+        .validator(
+            cmsDestinationStatusInputSchema,
+        )
+        .handler(
+            async ({
+                       data,
+                   }) => {
+                const server =
+                    await import(
+                        "@/lib/cms-destinations.server"
+                        );
+
+                return server
+                    .updateCmsDestinationStatus(
+                        data,
+                    );
+            },
+        );
+
+
+/*
+|--------------------------------------------------------------------------
+| K12 - Delete
+|--------------------------------------------------------------------------
+*/
+
+export const deleteCmsDestinationFn =
+    createServerFn({
+        method:
+            "POST",
+    })
+        .validator(
+            cmsDestinationIdInputSchema,
+        )
+        .handler(
+            async ({
+                       data,
+                   }) => {
+                const server =
+                    await import(
+                        "@/lib/cms-destinations.server"
+                        );
+
+                return server
+                    .deleteCmsDestination(
+                        data.id,
+                    );
+            },
+        );
+
+
 
 
 /*
