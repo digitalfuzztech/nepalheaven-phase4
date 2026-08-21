@@ -2,6 +2,7 @@ export * from "./users";
 export * from "./destinations";
 export * from "./packages";
 export * from "./bookings";
+export * from "./finance";
 export * from "./leads";
 export * from "./communications";
 export * from "./media";

@@ -25,6 +25,7 @@ export const users = mysqlTable("users", {
   dateOfBirth: date("date_of_birth", { mode: "string" }),
   avatarUrl: text("avatar_url"),
   emailVerifiedAt: momentColumn("email_verified_at"),
+  blockedAt: momentColumn("blocked_at"),
   createdAt: defaultMomentColumn("created_at").notNull(),
   updatedAt: defaultMomentColumn("updated_at").notNull(),
 });

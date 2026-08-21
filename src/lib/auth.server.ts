@@ -130,11 +130,17 @@ export async function createVerifiedCustomerSession(userId: string) {
       id: users.id,
       role: users.role,
       emailVerifiedAt: users.emailVerifiedAt,
+      blockedAt: users.blockedAt,
     })
     .from(users)
     .where(eq(users.id, userId))
     .limit(1);
-  if (!user || user.role !== "customer" || !user.emailVerifiedAt)
+  if (
+    !user ||
+    user.role !== "customer" ||
+    !user.emailVerifiedAt ||
+    user.blockedAt
+  )
     throw new Error(
       "A verified customer is required before creating a session.",
     );
@@ -175,6 +181,13 @@ export async function authenticateCredentials(
         expectedRole === "admin"
           ? "This account does not have administrator access."
           : "Administrator accounts must sign in through /admin.",
+    };
+  }
+
+  if (user.role === "customer" && user.blockedAt) {
+    return {
+      ok: false as const,
+      message: "This customer account is blocked. Please contact support.",
     };
   }
 
@@ -230,7 +243,10 @@ export async function getCurrentUser() {
     return null;
   }
 
-  if (row.user.role === "customer" && !row.user.emailVerifiedAt) {
+  if (
+    row.user.role === "customer" &&
+    (!row.user.emailVerifiedAt || row.user.blockedAt)
+  ) {
     await database
       .update(sessions)
       .set({ revokedAt: new Date() })

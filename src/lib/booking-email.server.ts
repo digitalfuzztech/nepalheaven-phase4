@@ -373,6 +373,40 @@ export async function sendBookingConfirmationEmails(bookingId: string) {
     paymentStatus,
     paymentMethod: getPaymentMethodLabel(payment.provider),
   });
+  await (
+    await import("@/lib/financial-documents.server")
+  ).persistBookingInvoice({
+    bookingId,
+    userId: snapshot.userId,
+    paymentId: payment.id,
+    bookingReference: snapshot.bookingReference,
+    amount: snapshot.grandTotal ?? payment.amount,
+    currency: snapshot.currency,
+    invoice,
+    snapshot: {
+      bookingReference: snapshot.bookingReference,
+      paymentReference: payment.providerTransactionId || "Not provided",
+      invoiceDate: formatDate(payment.paidAt || snapshot.bookingCreatedAt),
+      customerName,
+      customerEmail,
+      customerPhone,
+      customerCountry,
+      packageName: snapshot.packageName,
+      tierName: snapshot.tierName || "Not specified",
+      destinationName: snapshot.destinationName || "Not specified",
+      startDate: formatDate(snapshot.departureDate),
+      endDate: "Not specified",
+      travellers: snapshot.travellers,
+      currency: snapshot.currency,
+      grandTotal: formatMoney(snapshot.grandTotal),
+      paymentType,
+      amountPaid: formatMoney(snapshot.amountPaid || payment.amount),
+      remainingBalance: formatMoney(snapshot.remainingBalance),
+      paymentStatus,
+      paymentMethod: getPaymentMethodLabel(payment.provider),
+    },
+    issuedAt: payment.paidAt || snapshot.bookingCreatedAt,
+  });
   return Promise.all([
     sendBookingEmailOnce({
       bookingId,

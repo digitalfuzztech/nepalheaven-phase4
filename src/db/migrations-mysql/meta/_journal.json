@@ -127,6 +127,20 @@
       "when": 1787259839389,
       "tag": "0017_special_paladin",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "5",
+      "when": 1787302442088,
+      "tag": "0018_good_tusk",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "5",
+      "when": 1787305567213,
+      "tag": "0019_lean_groot",
+      "breakpoints": true
     }
   ]
 }

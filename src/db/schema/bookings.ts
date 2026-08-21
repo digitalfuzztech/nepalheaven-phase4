@@ -41,6 +41,11 @@ export const paymentPurposeValues = [
   "additional",
   "refund",
 ] as const;
+export const paymentReviewStatusValues = [
+  "unreviewed",
+  "reviewed",
+  "needs_attention",
+] as const;
 export const checkoutIntentStatusValues = [
   "open",
   "consumed",
@@ -280,11 +285,20 @@ export const payments = mysqlTable(
     paidAt: momentColumn("paid_at"),
     failureReason: text("failure_reason"),
     metadata: text("metadata"),
+    reviewStatus: mysqlEnum("review_status", paymentReviewStatusValues)
+      .default("unreviewed")
+      .notNull(),
+    reviewNote: text("review_note"),
+    reviewedAt: momentColumn("reviewed_at"),
+    reviewedBy: uuidColumn("reviewed_by").references(() => users.id, {
+      onDelete: "set null",
+    }),
     createdAt: defaultMomentColumn("created_at").notNull(),
     updatedAt: defaultMomentColumn("updated_at").notNull(),
   },
   (table) => [
     index("payments_booking_created_idx").on(table.bookingId, table.createdAt),
+    index("payments_review_created_idx").on(table.reviewStatus, table.createdAt),
     uniqueIndex("payments_provider_transaction_unique").on(
       table.provider,
       table.providerTransactionId,

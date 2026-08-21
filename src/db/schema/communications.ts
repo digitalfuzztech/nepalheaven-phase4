@@ -99,6 +99,7 @@ export const leadInteractions = mysqlTable(
     contextSlug: varchar("context_slug", { length: 191 }),
     automaticLead: boolean("automatic_lead").default(false).notNull(),
     metadata: text("metadata"),
+    hiddenAt: momentColumn("hidden_at"),
     sentAt: momentColumn("sent_at"),
     createdAt: defaultMomentColumn("created_at").notNull(),
     updatedAt: defaultMomentColumn("updated_at").notNull(),
@@ -115,6 +116,13 @@ export const leadInteractions = mysqlTable(
     index("lead_interactions_channel_from_idx").on(
       table.channel,
       table.fromAddress,
+    ),
+    index("lead_interactions_crm_visibility_idx").on(
+      table.interactionType,
+      table.channel,
+      table.direction,
+      table.hiddenAt,
+      table.createdAt,
     ),
   ],
 );

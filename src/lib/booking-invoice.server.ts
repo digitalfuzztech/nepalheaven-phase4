@@ -2,7 +2,7 @@ import { deflateSync, inflateSync } from "node:zlib";
 import { buildAppUrl } from "@/lib/app-url.server";
 import { getPublicCmsGlobalSettings } from "@/lib/public-cms.server";
 
-type BookingInvoiceInput = {
+export type BookingInvoiceInput = {
   bookingReference: string;
   paymentReference: string;
   invoiceDate: string;

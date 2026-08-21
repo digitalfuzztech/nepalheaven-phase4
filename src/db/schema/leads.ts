@@ -79,6 +79,7 @@ export const leads = mysqlTable(
     marketingOptOutAt: momentColumn("marketing_opt_out_at"),
     status: mysqlEnum("status", leadStatusValues).default("new").notNull(),
     source: varchar("source", { length: 100 }),
+    hiddenAt: momentColumn("hidden_at"),
     assignedTo: uuidColumn("assigned_to").references(() => users.id, {
       onDelete: "set null",
     }),
@@ -89,6 +90,11 @@ export const leads = mysqlTable(
     index("leads_email_idx").on(table.email),
     index("leads_user_id_idx").on(table.userId),
     index("leads_level_source_idx").on(table.leadLevel, table.source),
+    index("leads_type_hidden_created_idx").on(
+      table.type,
+      table.hiddenAt,
+      table.createdAt,
+    ),
   ],
 );
 

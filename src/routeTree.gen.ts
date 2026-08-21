@@ -64,6 +64,10 @@ import { Route as AdminCmsOtherSettingsRouteImport } from './routes/admin_.cms_.
 import { Route as AdminCmsPackagesRouteImport } from './routes/admin_.cms_.packages'
 import { Route as AdminCmsSeoRouteImport } from './routes/admin_.cms_.seo'
 import { Route as AdminCmsTestimonialsRouteImport } from './routes/admin_.cms_.testimonials'
+import { Route as AdminCrmBookingsRouteImport } from './routes/admin_.crm.bookings'
+import { Route as AdminCrmCustomersRouteImport } from './routes/admin_.crm.customers'
+import { Route as AdminCrmLeadsRouteImport } from './routes/admin_.crm.leads'
+import { Route as AdminCrmPaymentsRouteImport } from './routes/admin_.crm.payments'
 import { Route as AdminCmsBlogIdRouteImport } from './routes/admin_.cms_.blog_.$id'
 import { Route as AdminCmsBlogListingPageRouteImport } from './routes/admin_.cms_.blog_.listing-page'
 import { Route as AdminCmsBlogNewRouteImport } from './routes/admin_.cms_.blog_.new'
@@ -81,9 +85,10 @@ import { Route as AdminCmsPackagesListingPageRouteImport } from './routes/admin_
 import { Route as AdminCmsPackagesNewRouteImport } from './routes/admin_.cms_.packages_.new'
 import { Route as AdminCmsTestimonialsIdRouteImport } from './routes/admin_.cms_.testimonials_.$id'
 import { Route as AdminCmsTestimonialsNewRouteImport } from './routes/admin_.cms_.testimonials_.new'
-import { Route as AdminCrmBookingsReferenceRouteImport } from './routes/admin_.crm.bookings.$reference'
-import { Route as AdminCrmBookingsCancelledReferenceRouteImport } from './routes/admin_.crm.bookings.cancelled.$reference'
-import { Route as AdminCrmBookingsConfirmedReferenceRouteImport } from './routes/admin_.crm.bookings.confirmed.$reference'
+import { Route as AdminCrmBookingsReferenceRouteImport } from './routes/admin_.crm.bookings_.$reference'
+import { Route as AdminCrmCustomersIdRouteImport } from './routes/admin_.crm.customers_.$id'
+import { Route as AdminCrmBookingsCancelledReferenceRouteImport } from './routes/admin_.crm.bookings_.cancelled.$reference'
+import { Route as AdminCrmBookingsConfirmedReferenceRouteImport } from './routes/admin_.crm.bookings_.confirmed.$reference'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -361,6 +366,26 @@ const AdminCmsTestimonialsRoute = AdminCmsTestimonialsRouteImport.update({
   path: '/admin/cms/testimonials',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminCrmBookingsRoute = AdminCrmBookingsRouteImport.update({
+  id: '/bookings',
+  path: '/bookings',
+  getParentRoute: () => AdminCrmRoute,
+} as any)
+const AdminCrmCustomersRoute = AdminCrmCustomersRouteImport.update({
+  id: '/customers',
+  path: '/customers',
+  getParentRoute: () => AdminCrmRoute,
+} as any)
+const AdminCrmLeadsRoute = AdminCrmLeadsRouteImport.update({
+  id: '/leads',
+  path: '/leads',
+  getParentRoute: () => AdminCrmRoute,
+} as any)
+const AdminCrmPaymentsRoute = AdminCrmPaymentsRouteImport.update({
+  id: '/payments',
+  path: '/payments',
+  getParentRoute: () => AdminCrmRoute,
+} as any)
 const AdminCmsBlogIdRoute = AdminCmsBlogIdRouteImport.update({
   id: '/admin_/cms_/blog_/$id',
   path: '/admin/cms/blog/$id',
@@ -452,19 +477,24 @@ const AdminCmsTestimonialsNewRoute = AdminCmsTestimonialsNewRouteImport.update({
 } as any)
 const AdminCrmBookingsReferenceRoute =
   AdminCrmBookingsReferenceRouteImport.update({
-    id: '/bookings/$reference',
+    id: '/bookings_/$reference',
     path: '/bookings/$reference',
     getParentRoute: () => AdminCrmRoute,
   } as any)
+const AdminCrmCustomersIdRoute = AdminCrmCustomersIdRouteImport.update({
+  id: '/customers_/$id',
+  path: '/customers/$id',
+  getParentRoute: () => AdminCrmRoute,
+} as any)
 const AdminCrmBookingsCancelledReferenceRoute =
   AdminCrmBookingsCancelledReferenceRouteImport.update({
-    id: '/bookings/cancelled/$reference',
+    id: '/bookings_/cancelled/$reference',
     path: '/bookings/cancelled/$reference',
     getParentRoute: () => AdminCrmRoute,
   } as any)
 const AdminCrmBookingsConfirmedReferenceRoute =
   AdminCrmBookingsConfirmedReferenceRouteImport.update({
-    id: '/bookings/confirmed/$reference',
+    id: '/bookings_/confirmed/$reference',
     path: '/bookings/confirmed/$reference',
     getParentRoute: () => AdminCrmRoute,
   } as any)
@@ -525,6 +555,10 @@ export interface FileRoutesByFullPath {
   '/admin/cms/packages': typeof AdminCmsPackagesRoute
   '/admin/cms/seo': typeof AdminCmsSeoRoute
   '/admin/cms/testimonials': typeof AdminCmsTestimonialsRoute
+  '/admin/crm/bookings': typeof AdminCrmBookingsRoute
+  '/admin/crm/customers': typeof AdminCrmCustomersRoute
+  '/admin/crm/leads': typeof AdminCrmLeadsRoute
+  '/admin/crm/payments': typeof AdminCrmPaymentsRoute
   '/admin/cms/blog/$id': typeof AdminCmsBlogIdRoute
   '/admin/cms/blog/listing-page': typeof AdminCmsBlogListingPageRoute
   '/admin/cms/blog/new': typeof AdminCmsBlogNewRoute
@@ -543,6 +577,7 @@ export interface FileRoutesByFullPath {
   '/admin/cms/testimonials/$id': typeof AdminCmsTestimonialsIdRoute
   '/admin/cms/testimonials/new': typeof AdminCmsTestimonialsNewRoute
   '/admin/crm/bookings/$reference': typeof AdminCrmBookingsReferenceRoute
+  '/admin/crm/customers/$id': typeof AdminCrmCustomersIdRoute
   '/admin/crm/bookings/cancelled/$reference': typeof AdminCrmBookingsCancelledReferenceRoute
   '/admin/crm/bookings/confirmed/$reference': typeof AdminCrmBookingsConfirmedReferenceRoute
 }
@@ -602,6 +637,10 @@ export interface FileRoutesByTo {
   '/admin/cms/packages': typeof AdminCmsPackagesRoute
   '/admin/cms/seo': typeof AdminCmsSeoRoute
   '/admin/cms/testimonials': typeof AdminCmsTestimonialsRoute
+  '/admin/crm/bookings': typeof AdminCrmBookingsRoute
+  '/admin/crm/customers': typeof AdminCrmCustomersRoute
+  '/admin/crm/leads': typeof AdminCrmLeadsRoute
+  '/admin/crm/payments': typeof AdminCrmPaymentsRoute
   '/admin/cms/blog/$id': typeof AdminCmsBlogIdRoute
   '/admin/cms/blog/listing-page': typeof AdminCmsBlogListingPageRoute
   '/admin/cms/blog/new': typeof AdminCmsBlogNewRoute
@@ -620,6 +659,7 @@ export interface FileRoutesByTo {
   '/admin/cms/testimonials/$id': typeof AdminCmsTestimonialsIdRoute
   '/admin/cms/testimonials/new': typeof AdminCmsTestimonialsNewRoute
   '/admin/crm/bookings/$reference': typeof AdminCrmBookingsReferenceRoute
+  '/admin/crm/customers/$id': typeof AdminCrmCustomersIdRoute
   '/admin/crm/bookings/cancelled/$reference': typeof AdminCrmBookingsCancelledReferenceRoute
   '/admin/crm/bookings/confirmed/$reference': typeof AdminCrmBookingsConfirmedReferenceRoute
 }
@@ -680,6 +720,10 @@ export interface FileRoutesById {
   '/admin_/cms_/packages': typeof AdminCmsPackagesRoute
   '/admin_/cms_/seo': typeof AdminCmsSeoRoute
   '/admin_/cms_/testimonials': typeof AdminCmsTestimonialsRoute
+  '/admin_/crm/bookings': typeof AdminCrmBookingsRoute
+  '/admin_/crm/customers': typeof AdminCrmCustomersRoute
+  '/admin_/crm/leads': typeof AdminCrmLeadsRoute
+  '/admin_/crm/payments': typeof AdminCrmPaymentsRoute
   '/admin_/cms_/blog_/$id': typeof AdminCmsBlogIdRoute
   '/admin_/cms_/blog_/listing-page': typeof AdminCmsBlogListingPageRoute
   '/admin_/cms_/blog_/new': typeof AdminCmsBlogNewRoute
@@ -697,9 +741,10 @@ export interface FileRoutesById {
   '/admin_/cms_/packages_/new': typeof AdminCmsPackagesNewRoute
   '/admin_/cms_/testimonials_/$id': typeof AdminCmsTestimonialsIdRoute
   '/admin_/cms_/testimonials_/new': typeof AdminCmsTestimonialsNewRoute
-  '/admin_/crm/bookings/$reference': typeof AdminCrmBookingsReferenceRoute
-  '/admin_/crm/bookings/cancelled/$reference': typeof AdminCrmBookingsCancelledReferenceRoute
-  '/admin_/crm/bookings/confirmed/$reference': typeof AdminCrmBookingsConfirmedReferenceRoute
+  '/admin_/crm/bookings_/$reference': typeof AdminCrmBookingsReferenceRoute
+  '/admin_/crm/customers_/$id': typeof AdminCrmCustomersIdRoute
+  '/admin_/crm/bookings_/cancelled/$reference': typeof AdminCrmBookingsCancelledReferenceRoute
+  '/admin_/crm/bookings_/confirmed/$reference': typeof AdminCrmBookingsConfirmedReferenceRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -759,6 +804,10 @@ export interface FileRouteTypes {
     | '/admin/cms/packages'
     | '/admin/cms/seo'
     | '/admin/cms/testimonials'
+    | '/admin/crm/bookings'
+    | '/admin/crm/customers'
+    | '/admin/crm/leads'
+    | '/admin/crm/payments'
     | '/admin/cms/blog/$id'
     | '/admin/cms/blog/listing-page'
     | '/admin/cms/blog/new'
@@ -777,6 +826,7 @@ export interface FileRouteTypes {
     | '/admin/cms/testimonials/$id'
     | '/admin/cms/testimonials/new'
     | '/admin/crm/bookings/$reference'
+    | '/admin/crm/customers/$id'
     | '/admin/crm/bookings/cancelled/$reference'
     | '/admin/crm/bookings/confirmed/$reference'
   fileRoutesByTo: FileRoutesByTo
@@ -836,6 +886,10 @@ export interface FileRouteTypes {
     | '/admin/cms/packages'
     | '/admin/cms/seo'
     | '/admin/cms/testimonials'
+    | '/admin/crm/bookings'
+    | '/admin/crm/customers'
+    | '/admin/crm/leads'
+    | '/admin/crm/payments'
     | '/admin/cms/blog/$id'
     | '/admin/cms/blog/listing-page'
     | '/admin/cms/blog/new'
@@ -854,6 +908,7 @@ export interface FileRouteTypes {
     | '/admin/cms/testimonials/$id'
     | '/admin/cms/testimonials/new'
     | '/admin/crm/bookings/$reference'
+    | '/admin/crm/customers/$id'
     | '/admin/crm/bookings/cancelled/$reference'
     | '/admin/crm/bookings/confirmed/$reference'
   id:
@@ -913,6 +968,10 @@ export interface FileRouteTypes {
     | '/admin_/cms_/packages'
     | '/admin_/cms_/seo'
     | '/admin_/cms_/testimonials'
+    | '/admin_/crm/bookings'
+    | '/admin_/crm/customers'
+    | '/admin_/crm/leads'
+    | '/admin_/crm/payments'
     | '/admin_/cms_/blog_/$id'
     | '/admin_/cms_/blog_/listing-page'
     | '/admin_/cms_/blog_/new'
@@ -930,9 +989,10 @@ export interface FileRouteTypes {
     | '/admin_/cms_/packages_/new'
     | '/admin_/cms_/testimonials_/$id'
     | '/admin_/cms_/testimonials_/new'
-    | '/admin_/crm/bookings/$reference'
-    | '/admin_/crm/bookings/cancelled/$reference'
-    | '/admin_/crm/bookings/confirmed/$reference'
+    | '/admin_/crm/bookings_/$reference'
+    | '/admin_/crm/customers_/$id'
+    | '/admin_/crm/bookings_/cancelled/$reference'
+    | '/admin_/crm/bookings_/confirmed/$reference'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -1396,6 +1456,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminCmsTestimonialsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin_/crm/bookings': {
+      id: '/admin_/crm/bookings'
+      path: '/bookings'
+      fullPath: '/admin/crm/bookings'
+      preLoaderRoute: typeof AdminCrmBookingsRouteImport
+      parentRoute: typeof AdminCrmRoute
+    }
+    '/admin_/crm/customers': {
+      id: '/admin_/crm/customers'
+      path: '/customers'
+      fullPath: '/admin/crm/customers'
+      preLoaderRoute: typeof AdminCrmCustomersRouteImport
+      parentRoute: typeof AdminCrmRoute
+    }
+    '/admin_/crm/leads': {
+      id: '/admin_/crm/leads'
+      path: '/leads'
+      fullPath: '/admin/crm/leads'
+      preLoaderRoute: typeof AdminCrmLeadsRouteImport
+      parentRoute: typeof AdminCrmRoute
+    }
+    '/admin_/crm/payments': {
+      id: '/admin_/crm/payments'
+      path: '/payments'
+      fullPath: '/admin/crm/payments'
+      preLoaderRoute: typeof AdminCrmPaymentsRouteImport
+      parentRoute: typeof AdminCrmRoute
+    }
     '/admin_/cms_/blog_/$id': {
       id: '/admin_/cms_/blog_/$id'
       path: '/admin/cms/blog/$id'
@@ -1515,22 +1603,29 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminCmsTestimonialsNewRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin_/crm/bookings/$reference': {
-      id: '/admin_/crm/bookings/$reference'
+    '/admin_/crm/bookings_/$reference': {
+      id: '/admin_/crm/bookings_/$reference'
       path: '/bookings/$reference'
       fullPath: '/admin/crm/bookings/$reference'
       preLoaderRoute: typeof AdminCrmBookingsReferenceRouteImport
       parentRoute: typeof AdminCrmRoute
     }
-    '/admin_/crm/bookings/cancelled/$reference': {
-      id: '/admin_/crm/bookings/cancelled/$reference'
+    '/admin_/crm/customers_/$id': {
+      id: '/admin_/crm/customers_/$id'
+      path: '/customers/$id'
+      fullPath: '/admin/crm/customers/$id'
+      preLoaderRoute: typeof AdminCrmCustomersIdRouteImport
+      parentRoute: typeof AdminCrmRoute
+    }
+    '/admin_/crm/bookings_/cancelled/$reference': {
+      id: '/admin_/crm/bookings_/cancelled/$reference'
       path: '/bookings/cancelled/$reference'
       fullPath: '/admin/crm/bookings/cancelled/$reference'
       preLoaderRoute: typeof AdminCrmBookingsCancelledReferenceRouteImport
       parentRoute: typeof AdminCrmRoute
     }
-    '/admin_/crm/bookings/confirmed/$reference': {
-      id: '/admin_/crm/bookings/confirmed/$reference'
+    '/admin_/crm/bookings_/confirmed/$reference': {
+      id: '/admin_/crm/bookings_/confirmed/$reference'
       path: '/bookings/confirmed/$reference'
       fullPath: '/admin/crm/bookings/confirmed/$reference'
       preLoaderRoute: typeof AdminCrmBookingsConfirmedReferenceRouteImport
@@ -1552,13 +1647,23 @@ const ExperiencesRouteWithChildren = ExperiencesRoute._addFileChildren(
 )
 
 interface AdminCrmRouteChildren {
+  AdminCrmBookingsRoute: typeof AdminCrmBookingsRoute
+  AdminCrmCustomersRoute: typeof AdminCrmCustomersRoute
+  AdminCrmLeadsRoute: typeof AdminCrmLeadsRoute
+  AdminCrmPaymentsRoute: typeof AdminCrmPaymentsRoute
   AdminCrmBookingsReferenceRoute: typeof AdminCrmBookingsReferenceRoute
+  AdminCrmCustomersIdRoute: typeof AdminCrmCustomersIdRoute
   AdminCrmBookingsCancelledReferenceRoute: typeof AdminCrmBookingsCancelledReferenceRoute
   AdminCrmBookingsConfirmedReferenceRoute: typeof AdminCrmBookingsConfirmedReferenceRoute
 }
 
 const AdminCrmRouteChildren: AdminCrmRouteChildren = {
+  AdminCrmBookingsRoute: AdminCrmBookingsRoute,
+  AdminCrmCustomersRoute: AdminCrmCustomersRoute,
+  AdminCrmLeadsRoute: AdminCrmLeadsRoute,
+  AdminCrmPaymentsRoute: AdminCrmPaymentsRoute,
   AdminCrmBookingsReferenceRoute: AdminCrmBookingsReferenceRoute,
+  AdminCrmCustomersIdRoute: AdminCrmCustomersIdRoute,
   AdminCrmBookingsCancelledReferenceRoute:
     AdminCrmBookingsCancelledReferenceRoute,
   AdminCrmBookingsConfirmedReferenceRoute:

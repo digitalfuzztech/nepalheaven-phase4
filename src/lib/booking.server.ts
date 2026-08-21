@@ -271,6 +271,17 @@ export async function createCheckoutIntent(input: CreateCheckoutIntentInput) {
           "PROFILE_INCOMPLETE",
           "Your customer profile must include contact number, nationality and date of birth before checkout.",
         );
+      const effectiveVatPercentage = await (
+        await import("@/lib/finance-crm.server")
+      ).resolveVatPercentageForCountry(
+        customer.nationality,
+        configuration.vatPercentage,
+      );
+      const effectiveConfiguration = {
+        ...configuration,
+        vatEnabled: effectiveVatPercentage > 0,
+        vatPercentage: effectiveVatPercentage,
+      };
       const [packageRow] = await transaction
         .select({
           id: packages.id,
@@ -317,7 +328,7 @@ export async function createCheckoutIntent(input: CreateCheckoutIntentInput) {
       const amounts = calculateCommercialAmounts(
         tier.price,
         input.travellers,
-        configuration,
+        effectiveConfiguration,
       );
       const traveller = splitTravellerName(customer.name);
       const cancellationPolicy =
@@ -368,8 +379,8 @@ export async function createCheckoutIntent(input: CreateCheckoutIntentInput) {
         notes: input.notes?.trim() || null,
         unitPriceSnapshot: centsToMoney(amounts.unitPriceCents),
         subtotal: centsToMoney(amounts.subtotalCents),
-        vatEnabledSnapshot: configuration.vatEnabled,
-        vatPercentageSnapshot: configuration.vatPercentage.toFixed(2),
+        vatEnabledSnapshot: effectiveConfiguration.vatEnabled,
+        vatPercentageSnapshot: effectiveConfiguration.vatPercentage.toFixed(2),
         vatAmount: centsToMoney(amounts.vatAmountCents),
         grandTotal: centsToMoney(amounts.grandTotalCents),
         minimumDepositPercentageSnapshot:
