@@ -259,8 +259,8 @@ function GeneralSettingsPage() {
               />
 
               <CmsMediaPicker
-                label="Light Logo"
-                description="Alternative logo intended for dark or photographic backgrounds."
+                label="Transparent Logo"
+                description="Transparent/light logo for dark backgrounds, branded emails and invoice output. This reuses the existing light-logo setting."
                 value={form.lightLogoMediaId}
                 images={images}
                 onChange={(id) =>

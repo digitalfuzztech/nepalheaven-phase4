@@ -831,6 +831,11 @@ export async function getTestimonials(): Promise<Testimonial[]> {
     .orderBy(asc(testimonials.sortOrder));
   return rows.map((joined) => {
     const row = joined.testimonial;
+    const avatar = row.avatarUrl
+      ? row.avatarUrl.startsWith("/")
+        ? row.avatarUrl
+        : resolveAssetReference(row.avatarUrl) || row.avatarUrl
+      : undefined;
     const trip =
       joined.destinationName ??
       joined.packageName ??
@@ -857,9 +862,7 @@ export async function getTestimonials(): Promise<Testimonial[]> {
       trip,
       quote: row.content,
       rating: Number(row.rating ?? 0),
-      ...(row.avatarUrl
-        ? { avatar: resolveAssetReference(row.avatarUrl) }
-        : {}),
+      ...(avatar ? { avatar } : {}),
       ...(associationHref ? { associationHref } : {}),
     };
   });
@@ -1567,16 +1570,46 @@ export async function getPublicGalleryItems(
 
   return publicMediaItems;
 }
+
+export async function getHomepageGalleryItems(): Promise<GalleryItem[]> {
+  const publicMediaItems = await getPublicGalleryItems();
+  const eligibleCategories = new Set([
+    "destination",
+    "package",
+    "experience",
+  ]);
+
+  return publicMediaItems.filter((item) =>
+    eligibleCategories.has(
+      normalizePublicMediaCategory(item.cmsCategoryValue ?? item.cmsCategory),
+    ),
+  );
+}
 export async function getHomeContent(): Promise<HomeContent> {
-  const [destinations, packages, posts, testimonials, settings] =
+  const [
+    destinations,
+    packages,
+    posts,
+    testimonials,
+    settings,
+    galleryItems,
+  ] =
     await Promise.all([
       getDestinations(),
       getPackages(),
       getBlogPosts(),
       getTestimonials(),
       getPublicSiteSettings(),
+      getHomepageGalleryItems(),
     ]);
-  return { destinations, packages, posts, testimonials, ...settings };
+  return {
+    destinations,
+    packages,
+    posts,
+    testimonials,
+    ...settings,
+    galleryItems,
+  };
 }
 
 export async function getShellContent(): Promise<ShellContent> {

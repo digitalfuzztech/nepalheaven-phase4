@@ -55,7 +55,7 @@ export function getBookingEmailUrls(reference: string) {
   const encoded = encodeURIComponent(reference);
   return {
     customerBookingUrl: buildAppUrl(`/account/bookings/${encoded}`),
-    adminBookingUrl: buildAppUrl(`/admin/crm/bookings/confirmed/${encoded}`),
+    adminBookingUrl: buildAppUrl(`/admin/crm/bookings/${encoded}`),
   };
 }
 
@@ -63,9 +63,7 @@ export function getBookingCancellationEmailUrls(reference: string) {
   const encoded = encodeURIComponent(reference);
   return {
     customerBookingUrl: buildAppUrl(`/account/bookings/${encoded}`),
-    adminCancelledBookingUrl: buildAppUrl(
-      `/admin/crm/bookings/cancelled/${encoded}`,
-    ),
+    adminCancelledBookingUrl: buildAppUrl(`/admin/crm/bookings/${encoded}`),
   };
 }
 
@@ -353,7 +351,7 @@ export async function sendBookingConfirmationEmails(bookingId: string) {
   };
   const adminTo = getMailRouting().bookings.internalRecipient;
   const adminReplyTo = validReplyAddress(customerEmail);
-  const invoice = createBookingInvoicePdf({
+  const invoice = await createBookingInvoicePdf({
     bookingReference: snapshot.bookingReference,
     paymentReference: payment.providerTransactionId || "Not provided",
     invoiceDate: formatDate(payment.paidAt || snapshot.bookingCreatedAt),

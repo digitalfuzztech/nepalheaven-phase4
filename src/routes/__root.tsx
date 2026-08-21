@@ -113,8 +113,10 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   {
-    loader: ({ location }) =>
-      isMinimalShellPath(location.pathname) ? null : getShellContentFn(),
+    // Keep root loader data stable across client-side transitions. Returning
+    // null on an admin route left the public shell without content when the
+    // cached root route was reused on navigation back to the website.
+    loader: () => getShellContentFn(),
     head: ({ loaderData }) => {
       const title =
           loaderData?.branding
@@ -358,12 +360,13 @@ function RootComponent() {
   const pathname = location.pathname;
   const minimalShell = isMinimalShellPath(pathname);
   const customerAuthPath = isCustomerAuthPath(pathname);
+  const showPublicShell = !minimalShell && !customerAuthPath;
 
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <ComparisonProvider>
-          {!minimalShell && shellContent ? (
+          {showPublicShell && shellContent ? (
               <Navbar
                   company={
                     shellContent.company
@@ -381,8 +384,8 @@ function RootComponent() {
           <main>
             <Outlet />
           </main>
-          {!minimalShell && !customerAuthPath ? <ComparisonBar /> : null}
-          {!minimalShell && !customerAuthPath && shellContent ? (
+          {showPublicShell ? <ComparisonBar /> : null}
+          {showPublicShell && shellContent ? (
             <Footer {...shellContent} />
           ) : null}
         </ComparisonProvider>

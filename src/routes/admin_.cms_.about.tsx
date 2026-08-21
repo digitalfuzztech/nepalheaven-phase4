@@ -54,7 +54,7 @@ function Page() {
   const { page, images } = Route.useLoaderData();
   return (
     <AdminShell>
-      <div className="p-5 sm:p-7 lg:p-8">
+      <div className="min-w-0 max-w-full p-5 sm:p-7 lg:p-8">
         <CmsAboutEditor initial={page} images={images} />
       </div>
     </AdminShell>

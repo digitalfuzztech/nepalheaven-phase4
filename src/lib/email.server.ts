@@ -9,6 +9,8 @@ import {
   getMailSenderName,
   getSmtpCredentials,
 } from "@/lib/mail-routing.server";
+import { buildAppUrl } from "@/lib/app-url.server";
+import { getPublicCmsGlobalSettings } from "@/lib/public-cms.server";
 
 type Variables = Record<string, string | number | null | undefined>;
 
@@ -52,12 +54,52 @@ function textValue(value: unknown) {
     .join("");
 }
 
-function brandedShell(content: string, contactAddress: string) {
-  const address = escapeEmailHtml(
-    process.env["MAIL_BUSINESS_ADDRESS"] ?? "Kathmandu, Nepal",
-  );
+type EmailBranding = {
+  companyName: string;
+  tagline: string;
+  logoUrl: string | null;
+  address: string;
+  copyrightText: string;
+};
+
+function absolutePublicUrl(value: string | null) {
+  if (!value) return null;
+  if (/^https?:\/\//i.test(value)) return value;
+  return value.startsWith("/") ? buildAppUrl(value) : null;
+}
+
+async function getEmailBranding(): Promise<EmailBranding> {
+  const global = await getPublicCmsGlobalSettings();
+  return {
+    companyName: global?.branding.companyName || "Nepal Heaven",
+    tagline: global?.company.tagline || "Heaven on Earth Awaits.",
+    logoUrl: absolutePublicUrl(
+      global?.branding.lightLogoUrl ?? global?.branding.mainLogoUrl ?? null,
+    ),
+    address:
+      global?.company.address ||
+      process.env["MAIL_BUSINESS_ADDRESS"] ||
+      "Kathmandu, Nepal",
+    copyrightText:
+      global?.branding.copyrightText ||
+      "Nepal Heaven Travels & Tours Pvt. Ltd.",
+  };
+}
+
+function brandedShell(
+  content: string,
+  contactAddress: string,
+  branding: EmailBranding,
+) {
+  const address = escapeEmailHtml(branding.address);
   const contact = escapeEmailHtml(contactAddress);
-  return `<!doctype html><html><body style="margin:0;background:#f5f0e7;color:#24332b;font-family:Arial,sans-serif"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f5f0e7"><tr><td align="center" style="padding:24px 12px"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:640px;background:#fff;border-radius:16px;overflow:hidden"><tr><td style="background:#173d32;color:#fff;padding:26px 32px"><strong style="font-size:22px">Nepal Heaven</strong><div style="margin-top:6px;color:#d7b56d">Heaven on Earth Awaits.</div></td></tr><tr><td style="padding:32px;line-height:1.65">${content}</td></tr><tr><td style="padding:22px 32px;background:#173d32;color:#dbe6e1;font-size:12px;line-height:1.6">Nepal Heaven Travels &amp; Tours Pvt. Ltd.<br>${address}${contact ? `<br>${contact}` : ""}</td></tr></table></td></tr></table></body></html>`;
+  const companyName = escapeEmailHtml(branding.companyName);
+  const tagline = escapeEmailHtml(branding.tagline);
+  const copyright = escapeEmailHtml(branding.copyrightText);
+  const logo = branding.logoUrl
+    ? `<img src="${escapeEmailHtml(branding.logoUrl)}" width="176" alt="${companyName}" style="display:block;width:176px;max-width:100%;height:auto;border:0;outline:none;text-decoration:none">`
+    : `<strong style="font-size:22px;line-height:1.2;color:#ffffff">${companyName}</strong>`;
+  return `<!doctype html><html><body style="margin:0;padding:0;background:#f5f0e7;color:#24332b;font-family:Arial,Helvetica,sans-serif"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;background:#f5f0e7"><tr><td align="center" style="padding:28px 12px"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;max-width:640px;background:#ffffff;border:1px solid #e7dfd2;border-radius:16px;overflow:hidden"><tr><td style="background:#173d32;color:#ffffff;padding:28px 32px">${logo}<div style="margin-top:10px;color:#d7b56d;font-size:13px;line-height:1.4">${tagline}</div></td></tr><tr><td style="padding:34px 32px;font-size:15px;line-height:1.65;color:#24332b">${content}</td></tr><tr><td style="padding:22px 32px;background:#f7f4ee;border-top:1px solid #e7dfd2;color:#68736d;font-size:12px;line-height:1.65">${copyright}<br>${address}${contact ? `<br>${contact}` : ""}</td></tr></table></td></tr></table></body></html>`;
 }
 
 function mailConfig() {
@@ -179,9 +221,11 @@ export async function sendTemplatedEmail(input: {
   const route = getMailRouting()[routeKey];
   const fromName = getMailSenderName(input.templateKey, route);
   const replyTo = input.replyTo || route.replyTo;
+  const branding = await getEmailBranding();
   const html = brandedShell(
     render(template.htmlTemplate, variables, rawHtmlKeys),
     route.replyTo,
+    branding,
   );
   const text = render(template.textTemplate, variables);
   const { mode } = mailConfig();

@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { cmsMediaIdSchema } from "@/lib/cms-media.schema";
+import { HOME_ICON_KEYS } from "@/lib/home-icons";
 
 const text = (max = 2_000) => z.string().trim().min(1).max(max);
 const nullableId = z.string().uuid().nullable();
@@ -105,9 +106,9 @@ export const cmsHomePageSchema = z
     heroTitle: text(500),
     heroDescription: text(3_000),
     heroStats: z.array(z.object({ value: text(80), text: text(300) })).max(3),
-    floatingTitle: text(300),
-    floatingSubtitle: text(300),
-    floatingDescription: text(2_000),
+    floatingIcon: z.enum(HOME_ICON_KEYS),
+    floatingBoldText: text(300),
+    floatingText: text(2_000),
     aboutSubtitle: text(180),
     aboutTitle: text(500),
     aboutDescription: text(5_000),
@@ -143,7 +144,6 @@ export const cmsHomePageSchema = z
     testimonialsSubtitle: text(180),
     testimonialsTitle: text(500),
     testimonialsDescription: text(3_000),
-    aboutCounterIndex: z.number().int().min(0).max(3).nullable(),
     gallerySubtitle: text(180),
     galleryTitle: text(500),
     galleryDescription: text(3_000),

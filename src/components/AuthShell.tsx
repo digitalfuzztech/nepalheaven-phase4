@@ -42,7 +42,7 @@ export function AuthShell({
                 <img
                   src={branding.lightLogoUrl ?? branding.mainLogoUrl ?? ""}
                   alt={branding.companyName}
-                  className="h-12 max-w-56 object-contain object-left"
+                  className="h-auto w-[clamp(9.5rem,13vw,11.5rem)] max-w-full object-contain object-left"
                 />
               ) : (
                 (branding?.companyName ?? "Nepal Heaven")
@@ -79,7 +79,7 @@ export function AuthShell({
                   <img
                     src={branding.mainLogoUrl}
                     alt={branding.companyName}
-                    className="h-10 max-w-52 object-contain object-left"
+                    className="h-auto w-36 max-w-full object-contain object-left sm:w-40"
                   />
                 ) : (
                   (branding?.companyName ?? "Nepal Heaven")

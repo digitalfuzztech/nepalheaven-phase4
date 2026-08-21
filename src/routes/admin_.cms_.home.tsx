@@ -4,18 +4,16 @@ import { CmsHomeEditor } from "@/components/admin/CmsHomeEditor";
 import { getAdminSessionFn } from "@/lib/auth.functions";
 import { getCmsSelectableImagesFn } from "@/lib/cms-media.functions";
 import { getCmsPageContentFn } from "@/lib/cms-page-content.functions";
-import { getPublicAboutPageFn } from "@/lib/cms-page-content.functions";
 import { getHomeContentFn } from "@/lib/content.functions";
 import type { CmsHomePageInput } from "@/lib/cms-page-content.schema";
 
 export const Route = createFileRoute("/admin_/cms_/home")({
   loader: async () => {
     if (!(await getAdminSessionFn())) throw redirect({ to: "/admin" });
-    const [page, images, content, about] = await Promise.all([
+    const [page, images, content] = await Promise.all([
       getCmsPageContentFn({ data: "home" }),
       getCmsSelectableImagesFn(),
       getHomeContentFn(),
-      getPublicAboutPageFn(),
     ]);
     return {
       page: page as CmsHomePageInput,
@@ -34,7 +32,6 @@ export const Route = createFileRoute("/admin_/cms_/home")({
           ? [{ id: item.id, title: item.title, type: item.type, preview }]
           : [];
       }),
-      aboutCounters: about.counters,
     };
   },
   component: Page,
@@ -44,7 +41,7 @@ function Page() {
   const data = Route.useLoaderData();
   return (
     <AdminShell>
-      <div className="p-5 sm:p-7 lg:p-8">
+      <div className="min-w-0 max-w-full p-5 sm:p-7 lg:p-8">
         <CmsHomeEditor initial={data.page} {...data} />
       </div>
     </AdminShell>

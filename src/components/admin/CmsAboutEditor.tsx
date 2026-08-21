@@ -76,9 +76,9 @@ export function CmsAboutEditor({
     setForm((x) => ({ ...x, [key]: rows }));
   };
   return (
-    <div>
-      <div className="flex justify-between">
-        <div>
+    <div className="min-w-0 max-w-full">
+      <div className="flex flex-wrap items-end justify-between gap-5">
+        <div className="min-w-0">
           <Link
             to="/admin/cms"
             className="text-sm font-semibold text-muted-foreground"
@@ -419,18 +419,18 @@ export function CmsAboutEditor({
     </div>
   );
 }
-const control = "w-full rounded-xl border px-4 py-3 text-sm";
+const control = "min-w-0 w-full max-w-full rounded-xl border px-4 py-3 text-sm";
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <section className="rounded-2xl border bg-white p-6">
+    <section className="min-w-0 max-w-full rounded-2xl border bg-white p-4 sm:p-6">
       <h2 className="text-lg font-semibold">{title}</h2>
-      <div className="mt-5 grid gap-4">{children}</div>
+      <div className="mt-5 grid min-w-0 gap-4">{children}</div>
     </section>
   );
 }
 function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <label className="grid gap-2 text-xs font-semibold">
+    <label className="grid min-w-0 gap-2 text-xs font-semibold">
       {label}
       {children}
     </label>
@@ -448,7 +448,7 @@ function Card({
   remove: () => void;
 }) {
   return (
-    <div className="rounded-2xl border bg-[#faf9f6] p-4">
+    <div className="min-w-0 max-w-full rounded-2xl border bg-[#faf9f6] p-4">
       <div className="mb-3 flex justify-end gap-2">
         <button type="button" onClick={up} className="rounded-lg border p-2">
           <ArrowUp className="h-4 w-4" />
@@ -464,7 +464,7 @@ function Card({
           <Trash2 className="h-4 w-4" />
         </button>
       </div>
-      <div className="grid gap-4">{children}</div>
+      <div className="grid min-w-0 gap-4">{children}</div>
     </div>
   );
 }

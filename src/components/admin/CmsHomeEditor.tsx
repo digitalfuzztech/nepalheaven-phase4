@@ -32,7 +32,6 @@ export function CmsHomeEditor({
   packages,
   blogs,
   gallery,
-  aboutCounters,
 }: {
   initial: CmsHomePageInput;
   images: CmsSelectableImage[];
@@ -40,7 +39,6 @@ export function CmsHomeEditor({
   packages: Option[];
   blogs: Option[];
   gallery: GalleryOption[];
-  aboutCounters: Array<{ number: number; symbol: string; text: string }>;
 }) {
   const [form, setForm] = useState(initial),
     [busy, setBusy] = useState(false),
@@ -106,7 +104,7 @@ export function CmsHomeEditor({
     "CTA",
   ];
   return (
-    <div className="pb-12">
+    <div className="min-w-0 max-w-full pb-12">
       <div className="flex flex-wrap items-end justify-between gap-5">
         <div>
           <Link
@@ -159,11 +157,28 @@ export function CmsHomeEditor({
               max={3}
               onChange={(rows) => set("heroStats", rows)}
             />
-            <div className="grid gap-4 md:grid-cols-2">
-              {text("Floating Title", "floatingTitle")}
-              {text("Floating Subtitle", "floatingSubtitle")}
+            <div className="grid min-w-0 gap-4 md:grid-cols-2">
+              <Field label="Floating Box Icon">
+                <select
+                  value={form.floatingIcon}
+                  onChange={(event) =>
+                    set(
+                      "floatingIcon",
+                      event.target.value as CmsHomePageInput["floatingIcon"],
+                    )
+                  }
+                  className={control}
+                >
+                  {HOME_ICON_KEYS.map((icon) => (
+                    <option key={icon} value={icon}>
+                      {icon}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+              {text("Floating Box Bold Text", "floatingBoldText")}
             </div>
-            {text("Floating Description", "floatingDescription", true)}
+            {text("Floating Box Regular Text", "floatingText", true)}
           </Section>
           <Section id="about" title="About">
             {text("Subtitle", "aboutSubtitle")}
@@ -284,28 +299,10 @@ export function CmsHomeEditor({
             {text("Subtitle", "testimonialsSubtitle")}
             {text("Title", "testimonialsTitle")}
             {text("Description", "testimonialsDescription", true)}
-            <Field label="About Counter">
-              <select
-                value={form.aboutCounterIndex ?? ""}
-                onChange={(event) =>
-                  set(
-                    "aboutCounterIndex",
-                    event.target.value === ""
-                      ? null
-                      : Number(event.target.value),
-                  )
-                }
-                className={control}
-              >
-                <option value="">No counter</option>
-                {aboutCounters.map((counter, index) => (
-                  <option key={index} value={index}>
-                    {counter.number}
-                    {counter.symbol} · {counter.text}
-                  </option>
-                ))}
-              </select>
-            </Field>
+            <p className="text-sm leading-relaxed text-muted-foreground">
+              This section automatically displays every counter from About CMS,
+              in its saved order.
+            </p>
           </Section>
           <Section id="gallery" title="Gallery">
             {text("Subtitle", "gallerySubtitle")}
@@ -417,7 +414,7 @@ function Section({
   return (
     <section
       id={`home-${id}`}
-      className="scroll-mt-24 rounded-2xl border bg-white p-6 shadow-sm"
+      className="min-w-0 max-w-full scroll-mt-24 rounded-2xl border bg-white p-4 shadow-sm sm:p-6"
     >
       <h2 className="text-xl font-semibold">{title}</h2>
       <div className="mt-5 grid gap-5">{children}</div>
@@ -426,7 +423,7 @@ function Section({
 }
 function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <label className="grid gap-2 text-xs font-semibold">
+    <label className="grid min-w-0 gap-2 text-xs font-semibold">
       {label}
       {children}
     </label>
@@ -507,7 +504,7 @@ function TextList({
   return (
     <div className="grid gap-3">
       {rows.map((row, index) => (
-        <div key={index} className="flex gap-2">
+        <div key={index} className="flex min-w-0 flex-col gap-2 sm:flex-row">
           <input
             value={row}
             onChange={(event) =>
@@ -517,7 +514,7 @@ function TextList({
                 ),
               )
             }
-            className={control}
+            className={`${control} min-w-0`}
           />
           <OrderButtons
             index={index}
@@ -713,7 +710,7 @@ function OrderButtons({
   remove: () => void;
 }) {
   return (
-    <span className="flex gap-1">
+    <span className="flex shrink-0 gap-1">
       <button
         type="button"
         disabled={!index}

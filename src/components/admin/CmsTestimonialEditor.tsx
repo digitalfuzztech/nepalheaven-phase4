@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Star } from "lucide-react";
+import { ImageIcon, Star, Upload } from "lucide-react";
 import {
   CmsEditorAlert,
   CmsFloatingSave,
@@ -91,7 +91,7 @@ export function CmsTestimonialEditor({
     ? associations[form.associationType]
     : [];
   return (
-    <div className="pb-10">
+    <div className="min-w-0 max-w-full pb-10">
       <div className="flex flex-wrap items-end justify-between gap-5">
         <div>
           <Link
@@ -114,8 +114,8 @@ export function CmsTestimonialEditor({
         />
       </div>
       <CmsEditorAlert error={error} success={success} />
-      <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_.72fr]">
-        <section className="rounded-2xl border bg-white p-6 shadow-sm">
+      <div className="mt-8 grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,.72fr)]">
+        <section className="min-w-0 rounded-2xl border bg-white p-6 shadow-sm">
           <h2 className="text-xl font-semibold">Traveller story</h2>
           <div className="mt-5 grid gap-5">
             <Field label="Person Name">
@@ -187,28 +187,56 @@ export function CmsTestimonialEditor({
             </Field>
           </div>
         </section>
-        <div className="grid content-start gap-6">
-          <section className="rounded-2xl border bg-white p-6 shadow-sm">
+        <div className="grid min-w-0 content-start gap-6">
+          <section className="min-w-0 rounded-2xl border bg-white p-6 shadow-sm">
             <h2 className="text-xl font-semibold">Photo</h2>
-            {preview ? (
-              <img
-                src={preview}
-                alt="Testimonial preview"
-                className="mt-5 aspect-square w-full rounded-2xl object-cover"
-              />
-            ) : (
-              <div className="mt-5 grid aspect-square place-items-center rounded-2xl border border-dashed text-sm text-muted-foreground">
-                No photo selected
+            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+              Use a clear, square-friendly traveller portrait. JPG, PNG or WebP
+              works best.
+            </p>
+            <div className="mt-5 overflow-hidden rounded-2xl border border-black/10 bg-[#faf9f6]">
+              {preview ? (
+                <img
+                  src={preview}
+                  alt="Testimonial preview"
+                  className="aspect-square w-full object-cover"
+                />
+              ) : (
+                <div className="grid aspect-square place-items-center border-b border-dashed border-black/15 px-6 text-center">
+                  <div>
+                    <span className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-white text-gold shadow-sm">
+                      <ImageIcon className="h-6 w-6" aria-hidden />
+                    </span>
+                    <p className="mt-4 text-sm font-semibold text-[#0c1724]">
+                      No photo selected
+                    </p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Your selected photo previews here immediately.
+                    </p>
+                  </div>
+                </div>
+              )}
+              <div className="p-4">
+                <label className="inline-flex max-w-full cursor-pointer items-center gap-2 rounded-xl bg-[#0c1724] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#16283b]">
+                  <Upload className="h-4 w-4 shrink-0 text-gold" aria-hidden />
+                  <span className="truncate">
+                    {photo?.name ??
+                      (preview ? "Replace Photo" : "Upload Photo")}
+                  </span>
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    onChange={(e) => setPhoto(e.target.files?.[0] ?? null)}
+                    className="sr-only"
+                  />
+                </label>
+                <p className="mt-3 text-xs text-muted-foreground">
+                  The photo is uploaded when you save the testimonial.
+                </p>
               </div>
-            )}
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => setPhoto(e.target.files?.[0] ?? null)}
-              className="mt-4 block w-full text-sm"
-            />
+            </div>
           </section>
-          <section className="rounded-2xl border bg-white p-6 shadow-sm">
+          <section className="min-w-0 rounded-2xl border bg-white p-6 shadow-sm">
             <h2 className="text-xl font-semibold">Association</h2>
             <div className="mt-5 grid gap-5">
               <Field label="Association Type">
@@ -266,7 +294,7 @@ export function CmsTestimonialEditor({
   );
 }
 const control =
-  "w-full rounded-xl border border-border bg-white px-4 py-3 text-sm outline-none focus:border-gold";
+  "min-w-0 w-full max-w-full rounded-xl border border-border bg-white px-4 py-3 text-sm outline-none focus:border-gold";
 function Field({
   label,
   children,
@@ -275,7 +303,7 @@ function Field({
   children: React.ReactNode;
 }) {
   return (
-    <label className="grid gap-2 text-xs font-semibold">
+    <label className="grid min-w-0 gap-2 text-xs font-semibold">
       {label}
       {children}
     </label>

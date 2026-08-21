@@ -52,9 +52,9 @@ export function CmsContactEditor({
     setForm((x) => ({ ...x, faqs: rows }));
   }
   return (
-    <div>
-      <div className="flex justify-between">
-        <div>
+    <div className="min-w-0 max-w-full">
+      <div className="flex flex-wrap items-end justify-between gap-5">
+        <div className="min-w-0">
           <Link
             to="/admin/cms"
             className="text-sm font-semibold text-muted-foreground"
@@ -186,6 +186,7 @@ export function CmsContactEditor({
     </div>
   );
 }
-const section = "grid gap-4 rounded-2xl border bg-white p-6",
-  control = "w-full rounded-xl border px-4 py-3",
+const section =
+    "grid min-w-0 max-w-full gap-4 rounded-2xl border bg-white p-4 sm:p-6",
+  control = "min-w-0 w-full max-w-full rounded-xl border px-4 py-3",
   button = "rounded-lg border p-2";

@@ -81,15 +81,18 @@ function Page() {
   );
   return (
     <AdminShell>
-      <form onSubmit={(e) => void save(e)} className="p-5 sm:p-7 lg:p-8">
+      <form
+        onSubmit={(e) => void save(e)}
+        className="min-w-0 max-w-full p-5 sm:p-7 lg:p-8"
+      >
         <Link
           to="/admin/cms/experiences"
           className="text-sm font-semibold text-muted-foreground"
         >
           ← Back to Experiences
         </Link>
-        <div className="mt-5 flex justify-between">
-          <div>
+        <div className="mt-5 flex flex-wrap items-end justify-between gap-5">
+          <div className="min-w-0">
             <p className="text-xs font-bold uppercase text-gold">
               Experience CMS
             </p>
@@ -125,7 +128,7 @@ function Page() {
             {field("Title", "sectionThreeTitle")}
             {field("Description", "sectionThreeDescription", true)}
             {form.highlightedTexts.map((value, i) => (
-              <div key={i} className="flex gap-2">
+              <div key={i} className="flex min-w-0 flex-col gap-2 sm:flex-row">
                 <input
                   value={value}
                   onChange={(e) =>
@@ -136,7 +139,7 @@ function Page() {
                       ),
                     }))
                   }
-                  className={control}
+                  className={`${control} min-w-0`}
                 />
                 <button
                   type="button"
@@ -148,7 +151,7 @@ function Page() {
                       ),
                     }))
                   }
-                  className="rounded-xl border p-3 text-red-600"
+                  className="w-fit shrink-0 rounded-xl border p-3 text-red-600"
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>
@@ -184,9 +187,9 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-2xl border bg-white p-6">
+    <section className="min-w-0 max-w-full rounded-2xl border bg-white p-4 sm:p-6">
       <h2 className="text-lg font-semibold">{title}</h2>
-      <div className="mt-5 grid gap-5">{children}</div>
+      <div className="mt-5 grid min-w-0 gap-5">{children}</div>
     </section>
   );
 }

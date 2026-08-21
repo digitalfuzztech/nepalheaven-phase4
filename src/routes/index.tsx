@@ -19,7 +19,6 @@ import {
   Zap,
   Binoculars,
   MapPin,
-  Sunrise,
   Compass,
   Quote,
   MessageCircle,
@@ -302,20 +301,20 @@ function Hero() {
           <div className="animate-float glass-dark ml-auto max-w-sm rounded-[1.75rem] p-6">
             <div className="flex items-center gap-3">
               <span className="animate-pulse-ring grid h-10 w-10 place-items-center rounded-full bg-gold-gradient text-gold-foreground">
-                <Sunrise className="h-4.5 w-4.5" aria-hidden />
+                {(() => {
+                  const FloatingIcon = homeIcon(page.floatingIcon, Compass);
+                  return <FloatingIcon className="h-4.5 w-4.5" aria-hidden />;
+                })()}
               </span>
               <div>
                 <p className="text-sm font-semibold text-primary-foreground">
-                  {page.floatingTitle}
-                </p>
-                <p className="text-xs text-primary-foreground/65">
-                  {page.floatingSubtitle}
+                  {page.floatingBoldText}
                 </p>
               </div>
             </div>
             <div className="mt-5 h-px w-full bg-primary-foreground/15" />
             <p className="mt-5 text-sm leading-relaxed text-primary-foreground/80">
-              {page.floatingDescription}
+              {page.floatingText}
             </p>
           </div>
 
@@ -412,7 +411,7 @@ function StoryIntro() {
           />
           <div className="mt-10 grid gap-5 sm:grid-cols-2">
             {page.aboutCards.map((item, i) => {
-            const Icon = homeIcon(item.icon, Compass);
+              const Icon = homeIcon(item.icon, Compass);
               return (
                 <Reveal key={item.title} delay={i * 80}>
                   <div className="hairline hover-lift h-full rounded-2xl bg-card/70 p-6 backdrop-blur-sm">
@@ -708,14 +707,12 @@ function WhyUs() {
 }
 
 function ReviewsAndStats() {
-  const { stats, testimonials, page, about } = Route.useLoaderData();
-  const chosen =
-    page.aboutCounterIndex === null
-      ? null
-      : about.counters[page.aboutCounterIndex];
-  const visibleStats = chosen
-    ? [{ value: chosen.number, suffix: chosen.symbol, label: chosen.text }]
-    : stats;
+  const { testimonials, page, about } = Route.useLoaderData();
+  const visibleStats = about.counters.map((counter) => ({
+    value: counter.number,
+    suffix: counter.symbol,
+    label: counter.text,
+  }));
   return (
     <section className="container-lux py-24 lg:py-32">
       <div className="grid gap-14 lg:grid-cols-[1fr_1.1fr] lg:items-center">

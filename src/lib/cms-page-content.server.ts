@@ -255,10 +255,9 @@ const defaults: PageDataMap = {
       { value: "250+", text: "Curated Himalayan journeys" },
       { value: "24/7", text: "Kathmandu support desk" },
     ],
-    floatingTitle: "Kala Patthar, 05:41",
-    floatingSubtitle: "Group of 6 · first light on Everest",
-    floatingDescription:
-      "Twelve days of walking and then the whole range turns gold at once. Nobody said a word.",
+    floatingIcon: "compass",
+    floatingBoldText: "Tailor-made journeys",
+    floatingText: "Designed around the way you want to explore Nepal.",
     aboutSubtitle: "Our story",
     aboutTitle: "A country best understood at walking pace",
     aboutDescription:
@@ -326,7 +325,6 @@ const defaults: PageDataMap = {
     testimonialsTitle: "Fifteen years of people coming home changed",
     testimonialsDescription:
       "Every review is from a traveller who booked with our Kathmandu team.",
-    aboutCounterIndex: 0,
     gallerySubtitle: "From the field",
     galleryTitle: "Photographed on our journeys",
     galleryDescription: "A curated glimpse of Nepal through our journeys.",
@@ -467,12 +465,52 @@ async function read<K extends PageKind>(kind: K): Promise<PageDataMap[K]> {
     .limit(1);
   if (!section) return { ...defaults[kind] };
   try {
-    const parsed = schemaByKind[kind].safeParse(JSON.parse(section.content));
+    const stored: unknown = JSON.parse(section.content);
+    const candidate =
+      kind === "home" && stored && typeof stored === "object"
+        ? normalizeStoredHomePage(stored as Record<string, unknown>)
+        : stored;
+    const parsed = schemaByKind[kind].safeParse(candidate);
     if (parsed.success) return parsed.data as PageDataMap[K];
   } catch {
     /* defaults */
   }
   return { ...defaults[kind] };
+}
+
+/**
+ * Homepage content predates the current floating-card contract. Merge stored
+ * content over defaults so new fields remain backward compatible, then map
+ * the legacy card fields. The Zod schema strips those obsolete keys.
+ */
+function normalizeStoredHomePage(stored: Record<string, unknown>) {
+  const legacyBoldText =
+    typeof stored["floatingTitle"] === "string"
+      ? stored["floatingTitle"]
+      : defaults.home.floatingBoldText;
+  const legacyText =
+    typeof stored["floatingDescription"] === "string"
+      ? stored["floatingDescription"]
+      : typeof stored["floatingSubtitle"] === "string"
+        ? stored["floatingSubtitle"]
+        : defaults.home.floatingText;
+
+  return {
+    ...defaults.home,
+    ...stored,
+    floatingIcon:
+      typeof stored["floatingIcon"] === "string"
+        ? stored["floatingIcon"]
+        : defaults.home.floatingIcon,
+    floatingBoldText:
+      typeof stored["floatingBoldText"] === "string"
+        ? stored["floatingBoldText"]
+        : legacyBoldText,
+    floatingText:
+      typeof stored["floatingText"] === "string"
+        ? stored["floatingText"]
+        : legacyText,
+  };
 }
 
 async function mediaUrl(id: string | null) {
@@ -594,14 +632,16 @@ async function save<K extends PageKind>(kind: K, input: PageDataMap[K]) {
       ],
       "website-media",
     );
-    const publicGallery = await (
+    const homepageGallery = await (
       await import("@/lib/content.server")
-    ).getPublicGalleryItems();
+    ).getHomepageGalleryItems();
     const allowedIds = new Set(
-      publicGallery.flatMap((item) => (item.id ? [item.id] : [])),
+      homepageGallery.flatMap((item) => (item.id ? [item.id] : [])),
     );
     if (home.galleryMediaIds.some((id) => !allowedIds.has(id)))
-      throw new Error("Homepage Gallery can only use public Gallery media.");
+      throw new Error(
+        "Homepage Gallery can only use ready Destination, Package, or Experience media.",
+      );
   }
   if (kind === "seo") {
     await validateGeneralMedia(

@@ -453,7 +453,7 @@ export function CmsMediaPicker({
     return (
         <>
             {/* Current selection */}
-            <div className="rounded-xl border border-black/10 bg-white p-4">
+            <div className="min-w-0 max-w-full rounded-xl border border-black/10 bg-white p-4">
                 <div>
                     <p className="text-sm font-semibold text-[#0c1724]">
                         {label}
@@ -949,7 +949,7 @@ function SelectedImage({
         );
 
     return (
-        <div className="mt-4 overflow-hidden rounded-xl border border-black/10">
+        <div className="mt-4 min-w-0 max-w-full overflow-hidden rounded-xl border border-black/10">
             <div className="aspect-[16/7] bg-black/[0.03]">
                 <img
                     src={
