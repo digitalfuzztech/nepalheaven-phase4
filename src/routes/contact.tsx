@@ -15,41 +15,55 @@ import {
 } from "@/lib/lead.functions";
 import { useAuth } from "@/lib/auth";
 import { buildWhatsAppEntryPath } from "@/lib/whatsapp.functions";
-import { getPublicContactPageFn } from "@/lib/cms-page-content.functions";
+import {
+  getPublicContactPageFn,
+  getPublicSeoPageFn,
+} from "@/lib/cms-page-content.functions";
+import { staticSeo } from "@/lib/public-seo";
 
 export const Route = createFileRoute("/contact")({
   validateSearch: (search: Record<string, unknown>): { package?: string } =>
     typeof search["package"] === "string" ? { package: search["package"] } : {},
   loader: async () => {
-    const [packages, settings, page] = await Promise.all([
+    const [packages, settings, page, seo] = await Promise.all([
       getPackagesFn(),
       getPublicSiteSettingsFn(),
       getPublicContactPageFn(),
+      getPublicSeoPageFn({ data: "/contact" }),
     ]);
     return {
       company: settings.company,
       images: settings.images,
       packages,
       page,
+      seo,
     };
   },
-  head: () => ({
-    meta: [
-      { title: "Contact Nepal Heaven — Kathmandu Travel Specialists" },
-      {
-        name: "description",
-        content:
+  head: ({ loaderData }) =>
+    loaderData?.seo
+      ? staticSeo(
+          loaderData.seo,
+          "Contact Nepal Heaven — Kathmandu Travel Specialists",
           "Talk to a Kathmandu-based specialist. Phone, WhatsApp, email and office hours, plus a trip enquiry form answered within 24 hours.",
-      },
-      { property: "og:title", content: "Contact Nepal Heaven" },
-      {
-        property: "og:description",
-        content: "Reach our Kathmandu team by phone, WhatsApp or email.",
-      },
-      { property: "og:url", content: "/contact" },
-    ],
-    links: [{ rel: "canonical", href: "/contact" }],
-  }),
+          "/contact",
+        )
+      : {
+          meta: [
+            { title: "Contact Nepal Heaven — Kathmandu Travel Specialists" },
+            {
+              name: "description",
+              content:
+                "Talk to a Kathmandu-based specialist. Phone, WhatsApp, email and office hours, plus a trip enquiry form answered within 24 hours.",
+            },
+            { property: "og:title", content: "Contact Nepal Heaven" },
+            {
+              property: "og:description",
+              content: "Reach our Kathmandu team by phone, WhatsApp or email.",
+            },
+            { property: "og:url", content: "/contact" },
+          ],
+          links: [{ rel: "canonical", href: "/contact" }],
+        },
   component: ContactPage,
 });
 

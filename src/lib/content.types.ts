@@ -1,4 +1,5 @@
 export type Destination = {
+  id?: string;
   slug: string;
   name: string;
   region: string;
@@ -38,7 +39,7 @@ export type Destination = {
 };
 
 export type Package = {
-  id: string;
+  id?: string;
   slug: string;
   title: string;
   destination: string;
@@ -112,6 +113,7 @@ export type Testimonial = {
   quote: string;
   rating: number;
   avatar?: string;
+  associationHref?: string;
 };
 
 export type FaqGroup = {
@@ -220,6 +222,7 @@ export type ExperienceCategory = {
 };
 export type Stat = { value: number; suffix: string; label: string };
 export type GalleryItem = {
+  id?: string;
   type: "image" | "video";
 
   image?: string;

@@ -19,16 +19,18 @@ import { PackageCard } from "@/components/PackageCard";
 import { WhatsAppLink } from "@/components/WhatsAppLink";
 import { countryName } from "@/lib/countries";
 import type { Package } from "@/lib/content.types";
+import { getPublicFormsFn } from "@/lib/cms-page-content.functions";
 
 export const Route = createFileRoute("/packages/$slug")({
   loader: async ({ params }) => {
-    const [pkg, packages, customerBookingResult] = await Promise.all([
+    const [pkg, packages, customerBookingResult, forms] = await Promise.all([
       getPackageBySlugFn({ data: { slug: params.slug } }),
       getPackagesFn(),
       getMyConfirmedBookingForPackageFn({ data: { slug: params.slug } }),
+      getPublicFormsFn(),
     ]);
     if (!pkg) throw notFound();
-    return { pkg, packages, customerBookingResult };
+    return { pkg, packages, customerBookingResult, forms };
   },
   head: ({ loaderData, params }) =>
     loaderData
@@ -50,7 +52,13 @@ export const Route = createFileRoute("/packages/$slug")({
 });
 
 function PackageDetail() {
-  const { pkg: p, packages, customerBookingResult } = Route.useLoaderData();
+  const {
+    pkg: p,
+    packages,
+    customerBookingResult,
+    forms,
+  } = Route.useLoaderData();
+  const copy = forms.package;
   const customerBooking = customerBookingResult.ok
     ? customerBookingResult.booking
     : null;
@@ -189,7 +197,7 @@ function PackageDetail() {
                       {money(tier.price, tier.currency)}
                     </p>
                     <p className="mt-2 text-sm opacity-70">
-                      per person. {tier.note}
+                      {copy.perPersonText} {tier.note}
                     </p>
                     <Link
                       to={
@@ -286,18 +294,19 @@ function PackageDetail() {
         <aside className="lg:sticky lg:top-28 lg:self-start">
           <div className="glass-card rounded-3xl p-7">
             <p className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">
-              From
+              {copy.priceLabel}
             </p>
             <p className="mt-1 text-4xl font-semibold text-primary">
               {money(p.price)}
             </p>
             {p.oldPrice ? (
               <p className="text-sm text-muted-foreground line-through">
+                <span className="sr-only">{copy.originalPriceLabel}: </span>
                 {money(p.oldPrice)}
               </p>
             ) : null}
             <p className="mt-1 text-xs text-muted-foreground">
-              per person, twin share
+              {copy.perPersonText}
             </p>
             <div className="mt-6 space-y-3">
               {customerBooking ? (
@@ -314,7 +323,7 @@ function PackageDetail() {
                   params={{ slug: p.slug }}
                   className="bg-gold-gradient block rounded-2xl px-6 py-4 text-center text-sm font-bold"
                 >
-                  Book this trip
+                  {copy.bookButtonText}
                 </Link>
               )}
               <Link
@@ -322,7 +331,7 @@ function PackageDetail() {
                 search={{ package: p.slug }}
                 className="block rounded-2xl border border-border px-6 py-4 text-center text-sm font-bold"
               >
-                Speak to a specialist
+                {copy.contactButtonText}
               </Link>
               <WhatsAppLink
                 context="package"
@@ -330,9 +339,14 @@ function PackageDetail() {
                 className="flex items-center justify-center gap-2 rounded-2xl border border-forest/25 px-6 py-4 text-sm font-bold text-forest"
               >
                 <MessageCircle className="h-4 w-4" />
-                Ask on WhatsApp
+                {copy.whatsappText}
               </WhatsAppLink>
             </div>
+            {copy.helperText ? (
+              <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
+                {copy.helperText}
+              </p>
+            ) : null}
           </div>
         </aside>
       </div>
@@ -439,7 +453,9 @@ function getOtherTours(current: Package, all: Package[]) {
       return item.packageTypeOptionId === current.packageTypeOptionId;
     }
     const currentType = current.style.trim().toLowerCase();
-    return Boolean(currentType) && item.style.trim().toLowerCase() === currentType;
+    return (
+      Boolean(currentType) && item.style.trim().toLowerCase() === currentType
+    );
   };
   const same = eligible
     .filter(sameType)

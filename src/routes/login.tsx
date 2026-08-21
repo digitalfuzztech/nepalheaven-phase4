@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AuthShell } from "@/components/AuthShell";
 import { AuthForm } from "@/components/AuthForm";
+import { getPublicAuthenticationFn } from "@/lib/cms-page-content.functions";
+import { getPublicSiteSettingsFn } from "@/lib/content.functions";
 
 export const Route = createFileRoute("/login")({
   validateSearch: (
@@ -11,26 +13,42 @@ export const Route = createFileRoute("/login")({
       : {}),
     ...(search["verified"] === "1" ? { verified: "1" } : {}),
   }),
+  loader: async () => {
+    const [content, settings] = await Promise.all([
+      getPublicAuthenticationFn(),
+      getPublicSiteSettingsFn(),
+    ]);
+    return { content: content.customerLogin, branding: settings.branding };
+  },
+  head: () => ({
+    meta: [
+      { title: "Sign in | Nepal Heaven" },
+      { name: "robots", content: "noindex,nofollow" },
+    ],
+  }),
   component: LoginPage,
 });
 
 function LoginPage() {
   const { redirect, verified } = Route.useSearch();
+  const { content, branding } = Route.useLoaderData();
   return (
     <AuthShell
-      eyebrow="Welcome back"
-      title="Your next Nepal journey starts here."
-      description="Sign in to manage your trips, compare journeys, save favourites and keep every booking in one place."
+      eyebrow={content.leftSubtitle}
+      title={content.leftTitle}
+      description={content.leftDescription}
+      branding={branding}
     >
       {verified ? (
         <p className="mb-4 rounded-xl bg-forest/10 p-3 text-sm">
-          Your email is verified. You can now sign in.
+          {content.successText}
         </p>
       ) : null}
       <AuthForm
         role="customer"
-        title="Welcome back"
-        subtitle="Sign in to your Nepal Heaven traveller account."
+        title={content.rightTitle}
+        subtitle={content.rightDescription}
+        copy={content}
         {...(redirect ? { returnTo: redirect } : {})}
       />
     </AuthShell>

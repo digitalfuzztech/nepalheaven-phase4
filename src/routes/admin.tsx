@@ -4,11 +4,14 @@ import { AuthShell } from "@/components/AuthShell";
 import { AuthForm } from "@/components/AuthForm";
 import { useAuth } from "@/lib/auth";
 import { safeReturnPath } from "@/lib/safe-redirect";
+import { getPublicAuthenticationFn } from "@/lib/cms-page-content.functions";
+import { getPublicSiteSettingsFn } from "@/lib/content.functions";
 
 function AdminLoginPage() {
   const navigate = useNavigate();
   const { user, ready } = useAuth();
   const { redirect, reset } = Route.useSearch();
+  const { content, branding } = Route.useLoaderData();
 
   useEffect(() => {
     if (!ready) return;
@@ -36,9 +39,10 @@ function AdminLoginPage() {
   return (
     <AuthShell
       admin
-      eyebrow="Secure administration"
-      title="Run Nepal Heaven from one place."
-      description="Access the Nepal Heaven administration workspace. Customer accounts cannot access this area."
+      eyebrow={content.leftSubtitle}
+      title={content.leftTitle}
+      description={content.leftDescription}
+      branding={branding}
     >
       {reset === "success" ? (
         <p className="mb-4 rounded-xl bg-forest/10 p-3 text-sm">
@@ -47,8 +51,9 @@ function AdminLoginPage() {
       ) : null}
       <AuthForm
         role="admin"
-        title="Admin sign in"
-        subtitle="Use your Nepal Heaven administrator credentials."
+        title={content.rightTitle}
+        subtitle={content.rightDescription}
+        copy={content}
         {...(redirect ? { returnTo: redirect } : {})}
       />
     </AuthShell>
@@ -61,6 +66,19 @@ export const Route = createFileRoute("/admin")({
       ? { redirect: search["redirect"] }
       : {}),
     ...(search["reset"] === "success" ? { reset: "success" } : {}),
+  }),
+  loader: async () => {
+    const [content, settings] = await Promise.all([
+      getPublicAuthenticationFn(),
+      getPublicSiteSettingsFn(),
+    ]);
+    return { content: content.adminLogin, branding: settings.branding };
+  },
+  head: () => ({
+    meta: [
+      { title: "Admin sign in | Nepal Heaven" },
+      { name: "robots", content: "noindex,nofollow" },
+    ],
   }),
   component: AdminLoginPage,
 });

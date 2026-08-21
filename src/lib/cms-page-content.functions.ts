@@ -6,6 +6,11 @@ import {
   cmsContactPageSchema,
   cmsExperienceListingSchema,
   cmsGalleryPageSchema,
+  cmsHomePageSchema,
+  cmsAuthenticationSchema,
+  cmsFormsSchema,
+  cmsBookingPageSchema,
+  cmsSeoSchema,
 } from "@/lib/cms-page-content.schema";
 const kindSchema = z.enum([
   "experiences",
@@ -13,6 +18,11 @@ const kindSchema = z.enum([
   "about",
   "contact",
   "gallery",
+  "home",
+  "authentication",
+  "forms",
+  "booking",
+  "seo",
 ]);
 export const getCmsPageContentFn = createServerFn({ method: "GET" })
   .validator(kindSchema)
@@ -67,3 +77,51 @@ export const getPublicGalleryPageFn = createServerFn({ method: "GET" }).handler(
   async () =>
     (await import("@/lib/cms-page-content.server")).getPublicGalleryPage(),
 );
+export const updateCmsHomePageFn = createServerFn({ method: "POST" })
+  .validator(cmsHomePageSchema)
+  .handler(async ({ data }) =>
+    (await import("@/lib/cms-page-content.server")).updateCmsHomePage(data),
+  );
+export const updateCmsAuthenticationFn = createServerFn({ method: "POST" })
+  .validator(cmsAuthenticationSchema)
+  .handler(async ({ data }) =>
+    (await import("@/lib/cms-page-content.server")).updateCmsAuthentication(
+      data,
+    ),
+  );
+export const updateCmsFormsFn = createServerFn({ method: "POST" })
+  .validator(cmsFormsSchema)
+  .handler(async ({ data }) =>
+    (await import("@/lib/cms-page-content.server")).updateCmsForms(data),
+  );
+export const updateCmsBookingPageFn = createServerFn({ method: "POST" })
+  .validator(cmsBookingPageSchema)
+  .handler(async ({ data }) =>
+    (await import("@/lib/cms-page-content.server")).updateCmsBookingPage(data),
+  );
+export const updateCmsSeoFn = createServerFn({ method: "POST" })
+  .validator(cmsSeoSchema)
+  .handler(async ({ data }) =>
+    (await import("@/lib/cms-page-content.server")).updateCmsSeo(data),
+  );
+export const getPublicHomePageFn = createServerFn({ method: "GET" }).handler(
+  async () =>
+    (await import("@/lib/cms-page-content.server")).getPublicHomePage(),
+);
+export const getPublicAuthenticationFn = createServerFn({
+  method: "GET",
+}).handler(async () =>
+  (await import("@/lib/cms-page-content.server")).getPublicAuthentication(),
+);
+export const getPublicFormsFn = createServerFn({ method: "GET" }).handler(
+  async () => (await import("@/lib/cms-page-content.server")).getPublicForms(),
+);
+export const getPublicBookingPageFn = createServerFn({ method: "GET" }).handler(
+  async () =>
+    (await import("@/lib/cms-page-content.server")).getPublicBookingPage(),
+);
+export const getPublicSeoPageFn = createServerFn({ method: "GET" })
+  .validator(z.string().max(191))
+  .handler(async ({ data }) =>
+    (await import("@/lib/cms-page-content.server")).getPublicSeoPage(data),
+  );

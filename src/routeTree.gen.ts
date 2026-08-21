@@ -46,18 +46,24 @@ import { Route as PackagesIndexRouteImport } from './routes/packages.index'
 import { Route as PackagesSlugRouteImport } from './routes/packages.$slug'
 import { Route as AccountBookingsReferenceRouteImport } from './routes/account_.bookings.$reference'
 import { Route as AdminCmsAboutRouteImport } from './routes/admin_.cms_.about'
+import { Route as AdminCmsAuthenticationRouteImport } from './routes/admin_.cms_.authentication'
 import { Route as AdminCmsBlogRouteImport } from './routes/admin_.cms_.blog'
+import { Route as AdminCmsBookingRouteImport } from './routes/admin_.cms_.booking'
 import { Route as AdminCmsContactRouteImport } from './routes/admin_.cms_.contact'
 import { Route as AdminCmsDestinationsRouteImport } from './routes/admin_.cms_.destinations'
 import { Route as AdminCmsEmailTemplatesRouteImport } from './routes/admin_.cms_.email-templates'
 import { Route as AdminCmsExperiencesRouteImport } from './routes/admin_.cms_.experiences'
 import { Route as AdminCmsFooterRouteImport } from './routes/admin_.cms_.footer'
+import { Route as AdminCmsFormsRouteImport } from './routes/admin_.cms_.forms'
 import { Route as AdminCmsGalleryRouteImport } from './routes/admin_.cms_.gallery'
 import { Route as AdminCmsGeneralRouteImport } from './routes/admin_.cms_.general'
+import { Route as AdminCmsHomeRouteImport } from './routes/admin_.cms_.home'
 import { Route as AdminCmsMediaRouteImport } from './routes/admin_.cms_.media'
 import { Route as AdminCmsNavigationRouteImport } from './routes/admin_.cms_.navigation'
 import { Route as AdminCmsOtherSettingsRouteImport } from './routes/admin_.cms_.other-settings'
 import { Route as AdminCmsPackagesRouteImport } from './routes/admin_.cms_.packages'
+import { Route as AdminCmsSeoRouteImport } from './routes/admin_.cms_.seo'
+import { Route as AdminCmsTestimonialsRouteImport } from './routes/admin_.cms_.testimonials'
 import { Route as AdminCmsBlogIdRouteImport } from './routes/admin_.cms_.blog_.$id'
 import { Route as AdminCmsBlogListingPageRouteImport } from './routes/admin_.cms_.blog_.listing-page'
 import { Route as AdminCmsBlogNewRouteImport } from './routes/admin_.cms_.blog_.new'
@@ -73,6 +79,8 @@ import { Route as AdminCmsNavigationKeyRouteImport } from './routes/admin_.cms_.
 import { Route as AdminCmsPackagesIdRouteImport } from './routes/admin_.cms_.packages_.$id'
 import { Route as AdminCmsPackagesListingPageRouteImport } from './routes/admin_.cms_.packages_.listing-page'
 import { Route as AdminCmsPackagesNewRouteImport } from './routes/admin_.cms_.packages_.new'
+import { Route as AdminCmsTestimonialsIdRouteImport } from './routes/admin_.cms_.testimonials_.$id'
+import { Route as AdminCmsTestimonialsNewRouteImport } from './routes/admin_.cms_.testimonials_.new'
 import { Route as AdminCrmBookingsCancelledReferenceRouteImport } from './routes/admin_.crm.bookings.cancelled.$reference'
 import { Route as AdminCrmBookingsConfirmedReferenceRouteImport } from './routes/admin_.crm.bookings.confirmed.$reference'
 
@@ -262,9 +270,19 @@ const AdminCmsAboutRoute = AdminCmsAboutRouteImport.update({
   path: '/admin/cms/about',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminCmsAuthenticationRoute = AdminCmsAuthenticationRouteImport.update({
+  id: '/admin_/cms_/authentication',
+  path: '/admin/cms/authentication',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminCmsBlogRoute = AdminCmsBlogRouteImport.update({
   id: '/admin_/cms_/blog',
   path: '/admin/cms/blog',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminCmsBookingRoute = AdminCmsBookingRouteImport.update({
+  id: '/admin_/cms_/booking',
+  path: '/admin/cms/booking',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminCmsContactRoute = AdminCmsContactRouteImport.update({
@@ -292,6 +310,11 @@ const AdminCmsFooterRoute = AdminCmsFooterRouteImport.update({
   path: '/admin/cms/footer',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminCmsFormsRoute = AdminCmsFormsRouteImport.update({
+  id: '/admin_/cms_/forms',
+  path: '/admin/cms/forms',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminCmsGalleryRoute = AdminCmsGalleryRouteImport.update({
   id: '/admin_/cms_/gallery',
   path: '/admin/cms/gallery',
@@ -300,6 +323,11 @@ const AdminCmsGalleryRoute = AdminCmsGalleryRouteImport.update({
 const AdminCmsGeneralRoute = AdminCmsGeneralRouteImport.update({
   id: '/admin_/cms_/general',
   path: '/admin/cms/general',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminCmsHomeRoute = AdminCmsHomeRouteImport.update({
+  id: '/admin_/cms_/home',
+  path: '/admin/cms/home',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminCmsMediaRoute = AdminCmsMediaRouteImport.update({
@@ -320,6 +348,16 @@ const AdminCmsOtherSettingsRoute = AdminCmsOtherSettingsRouteImport.update({
 const AdminCmsPackagesRoute = AdminCmsPackagesRouteImport.update({
   id: '/admin_/cms_/packages',
   path: '/admin/cms/packages',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminCmsSeoRoute = AdminCmsSeoRouteImport.update({
+  id: '/admin_/cms_/seo',
+  path: '/admin/cms/seo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminCmsTestimonialsRoute = AdminCmsTestimonialsRouteImport.update({
+  id: '/admin_/cms_/testimonials',
+  path: '/admin/cms/testimonials',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminCmsBlogIdRoute = AdminCmsBlogIdRouteImport.update({
@@ -401,6 +439,16 @@ const AdminCmsPackagesNewRoute = AdminCmsPackagesNewRouteImport.update({
   path: '/admin/cms/packages/new',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminCmsTestimonialsIdRoute = AdminCmsTestimonialsIdRouteImport.update({
+  id: '/admin_/cms_/testimonials_/$id',
+  path: '/admin/cms/testimonials/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminCmsTestimonialsNewRoute = AdminCmsTestimonialsNewRouteImport.update({
+  id: '/admin_/cms_/testimonials_/new',
+  path: '/admin/cms/testimonials/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminCrmBookingsCancelledReferenceRoute =
   AdminCrmBookingsCancelledReferenceRouteImport.update({
     id: '/bookings/cancelled/$reference',
@@ -452,18 +500,24 @@ export interface FileRoutesByFullPath {
   '/packages/': typeof PackagesIndexRoute
   '/account/bookings/$reference': typeof AccountBookingsReferenceRoute
   '/admin/cms/about': typeof AdminCmsAboutRoute
+  '/admin/cms/authentication': typeof AdminCmsAuthenticationRoute
   '/admin/cms/blog': typeof AdminCmsBlogRoute
+  '/admin/cms/booking': typeof AdminCmsBookingRoute
   '/admin/cms/contact': typeof AdminCmsContactRoute
   '/admin/cms/destinations': typeof AdminCmsDestinationsRoute
   '/admin/cms/email-templates': typeof AdminCmsEmailTemplatesRoute
   '/admin/cms/experiences': typeof AdminCmsExperiencesRoute
   '/admin/cms/footer': typeof AdminCmsFooterRoute
+  '/admin/cms/forms': typeof AdminCmsFormsRoute
   '/admin/cms/gallery': typeof AdminCmsGalleryRoute
   '/admin/cms/general': typeof AdminCmsGeneralRoute
+  '/admin/cms/home': typeof AdminCmsHomeRoute
   '/admin/cms/media': typeof AdminCmsMediaRoute
   '/admin/cms/navigation': typeof AdminCmsNavigationRoute
   '/admin/cms/other-settings': typeof AdminCmsOtherSettingsRoute
   '/admin/cms/packages': typeof AdminCmsPackagesRoute
+  '/admin/cms/seo': typeof AdminCmsSeoRoute
+  '/admin/cms/testimonials': typeof AdminCmsTestimonialsRoute
   '/admin/cms/blog/$id': typeof AdminCmsBlogIdRoute
   '/admin/cms/blog/listing-page': typeof AdminCmsBlogListingPageRoute
   '/admin/cms/blog/new': typeof AdminCmsBlogNewRoute
@@ -479,6 +533,8 @@ export interface FileRoutesByFullPath {
   '/admin/cms/packages/$id': typeof AdminCmsPackagesIdRoute
   '/admin/cms/packages/listing-page': typeof AdminCmsPackagesListingPageRoute
   '/admin/cms/packages/new': typeof AdminCmsPackagesNewRoute
+  '/admin/cms/testimonials/$id': typeof AdminCmsTestimonialsIdRoute
+  '/admin/cms/testimonials/new': typeof AdminCmsTestimonialsNewRoute
   '/admin/crm/bookings/cancelled/$reference': typeof AdminCrmBookingsCancelledReferenceRoute
   '/admin/crm/bookings/confirmed/$reference': typeof AdminCrmBookingsConfirmedReferenceRoute
 }
@@ -520,18 +576,24 @@ export interface FileRoutesByTo {
   '/packages': typeof PackagesIndexRoute
   '/account/bookings/$reference': typeof AccountBookingsReferenceRoute
   '/admin/cms/about': typeof AdminCmsAboutRoute
+  '/admin/cms/authentication': typeof AdminCmsAuthenticationRoute
   '/admin/cms/blog': typeof AdminCmsBlogRoute
+  '/admin/cms/booking': typeof AdminCmsBookingRoute
   '/admin/cms/contact': typeof AdminCmsContactRoute
   '/admin/cms/destinations': typeof AdminCmsDestinationsRoute
   '/admin/cms/email-templates': typeof AdminCmsEmailTemplatesRoute
   '/admin/cms/experiences': typeof AdminCmsExperiencesRoute
   '/admin/cms/footer': typeof AdminCmsFooterRoute
+  '/admin/cms/forms': typeof AdminCmsFormsRoute
   '/admin/cms/gallery': typeof AdminCmsGalleryRoute
   '/admin/cms/general': typeof AdminCmsGeneralRoute
+  '/admin/cms/home': typeof AdminCmsHomeRoute
   '/admin/cms/media': typeof AdminCmsMediaRoute
   '/admin/cms/navigation': typeof AdminCmsNavigationRoute
   '/admin/cms/other-settings': typeof AdminCmsOtherSettingsRoute
   '/admin/cms/packages': typeof AdminCmsPackagesRoute
+  '/admin/cms/seo': typeof AdminCmsSeoRoute
+  '/admin/cms/testimonials': typeof AdminCmsTestimonialsRoute
   '/admin/cms/blog/$id': typeof AdminCmsBlogIdRoute
   '/admin/cms/blog/listing-page': typeof AdminCmsBlogListingPageRoute
   '/admin/cms/blog/new': typeof AdminCmsBlogNewRoute
@@ -547,6 +609,8 @@ export interface FileRoutesByTo {
   '/admin/cms/packages/$id': typeof AdminCmsPackagesIdRoute
   '/admin/cms/packages/listing-page': typeof AdminCmsPackagesListingPageRoute
   '/admin/cms/packages/new': typeof AdminCmsPackagesNewRoute
+  '/admin/cms/testimonials/$id': typeof AdminCmsTestimonialsIdRoute
+  '/admin/cms/testimonials/new': typeof AdminCmsTestimonialsNewRoute
   '/admin/crm/bookings/cancelled/$reference': typeof AdminCrmBookingsCancelledReferenceRoute
   '/admin/crm/bookings/confirmed/$reference': typeof AdminCrmBookingsConfirmedReferenceRoute
 }
@@ -589,18 +653,24 @@ export interface FileRoutesById {
   '/packages/': typeof PackagesIndexRoute
   '/account_/bookings/$reference': typeof AccountBookingsReferenceRoute
   '/admin_/cms_/about': typeof AdminCmsAboutRoute
+  '/admin_/cms_/authentication': typeof AdminCmsAuthenticationRoute
   '/admin_/cms_/blog': typeof AdminCmsBlogRoute
+  '/admin_/cms_/booking': typeof AdminCmsBookingRoute
   '/admin_/cms_/contact': typeof AdminCmsContactRoute
   '/admin_/cms_/destinations': typeof AdminCmsDestinationsRoute
   '/admin_/cms_/email-templates': typeof AdminCmsEmailTemplatesRoute
   '/admin_/cms_/experiences': typeof AdminCmsExperiencesRoute
   '/admin_/cms_/footer': typeof AdminCmsFooterRoute
+  '/admin_/cms_/forms': typeof AdminCmsFormsRoute
   '/admin_/cms_/gallery': typeof AdminCmsGalleryRoute
   '/admin_/cms_/general': typeof AdminCmsGeneralRoute
+  '/admin_/cms_/home': typeof AdminCmsHomeRoute
   '/admin_/cms_/media': typeof AdminCmsMediaRoute
   '/admin_/cms_/navigation': typeof AdminCmsNavigationRoute
   '/admin_/cms_/other-settings': typeof AdminCmsOtherSettingsRoute
   '/admin_/cms_/packages': typeof AdminCmsPackagesRoute
+  '/admin_/cms_/seo': typeof AdminCmsSeoRoute
+  '/admin_/cms_/testimonials': typeof AdminCmsTestimonialsRoute
   '/admin_/cms_/blog_/$id': typeof AdminCmsBlogIdRoute
   '/admin_/cms_/blog_/listing-page': typeof AdminCmsBlogListingPageRoute
   '/admin_/cms_/blog_/new': typeof AdminCmsBlogNewRoute
@@ -616,6 +686,8 @@ export interface FileRoutesById {
   '/admin_/cms_/packages_/$id': typeof AdminCmsPackagesIdRoute
   '/admin_/cms_/packages_/listing-page': typeof AdminCmsPackagesListingPageRoute
   '/admin_/cms_/packages_/new': typeof AdminCmsPackagesNewRoute
+  '/admin_/cms_/testimonials_/$id': typeof AdminCmsTestimonialsIdRoute
+  '/admin_/cms_/testimonials_/new': typeof AdminCmsTestimonialsNewRoute
   '/admin_/crm/bookings/cancelled/$reference': typeof AdminCrmBookingsCancelledReferenceRoute
   '/admin_/crm/bookings/confirmed/$reference': typeof AdminCrmBookingsConfirmedReferenceRoute
 }
@@ -659,18 +731,24 @@ export interface FileRouteTypes {
     | '/packages/'
     | '/account/bookings/$reference'
     | '/admin/cms/about'
+    | '/admin/cms/authentication'
     | '/admin/cms/blog'
+    | '/admin/cms/booking'
     | '/admin/cms/contact'
     | '/admin/cms/destinations'
     | '/admin/cms/email-templates'
     | '/admin/cms/experiences'
     | '/admin/cms/footer'
+    | '/admin/cms/forms'
     | '/admin/cms/gallery'
     | '/admin/cms/general'
+    | '/admin/cms/home'
     | '/admin/cms/media'
     | '/admin/cms/navigation'
     | '/admin/cms/other-settings'
     | '/admin/cms/packages'
+    | '/admin/cms/seo'
+    | '/admin/cms/testimonials'
     | '/admin/cms/blog/$id'
     | '/admin/cms/blog/listing-page'
     | '/admin/cms/blog/new'
@@ -686,6 +764,8 @@ export interface FileRouteTypes {
     | '/admin/cms/packages/$id'
     | '/admin/cms/packages/listing-page'
     | '/admin/cms/packages/new'
+    | '/admin/cms/testimonials/$id'
+    | '/admin/cms/testimonials/new'
     | '/admin/crm/bookings/cancelled/$reference'
     | '/admin/crm/bookings/confirmed/$reference'
   fileRoutesByTo: FileRoutesByTo
@@ -727,18 +807,24 @@ export interface FileRouteTypes {
     | '/packages'
     | '/account/bookings/$reference'
     | '/admin/cms/about'
+    | '/admin/cms/authentication'
     | '/admin/cms/blog'
+    | '/admin/cms/booking'
     | '/admin/cms/contact'
     | '/admin/cms/destinations'
     | '/admin/cms/email-templates'
     | '/admin/cms/experiences'
     | '/admin/cms/footer'
+    | '/admin/cms/forms'
     | '/admin/cms/gallery'
     | '/admin/cms/general'
+    | '/admin/cms/home'
     | '/admin/cms/media'
     | '/admin/cms/navigation'
     | '/admin/cms/other-settings'
     | '/admin/cms/packages'
+    | '/admin/cms/seo'
+    | '/admin/cms/testimonials'
     | '/admin/cms/blog/$id'
     | '/admin/cms/blog/listing-page'
     | '/admin/cms/blog/new'
@@ -754,6 +840,8 @@ export interface FileRouteTypes {
     | '/admin/cms/packages/$id'
     | '/admin/cms/packages/listing-page'
     | '/admin/cms/packages/new'
+    | '/admin/cms/testimonials/$id'
+    | '/admin/cms/testimonials/new'
     | '/admin/crm/bookings/cancelled/$reference'
     | '/admin/crm/bookings/confirmed/$reference'
   id:
@@ -795,18 +883,24 @@ export interface FileRouteTypes {
     | '/packages/'
     | '/account_/bookings/$reference'
     | '/admin_/cms_/about'
+    | '/admin_/cms_/authentication'
     | '/admin_/cms_/blog'
+    | '/admin_/cms_/booking'
     | '/admin_/cms_/contact'
     | '/admin_/cms_/destinations'
     | '/admin_/cms_/email-templates'
     | '/admin_/cms_/experiences'
     | '/admin_/cms_/footer'
+    | '/admin_/cms_/forms'
     | '/admin_/cms_/gallery'
     | '/admin_/cms_/general'
+    | '/admin_/cms_/home'
     | '/admin_/cms_/media'
     | '/admin_/cms_/navigation'
     | '/admin_/cms_/other-settings'
     | '/admin_/cms_/packages'
+    | '/admin_/cms_/seo'
+    | '/admin_/cms_/testimonials'
     | '/admin_/cms_/blog_/$id'
     | '/admin_/cms_/blog_/listing-page'
     | '/admin_/cms_/blog_/new'
@@ -822,6 +916,8 @@ export interface FileRouteTypes {
     | '/admin_/cms_/packages_/$id'
     | '/admin_/cms_/packages_/listing-page'
     | '/admin_/cms_/packages_/new'
+    | '/admin_/cms_/testimonials_/$id'
+    | '/admin_/cms_/testimonials_/new'
     | '/admin_/crm/bookings/cancelled/$reference'
     | '/admin_/crm/bookings/confirmed/$reference'
   fileRoutesById: FileRoutesById
@@ -863,18 +959,24 @@ export interface RootRouteChildren {
   PackagesIndexRoute: typeof PackagesIndexRoute
   AccountBookingsReferenceRoute: typeof AccountBookingsReferenceRoute
   AdminCmsAboutRoute: typeof AdminCmsAboutRoute
+  AdminCmsAuthenticationRoute: typeof AdminCmsAuthenticationRoute
   AdminCmsBlogRoute: typeof AdminCmsBlogRoute
+  AdminCmsBookingRoute: typeof AdminCmsBookingRoute
   AdminCmsContactRoute: typeof AdminCmsContactRoute
   AdminCmsDestinationsRoute: typeof AdminCmsDestinationsRoute
   AdminCmsEmailTemplatesRoute: typeof AdminCmsEmailTemplatesRoute
   AdminCmsExperiencesRoute: typeof AdminCmsExperiencesRoute
   AdminCmsFooterRoute: typeof AdminCmsFooterRoute
+  AdminCmsFormsRoute: typeof AdminCmsFormsRoute
   AdminCmsGalleryRoute: typeof AdminCmsGalleryRoute
   AdminCmsGeneralRoute: typeof AdminCmsGeneralRoute
+  AdminCmsHomeRoute: typeof AdminCmsHomeRoute
   AdminCmsMediaRoute: typeof AdminCmsMediaRoute
   AdminCmsNavigationRoute: typeof AdminCmsNavigationRoute
   AdminCmsOtherSettingsRoute: typeof AdminCmsOtherSettingsRoute
   AdminCmsPackagesRoute: typeof AdminCmsPackagesRoute
+  AdminCmsSeoRoute: typeof AdminCmsSeoRoute
+  AdminCmsTestimonialsRoute: typeof AdminCmsTestimonialsRoute
   AdminCmsBlogIdRoute: typeof AdminCmsBlogIdRoute
   AdminCmsBlogListingPageRoute: typeof AdminCmsBlogListingPageRoute
   AdminCmsBlogNewRoute: typeof AdminCmsBlogNewRoute
@@ -890,6 +992,8 @@ export interface RootRouteChildren {
   AdminCmsPackagesIdRoute: typeof AdminCmsPackagesIdRoute
   AdminCmsPackagesListingPageRoute: typeof AdminCmsPackagesListingPageRoute
   AdminCmsPackagesNewRoute: typeof AdminCmsPackagesNewRoute
+  AdminCmsTestimonialsIdRoute: typeof AdminCmsTestimonialsIdRoute
+  AdminCmsTestimonialsNewRoute: typeof AdminCmsTestimonialsNewRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1153,11 +1257,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminCmsAboutRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin_/cms_/authentication': {
+      id: '/admin_/cms_/authentication'
+      path: '/admin/cms/authentication'
+      fullPath: '/admin/cms/authentication'
+      preLoaderRoute: typeof AdminCmsAuthenticationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin_/cms_/blog': {
       id: '/admin_/cms_/blog'
       path: '/admin/cms/blog'
       fullPath: '/admin/cms/blog'
       preLoaderRoute: typeof AdminCmsBlogRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin_/cms_/booking': {
+      id: '/admin_/cms_/booking'
+      path: '/admin/cms/booking'
+      fullPath: '/admin/cms/booking'
+      preLoaderRoute: typeof AdminCmsBookingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin_/cms_/contact': {
@@ -1195,6 +1313,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminCmsFooterRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin_/cms_/forms': {
+      id: '/admin_/cms_/forms'
+      path: '/admin/cms/forms'
+      fullPath: '/admin/cms/forms'
+      preLoaderRoute: typeof AdminCmsFormsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin_/cms_/gallery': {
       id: '/admin_/cms_/gallery'
       path: '/admin/cms/gallery'
@@ -1207,6 +1332,13 @@ declare module '@tanstack/react-router' {
       path: '/admin/cms/general'
       fullPath: '/admin/cms/general'
       preLoaderRoute: typeof AdminCmsGeneralRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin_/cms_/home': {
+      id: '/admin_/cms_/home'
+      path: '/admin/cms/home'
+      fullPath: '/admin/cms/home'
+      preLoaderRoute: typeof AdminCmsHomeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin_/cms_/media': {
@@ -1235,6 +1367,20 @@ declare module '@tanstack/react-router' {
       path: '/admin/cms/packages'
       fullPath: '/admin/cms/packages'
       preLoaderRoute: typeof AdminCmsPackagesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin_/cms_/seo': {
+      id: '/admin_/cms_/seo'
+      path: '/admin/cms/seo'
+      fullPath: '/admin/cms/seo'
+      preLoaderRoute: typeof AdminCmsSeoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin_/cms_/testimonials': {
+      id: '/admin_/cms_/testimonials'
+      path: '/admin/cms/testimonials'
+      fullPath: '/admin/cms/testimonials'
+      preLoaderRoute: typeof AdminCmsTestimonialsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin_/cms_/blog_/$id': {
@@ -1342,6 +1488,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminCmsPackagesNewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin_/cms_/testimonials_/$id': {
+      id: '/admin_/cms_/testimonials_/$id'
+      path: '/admin/cms/testimonials/$id'
+      fullPath: '/admin/cms/testimonials/$id'
+      preLoaderRoute: typeof AdminCmsTestimonialsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin_/cms_/testimonials_/new': {
+      id: '/admin_/cms_/testimonials_/new'
+      path: '/admin/cms/testimonials/new'
+      fullPath: '/admin/cms/testimonials/new'
+      preLoaderRoute: typeof AdminCmsTestimonialsNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin_/crm/bookings/cancelled/$reference': {
       id: '/admin_/crm/bookings/cancelled/$reference'
       path: '/bookings/cancelled/$reference'
@@ -1424,18 +1584,24 @@ const rootRouteChildren: RootRouteChildren = {
   PackagesIndexRoute: PackagesIndexRoute,
   AccountBookingsReferenceRoute: AccountBookingsReferenceRoute,
   AdminCmsAboutRoute: AdminCmsAboutRoute,
+  AdminCmsAuthenticationRoute: AdminCmsAuthenticationRoute,
   AdminCmsBlogRoute: AdminCmsBlogRoute,
+  AdminCmsBookingRoute: AdminCmsBookingRoute,
   AdminCmsContactRoute: AdminCmsContactRoute,
   AdminCmsDestinationsRoute: AdminCmsDestinationsRoute,
   AdminCmsEmailTemplatesRoute: AdminCmsEmailTemplatesRoute,
   AdminCmsExperiencesRoute: AdminCmsExperiencesRoute,
   AdminCmsFooterRoute: AdminCmsFooterRoute,
+  AdminCmsFormsRoute: AdminCmsFormsRoute,
   AdminCmsGalleryRoute: AdminCmsGalleryRoute,
   AdminCmsGeneralRoute: AdminCmsGeneralRoute,
+  AdminCmsHomeRoute: AdminCmsHomeRoute,
   AdminCmsMediaRoute: AdminCmsMediaRoute,
   AdminCmsNavigationRoute: AdminCmsNavigationRoute,
   AdminCmsOtherSettingsRoute: AdminCmsOtherSettingsRoute,
   AdminCmsPackagesRoute: AdminCmsPackagesRoute,
+  AdminCmsSeoRoute: AdminCmsSeoRoute,
+  AdminCmsTestimonialsRoute: AdminCmsTestimonialsRoute,
   AdminCmsBlogIdRoute: AdminCmsBlogIdRoute,
   AdminCmsBlogListingPageRoute: AdminCmsBlogListingPageRoute,
   AdminCmsBlogNewRoute: AdminCmsBlogNewRoute,
@@ -1451,6 +1617,8 @@ const rootRouteChildren: RootRouteChildren = {
   AdminCmsPackagesIdRoute: AdminCmsPackagesIdRoute,
   AdminCmsPackagesListingPageRoute: AdminCmsPackagesListingPageRoute,
   AdminCmsPackagesNewRoute: AdminCmsPackagesNewRoute,
+  AdminCmsTestimonialsIdRoute: AdminCmsTestimonialsIdRoute,
+  AdminCmsTestimonialsNewRoute: AdminCmsTestimonialsNewRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

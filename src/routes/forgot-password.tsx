@@ -2,12 +2,28 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import { AuthShell } from "@/components/AuthShell";
 import { useAuth } from "@/lib/auth";
+import { getPublicAuthenticationFn } from "@/lib/cms-page-content.functions";
+import { getPublicSiteSettingsFn } from "@/lib/content.functions";
 
 export const Route = createFileRoute("/forgot-password")({
+  loader: async () => {
+    const [content, settings] = await Promise.all([
+      getPublicAuthenticationFn(),
+      getPublicSiteSettingsFn(),
+    ]);
+    return { content: content.forgotPassword, branding: settings.branding };
+  },
+  head: () => ({
+    meta: [
+      { title: "Forgot password | Nepal Heaven" },
+      { name: "robots", content: "noindex,nofollow" },
+    ],
+  }),
   component: ForgotPasswordPage,
 });
 
 function ForgotPasswordPage() {
+  const { content, branding } = Route.useLoaderData();
   const { requestPasswordReset } = useAuth();
   const [email, setEmail] = useState("");
   const [outcome, setOutcome] = useState<{
@@ -25,7 +41,7 @@ function ForgotPasswordPage() {
     setBusy(true);
     const result = await requestPasswordReset(email);
     setBusy(false);
-    if (!result.ok) return setError(result.message);
+    if (!result.ok) return setError(content.genericError);
     let verificationPath = result.verificationPath;
     if (result.status === "verification_required") {
       window.sessionStorage.setItem(
@@ -49,25 +65,25 @@ function ForgotPasswordPage() {
     }
     setOutcome({
       status: result.status || "other",
-      message: result.message,
+      message: content.successText,
       ...(verificationPath ? { verificationPath } : {}),
     });
   }
 
   return (
     <AuthShell
-      eyebrow="Account recovery"
-      title="Get back to your journeys."
-      description="Enter your account email and we'll prepare the next step for resetting your password."
+      eyebrow={content.leftSubtitle}
+      title={content.leftTitle}
+      description={content.leftDescription}
+      branding={branding}
     >
       <div>
-        <p className="eyebrow text-gold">Forgot password</p>
+        <p className="eyebrow text-gold">{content.rightSubtitle}</p>
         <h2 className="mt-3 font-[family-name:var(--font-display)] text-4xl font-semibold text-primary">
-          Reset your password
+          {content.rightTitle}
         </h2>
         <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-          Enter your traveller email. If it matches an eligible account, Nepal
-          Heaven will send a secure one-time reset link.
+          {content.rightDescription}
         </p>
         {error ? (
           <div
@@ -110,20 +126,20 @@ function ForgotPasswordPage() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="Email address"
+              placeholder={content.emailPlaceholder}
               className="h-12 w-full rounded-2xl border border-border bg-card px-4 text-sm outline-none focus:border-gold"
             />
             <button
               disabled={busy}
               className="bg-gold-gradient h-12 w-full rounded-2xl text-sm font-bold text-gold-foreground disabled:opacity-60"
             >
-              {busy ? "Preparing…" : "Prepare reset"}
+              {busy ? "Preparing…" : content.submitText}
             </button>
           </form>
         )}
         <p className="mt-6 text-center text-sm text-muted-foreground">
           <Link to="/login" className="font-bold text-primary hover:text-gold">
-            ← Back to sign in
+            {content.linkText}
           </Link>
         </p>
       </div>

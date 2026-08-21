@@ -15,17 +15,19 @@ import { WhatsAppLink } from "@/components/WhatsAppLink";
 import { FaqAccordion } from "@/components/FaqAccordion";
 import { ExperienceCard } from "@/components/ExperienceCard";
 import type { ExperienceCategory } from "@/lib/content.types";
+import { getPublicFormsFn } from "@/lib/cms-page-content.functions";
 
 export const Route = createFileRoute("/experiences/$slug")({
   loader: async ({ params }) => {
-    const [experience, experiences] = await Promise.all([
+    const [experience, experiences, forms] = await Promise.all([
       getExperienceBySlugFn({
         data: { slug: params.slug },
       }),
       getExperiencesFn(),
+      getPublicFormsFn(),
     ]);
     if (!experience) throw notFound();
-    return { experience, experiences };
+    return { experience, experiences, forms };
   },
   head: ({ loaderData, params }) =>
     loaderData
@@ -45,7 +47,8 @@ export const Route = createFileRoute("/experiences/$slug")({
 });
 
 function ExperienceDetail() {
-  const { experience, experiences } = Route.useLoaderData();
+  const { experience, experiences, forms } = Route.useLoaderData();
+  const copy = forms.experience;
   const { user } = useAuth();
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
@@ -82,9 +85,9 @@ function ExperienceDetail() {
         },
       });
       if (result.ok) setSent(true);
-      else setError(result.message);
+      else setError(copy.genericError);
     } catch {
-      setError("Please check your details and try again.");
+      setError(copy.genericError);
     } finally {
       setBusy(false);
     }
@@ -126,10 +129,9 @@ function ExperienceDetail() {
         <aside className="order-last lg:sticky lg:top-28 lg:order-none lg:col-start-2 lg:row-start-1 lg:self-start">
           <div className="glass-card rounded-3xl p-7">
             <Sparkles className="h-7 w-7 text-gold" />
-            <h2 className="mt-5 text-2xl">Shape this around you</h2>
+            <h2 className="mt-5 text-2xl">{copy.title}</h2>
             <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-              Tell our local team your pace, dates and interests. We can build a
-              private itinerary without claiming fixed availability.
+              {copy.description}
             </p>
             <WhatsAppLink
               context="experience"
@@ -140,9 +142,15 @@ function ExperienceDetail() {
               Ask about {experience.name} on WhatsApp
             </WhatsAppLink>
             {sent ? (
-              <p className="mt-6 rounded-2xl bg-sand p-5 text-sm">
-                Thank you — your {experience.name} inquiry is safely with us.
-              </p>
+              <div className="mt-6 rounded-3xl bg-sand p-7 text-center">
+                <h3 className="text-2xl">{copy.thankYouTitle}</h3>
+                <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+                  {copy.thankYouDescription.replace(
+                    "{experience}",
+                    experience.name,
+                  )}
+                </p>
+              </div>
             ) : (
               <form onSubmit={submit} className="mt-6 space-y-3">
                 <input
@@ -151,7 +159,7 @@ function ExperienceDetail() {
                   required
                   minLength={2}
                   maxLength={120}
-                  placeholder="Full name"
+                  placeholder={copy.namePlaceholder}
                   defaultValue={user?.name}
                 />
                 <input
@@ -159,21 +167,21 @@ function ExperienceDetail() {
                   name="email"
                   type="email"
                   required
-                  placeholder="Email address"
+                  placeholder={copy.emailPlaceholder}
                   defaultValue={user?.email}
                 />
                 <input
                   className={inputClass}
                   name="phone"
                   type="tel"
-                  placeholder="Phone / WhatsApp (optional)"
+                  placeholder={copy.phonePlaceholder}
                   defaultValue={user?.phone}
                 />
                 <input
                   className={inputClass}
                   name="date"
                   type="date"
-                  aria-label="Preferred date"
+                  aria-label={copy.dateLabel}
                 />
                 <textarea
                   className={inputClass}
@@ -182,7 +190,7 @@ function ExperienceDetail() {
                   minLength={10}
                   maxLength={5000}
                   rows={4}
-                  placeholder="Tell us about the journey you have in mind…"
+                  placeholder={copy.messagePlaceholder}
                 />
                 <label className="flex items-start gap-3 text-xs text-muted-foreground">
                   <input
@@ -190,7 +198,7 @@ function ExperienceDetail() {
                     name="marketingOptIn"
                     className="mt-0.5"
                   />
-                  Send me Nepal travel inspiration, offers and trip updates.
+                  {copy.checkboxText}
                 </label>
                 {error ? (
                   <p className="text-sm text-destructive">{error}</p>
@@ -199,7 +207,9 @@ function ExperienceDetail() {
                   disabled={busy}
                   className="bg-gold-gradient w-full rounded-2xl px-5 py-3 text-sm font-bold text-gold-foreground disabled:opacity-60"
                 >
-                  {busy ? "Submitting…" : `Ask about ${experience.name}`}
+                  {busy
+                    ? "Submitting…"
+                    : copy.buttonText.replace("{experience}", experience.name)}
                 </button>
               </form>
             )}

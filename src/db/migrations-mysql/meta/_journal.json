@@ -120,6 +120,13 @@
       "when": 1787248904687,
       "tag": "0016_sour_stryfe",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "5",
+      "when": 1787259839389,
+      "tag": "0017_special_paladin",
+      "breakpoints": true
     }
   ]
 }

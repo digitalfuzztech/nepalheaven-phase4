@@ -8,7 +8,11 @@ import {
   Handshake,
 } from "lucide-react";
 import { getPublicSiteSettingsFn } from "@/lib/content.functions";
-import { getPublicAboutPageFn } from "@/lib/cms-page-content.functions";
+import {
+  getPublicAboutPageFn,
+  getPublicSeoPageFn,
+} from "@/lib/cms-page-content.functions";
+import { staticSeo } from "@/lib/public-seo";
 import { PageHero } from "@/components/PageHero";
 import { Reveal } from "@/components/Reveal";
 import { SectionHeading } from "@/components/SectionHeading";
@@ -16,23 +20,34 @@ import { Counter } from "@/components/Counter";
 import { CtaBanner } from "@/components/CtaBanner";
 export const Route = createFileRoute("/about")({
   loader: async () => {
-    const [settings, page] = await Promise.all([
+    const [settings, page, seo] = await Promise.all([
       getPublicSiteSettingsFn(),
       getPublicAboutPageFn(),
+      getPublicSeoPageFn({ data: "/about" }),
     ]);
-    return { settings, page };
+    return { settings, page, seo };
   },
-  head: () => ({
-    meta: [
-      { title: "About Nepal Heaven — Locally Owned Himalayan Specialists" },
-      {
-        name: "description",
-        content:
+  head: ({ loaderData }) =>
+    loaderData?.seo
+      ? staticSeo(
+          loaderData.seo,
+          "About Nepal Heaven — Locally Owned Himalayan Specialists",
           "Founded in Kathmandu by mountain professionals. Our story, team, milestones, awards and partners.",
-      },
-    ],
-    links: [{ rel: "canonical", href: "/about" }],
-  }),
+          "/about",
+        )
+      : {
+          meta: [
+            {
+              title: "About Nepal Heaven — Locally Owned Himalayan Specialists",
+            },
+            {
+              name: "description",
+              content:
+                "Founded in Kathmandu by mountain professionals. Our story, team, milestones, awards and partners.",
+            },
+          ],
+          links: [{ rel: "canonical", href: "/about" }],
+        },
   component: AboutPage,
 });
 function AboutPage() {

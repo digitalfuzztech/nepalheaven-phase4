@@ -8,12 +8,19 @@ export function AuthShell({
   description,
   children,
   admin = false,
+  branding,
 }: {
   eyebrow: string;
   title: string;
   description: string;
   children: ReactNode;
   admin?: boolean;
+  branding?: {
+    companyName: string;
+    mainLogoUrl: string | null;
+    lightLogoUrl: string | null;
+    copyrightText: string;
+  };
 }) {
   return (
     <div className="relative flex min-h-screen items-center overflow-hidden bg-primary px-4 pb-10 pt-28">
@@ -31,7 +38,15 @@ export function AuthShell({
               to="/"
               className="font-[family-name:var(--font-display)] text-2xl font-semibold"
             >
-              Nepal Heaven
+              {branding?.lightLogoUrl || branding?.mainLogoUrl ? (
+                <img
+                  src={branding.lightLogoUrl ?? branding.mainLogoUrl ?? ""}
+                  alt={branding.companyName}
+                  className="h-12 max-w-56 object-contain object-left"
+                />
+              ) : (
+                (branding?.companyName ?? "Nepal Heaven")
+              )}
             </Link>
             <p className="mt-2 text-sm text-primary-foreground/60">
               {admin
@@ -49,7 +64,8 @@ export function AuthShell({
             </p>
           </div>
           <p className="text-xs text-primary-foreground/45">
-            © {new Date().getFullYear()} Nepal Heaven
+            © {new Date().getFullYear()}{" "}
+            {branding?.copyrightText ?? "Nepal Heaven"}
           </p>
         </div>
         <div className="flex min-h-[680px] items-center justify-center p-6 sm:p-10">
@@ -59,7 +75,15 @@ export function AuthShell({
                 to="/"
                 className="font-[family-name:var(--font-display)] text-2xl font-semibold text-primary"
               >
-                Nepal Heaven
+                {branding?.mainLogoUrl ? (
+                  <img
+                    src={branding.mainLogoUrl}
+                    alt={branding.companyName}
+                    className="h-10 max-w-52 object-contain object-left"
+                  />
+                ) : (
+                  (branding?.companyName ?? "Nepal Heaven")
+                )}
               </Link>
             </div>
             {children}

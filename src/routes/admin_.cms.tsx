@@ -15,6 +15,7 @@ import {
   Settings2,
   SlidersHorizontal,
   Star,
+  ShieldCheck,
   PanelBottom,
 } from "lucide-react";
 
@@ -99,7 +100,7 @@ function AdminCmsPage() {
       icon: Globe2,
       value: overview.pages,
       valueLabel: "CMS pages available",
-      to: null,
+      to: "/admin/cms/home" as const,
     },
 
     {
@@ -183,16 +184,34 @@ function AdminCmsPage() {
       icon: Star,
       value: overview.testimonials,
       valueLabel: "testimonials",
-      to: null,
+      to: "/admin/cms/testimonials" as const,
     },
 
     {
-      title: "FAQs",
-      description: "Frequently asked questions used throughout the website.",
-      icon: MessageCircleQuestion,
-      value: overview.faqs,
-      valueLabel: "FAQs",
-      to: null,
+      title: "Authentication",
+      description:
+        "Customer and administrator authentication-page presentation copy.",
+      icon: ShieldCheck,
+      value: 6,
+      valueLabel: "pages",
+      to: "/admin/cms/authentication" as const,
+    },
+    {
+      title: "Public Forms",
+      description:
+        "Destination, Experience and Package form presentation copy.",
+      icon: FileText,
+      value: 3,
+      valueLabel: "form groups",
+      to: "/admin/cms/forms" as const,
+    },
+    {
+      title: "Booking Page",
+      description: "Booking and confirmation presentation copy.",
+      icon: BookOpen,
+      value: 1,
+      valueLabel: "page",
+      to: "/admin/cms/booking" as const,
     },
 
     {
@@ -211,7 +230,7 @@ function AdminCmsPage() {
       icon: Image,
       value: overview.pages,
       valueLabel: "page identities",
-      to: null,
+      to: "/admin/cms/seo" as const,
     },
   ];
 

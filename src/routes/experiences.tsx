@@ -7,39 +7,55 @@ import { PageHero } from "@/components/PageHero";
 import { Reveal } from "@/components/Reveal";
 import { SectionHeading } from "@/components/SectionHeading";
 import { CtaBanner } from "@/components/CtaBanner";
-import { getPublicExperienceListingFn } from "@/lib/cms-page-content.functions";
+import {
+  getPublicExperienceListingFn,
+  getPublicSeoPageFn,
+} from "@/lib/cms-page-content.functions";
+import { staticSeo } from "@/lib/public-seo";
 import { ExperienceCard } from "@/components/ExperienceCard";
 
 export const Route = createFileRoute("/experiences")({
   loader: async () => {
-    const [experienceCategories, settings, listing] = await Promise.all([
+    const [experienceCategories, settings, listing, seo] = await Promise.all([
       getExperiencesFn(),
       getPublicSiteSettingsFn(),
       getPublicExperienceListingFn(),
+      getPublicSeoPageFn({ data: "/experiences" }),
     ]);
-    return { experienceCategories, images: settings.images, listing };
+    return { experienceCategories, images: settings.images, listing, seo };
   },
-  head: () => ({
-    meta: [
-      {
-        title:
+  head: ({ loaderData }) =>
+    loaderData?.seo
+      ? staticSeo(
+          loaderData.seo,
           "Nepal Experiences — Adventure, Culture, Wellness | Nepal Heaven",
-      },
-      {
-        name: "description",
-        content:
           "Choose how you travel: adventure, luxury, culture, wellness, photography, pilgrimage, food, family or honeymoon journeys in Nepal.",
-      },
-      { property: "og:title", content: "Nepal Experiences | Nepal Heaven" },
-      {
-        property: "og:description",
-        content:
-          "Nine ways to travel Nepal, each designed around a different kind of traveller.",
-      },
-      { property: "og:url", content: "/experiences" },
-    ],
-    links: [{ rel: "canonical", href: "/experiences" }],
-  }),
+          "/experiences",
+        )
+      : {
+          meta: [
+            {
+              title:
+                "Nepal Experiences — Adventure, Culture, Wellness | Nepal Heaven",
+            },
+            {
+              name: "description",
+              content:
+                "Choose how you travel: adventure, luxury, culture, wellness, photography, pilgrimage, food, family or honeymoon journeys in Nepal.",
+            },
+            {
+              property: "og:title",
+              content: "Nepal Experiences | Nepal Heaven",
+            },
+            {
+              property: "og:description",
+              content:
+                "Nine ways to travel Nepal, each designed around a different kind of traveller.",
+            },
+            { property: "og:url", content: "/experiences" },
+          ],
+          links: [{ rel: "canonical", href: "/experiences" }],
+        },
   component: ExperiencesPage,
 });
 

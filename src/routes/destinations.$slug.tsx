@@ -12,10 +12,7 @@ import {
   Signal,
   X,
 } from "lucide-react";
-import {
-  getDestinationBySlugFn,
-  getPackagesFn,
-} from "@/lib/content.functions";
+import { getDestinationBySlugFn, getPackagesFn } from "@/lib/content.functions";
 import { PageHero } from "@/components/PageHero";
 import { Reveal } from "@/components/Reveal";
 import { SectionHeading } from "@/components/SectionHeading";
@@ -24,33 +21,29 @@ import { PackageCard } from "@/components/PackageCard";
 import { submitDestinationInquiryFn } from "@/lib/lead.functions";
 import { useAuth } from "@/lib/auth";
 import { WhatsAppLink } from "@/components/WhatsAppLink";
+import { getPublicFormsFn } from "@/lib/cms-page-content.functions";
 
 export const Route = createFileRoute("/destinations/$slug")({
   loader: async ({ params }) => {
-    const [
-      destination,
-      packages,
-    ] =
-        await Promise.all([
-          getDestinationBySlugFn({
-            data: {
-              slug:
-              params.slug,
-            },
-          }),
+    const [destination, packages, forms] = await Promise.all([
+      getDestinationBySlugFn({
+        data: {
+          slug: params.slug,
+        },
+      }),
 
-          getPackagesFn(),
-        ]);
+      getPackagesFn(),
+      getPublicFormsFn(),
+    ]);
 
-    if (
-        !destination
-    ) {
+    if (!destination) {
       throw notFound();
     }
 
     return {
       destination,
       packages,
+      forms,
     };
   },
   head: ({ loaderData, params }) => {
@@ -79,7 +72,8 @@ export const Route = createFileRoute("/destinations/$slug")({
 });
 
 function DestinationDetail() {
-  const { destination: d, packages } = Route.useLoaderData();
+  const { destination: d, packages, forms } = Route.useLoaderData();
+  const copy = forms.destination;
   const { user } = useAuth();
   const related = packages
     .filter((p) =>
@@ -89,92 +83,47 @@ function DestinationDetail() {
   const [sent, setSent] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
-  const [
-    galleryPreviewId,
-    setGalleryPreviewId,
-  ] =
-      useState<
-          string | null
-      >(null);
+  const [galleryPreviewId, setGalleryPreviewId] = useState<string | null>(null);
 
-  const activeGalleryImage =
-      galleryPreviewId
-          ? d.gallery.find(
-          (
-              item,
-          ) =>
-              item.id ===
-              galleryPreviewId,
-      ) ?? null
-          : null;
-  useEffect(
-      () => {
-        if (
-            !activeGalleryImage
-        ) {
-          return;
-        }
+  const activeGalleryImage = galleryPreviewId
+    ? (d.gallery.find((item) => item.id === galleryPreviewId) ?? null)
+    : null;
+  useEffect(() => {
+    if (!activeGalleryImage) {
+      return;
+    }
 
-        const closeOnEscape =
-            (
-                event:
-                KeyboardEvent,
-            ) => {
-              if (
-                  event.key ===
-                  "Escape"
-              ) {
-                setGalleryPreviewId(
-                    null,
-                );
-              }
-            };
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setGalleryPreviewId(null);
+      }
+    };
 
-        const previousOverflow =
-            document.body.style
-                .overflow;
+    const previousOverflow = document.body.style.overflow;
 
-        document.body.style.overflow =
-            "hidden";
+    document.body.style.overflow = "hidden";
 
-        window.addEventListener(
-            "keydown",
-            closeOnEscape,
-        );
+    window.addEventListener("keydown", closeOnEscape);
 
-        return () => {
-          document.body.style.overflow =
-              previousOverflow;
+    return () => {
+      document.body.style.overflow = previousOverflow;
 
-          window.removeEventListener(
-              "keydown",
-              closeOnEscape,
-          );
-        };
-      },
-      [
-        activeGalleryImage,
-      ],
-  );
-  const latitude =
-      d.latitude;
+      window.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [activeGalleryImage]);
+  const latitude = d.latitude;
 
-  const longitude =
-      d.longitude;
+  const longitude = d.longitude;
 
-  const hasMapLocation =
-      latitude !== null &&
-      longitude !== null;
+  const hasMapLocation = latitude !== null && longitude !== null;
 
-  const mapEmbedUrl =
-      hasMapLocation
-          ? `https://www.openstreetmap.org/export/embed.html?bbox=${longitude - 0.08}%2C${latitude - 0.05}%2C${longitude + 0.08}%2C${latitude + 0.05}&layer=mapnik&marker=${latitude}%2C${longitude}`
-          : null;
+  const mapEmbedUrl = hasMapLocation
+    ? `https://www.openstreetmap.org/export/embed.html?bbox=${longitude - 0.08}%2C${latitude - 0.05}%2C${longitude + 0.08}%2C${latitude + 0.05}&layer=mapnik&marker=${latitude}%2C${longitude}`
+    : null;
 
-  const mapViewUrl =
-      hasMapLocation
-          ? `https://www.openstreetmap.org/?mlat=${latitude}&mlon=${longitude}#map=12/${latitude}/${longitude}`
-          : null;
+  const mapViewUrl = hasMapLocation
+    ? `https://www.openstreetmap.org/?mlat=${latitude}&mlon=${longitude}#map=12/${latitude}/${longitude}`
+    : null;
 
   async function submitItinerary(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -271,76 +220,50 @@ function DestinationDetail() {
           </Reveal>
 
           {d.gallery.length ? (
-              <Reveal as="section">
-                <div className="flex items-center justify-between gap-4">
-                  <h2 className="text-3xl">
-                    Gallery
-                  </h2>
+            <Reveal as="section">
+              <div className="flex items-center justify-between gap-4">
+                <h2 className="text-3xl">Gallery</h2>
 
-                  {d.gallery.length >
-                  6 ? (
-                      <Link
-                          to="/gallery"
-                          search={{
-                            category:
-                                "destination",
+                {d.gallery.length > 6 ? (
+                  <Link
+                    to="/gallery"
+                    search={{
+                      category: "destination",
 
-                            associatedTo:
-                            d.slug,
-                          }}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-sm font-semibold text-gold transition-colors hover:text-foreground"
-                      >
-                        See More
-                      </Link>
-                  ) : null}
-                </div>
+                      associatedTo: d.slug,
+                    }}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm font-semibold text-gold transition-colors hover:text-foreground"
+                  >
+                    See More
+                  </Link>
+                ) : null}
+              </div>
 
-                <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3">
-                  {d.gallery
-                      .slice(
-                          0,
-                          6,
-                      )
-                      .map(
-                          (
-                              item,
-                          ) => (
-                              <button
-                                  key={
-                                    item.id
-                                  }
-                                  type="button"
-                                  onClick={() =>
-                                      setGalleryPreviewId(
-                                          item.id,
-                                      )
-                                  }
-                                  aria-label={`Preview ${
-                                      item.title ||
-                                      item.alt ||
-                                      "gallery image"
-                                  }`}
-                                  className="zoom-media group block overflow-hidden rounded-2xl text-left"
-                              >
-                                <div className="aspect-[4/3] overflow-hidden">
-                                  <img
-                                      src={
-                                        item.image
-                                      }
-                                      alt={
-                                        item.alt
-                                      }
-                                      loading="lazy"
-                                      className="h-full w-full cursor-zoom-in object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-                                  />
-                                </div>
-                              </button>
-                          ),
-                      )}
-                </div>
-              </Reveal>
+              <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3">
+                {d.gallery.slice(0, 6).map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => setGalleryPreviewId(item.id)}
+                    aria-label={`Preview ${
+                      item.title || item.alt || "gallery image"
+                    }`}
+                    className="zoom-media group block overflow-hidden rounded-2xl text-left"
+                  >
+                    <div className="aspect-[4/3] overflow-hidden">
+                      <img
+                        src={item.image}
+                        alt={item.alt}
+                        loading="lazy"
+                        className="h-full w-full cursor-zoom-in object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                      />
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </Reveal>
           ) : null}
 
           <Reveal as="section">
@@ -362,76 +285,55 @@ function DestinationDetail() {
           </Reveal>
 
           <Reveal as="section">
-            <h2 className="text-3xl">
-              Where you'll be
-            </h2>
+            <h2 className="text-3xl">Where you'll be</h2>
 
-            {mapEmbedUrl &&
-            mapViewUrl ? (
-                <div className="mt-6 overflow-hidden rounded-3xl border border-border bg-card">
-                  <iframe
-                      src={
-                        mapEmbedUrl
-                      }
-                      title={`Map showing ${d.name}`}
-                      loading="lazy"
-                      className="h-80 w-full border-0"
-                  />
+            {mapEmbedUrl && mapViewUrl ? (
+              <div className="mt-6 overflow-hidden rounded-3xl border border-border bg-card">
+                <iframe
+                  src={mapEmbedUrl}
+                  title={`Map showing ${d.name}`}
+                  loading="lazy"
+                  className="h-80 w-full border-0"
+                />
 
-                  <div className="flex flex-col gap-3 border-t border-border px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                      <p className="font-semibold text-foreground">
-                        {d.name}
-                        {d.region
-                            ? `, ${d.region}`
-                            : ""}
-                      </p>
-
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        {latitude.toFixed(
-                            6,
-                        )}
-                        ,{" "}
-                        {longitude.toFixed(
-                            6,
-                        )}
-                      </p>
-                    </div>
-
-                    <a
-                        href={
-                          mapViewUrl
-                        }
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-2 text-sm font-semibold text-primary transition-colors hover:text-gold"
-                    >
-                      <Map className="h-4 w-4" />
-
-                      View larger map
-                    </a>
-                  </div>
-                </div>
-            ) : (
-                <div className="mt-6 grid h-72 place-items-center rounded-3xl border border-dashed border-border bg-sand text-center">
+                <div className="flex flex-col gap-3 border-t border-border px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <Map
-                        className="mx-auto h-8 w-8 text-gold"
-                        aria-hidden
-                    />
-
-                    <p className="mt-3 font-semibold text-foreground">
+                    <p className="font-semibold text-foreground">
                       {d.name}
-                      {d.region
-                          ? `, ${d.region}`
-                          : ""}
+                      {d.region ? `, ${d.region}` : ""}
                     </p>
 
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      Map location has not been added yet.
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {latitude.toFixed(6)}, {longitude.toFixed(6)}
                     </p>
                   </div>
+
+                  <a
+                    href={mapViewUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-2 text-sm font-semibold text-primary transition-colors hover:text-gold"
+                  >
+                    <Map className="h-4 w-4" />
+                    View larger map
+                  </a>
                 </div>
+              </div>
+            ) : (
+              <div className="mt-6 grid h-72 place-items-center rounded-3xl border border-dashed border-border bg-sand text-center">
+                <div>
+                  <Map className="mx-auto h-8 w-8 text-gold" aria-hidden />
+
+                  <p className="mt-3 font-semibold text-foreground">
+                    {d.name}
+                    {d.region ? `, ${d.region}` : ""}
+                  </p>
+
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Map location has not been added yet.
+                  </p>
+                </div>
+              </div>
             )}
           </Reveal>
 
@@ -487,29 +389,24 @@ function DestinationDetail() {
           </Reveal>
 
           {d.faqs.length ? (
-              <Reveal as="section">
-                <h2 className="text-3xl">
-                  Frequently asked
-                </h2>
+            <Reveal as="section">
+              <h2 className="text-3xl">Frequently asked</h2>
 
-                <div className="mt-6">
-                  <FaqAccordion
-                      items={
-                        d.faqs
-                      }
-                  />
-                </div>
-              </Reveal>
+              <div className="mt-6">
+                <FaqAccordion items={d.faqs} />
+              </div>
+            </Reveal>
           ) : null}
         </div>
 
         <aside className="lg:sticky lg:top-28 lg:self-start">
           <div className="glass-card rounded-3xl p-7">
-            <p className="eyebrow">Enquire</p>
-            <h2 className="mt-3 text-2xl">Plan {d.name}</h2>
+            <p className="eyebrow">{copy.subtitle}</p>
+            <h2 className="mt-3 text-2xl">
+              {copy.title.replace("{destination}", d.name)}
+            </h2>
             <p className="mt-2 text-sm text-muted-foreground">
-              A specialist replies within 24 hours with a tailored itinerary and
-              price.
+              {copy.description}
             </p>
             <WhatsAppLink
               context="destination"
@@ -524,12 +421,9 @@ function DestinationDetail() {
                 <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-forest/10 text-forest">
                   <CheckCircle2 className="h-7 w-7" aria-hidden />
                 </div>
-                <h3 className="mt-5 text-2xl">
-                  Thank you — your itinerary request is in.
-                </h3>
+                <h3 className="mt-5 text-2xl">{copy.thankYouTitle}</h3>
                 <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-                  A specialist will reply within 24 hours with a tailored
-                  itinerary and pricing for {d.name}.
+                  {copy.thankYouDescription.replace("{destination}", d.name)}
                 </p>
                 <button
                   type="button"
@@ -545,8 +439,8 @@ function DestinationDetail() {
                   type="text"
                   name="name"
                   required
-                  placeholder="Full name"
-                  aria-label="Full name"
+                  placeholder={copy.namePlaceholder}
+                  aria-label={copy.nameLabel}
                   defaultValue={user?.name}
                   className="w-full rounded-2xl border border-border bg-card px-4 py-3 text-sm outline-none transition-colors focus:border-gold"
                 />
@@ -554,31 +448,31 @@ function DestinationDetail() {
                   type="email"
                   name="email"
                   required
-                  placeholder="Email address"
-                  aria-label="Email address"
+                  placeholder={copy.emailPlaceholder}
+                  aria-label={copy.emailLabel}
                   defaultValue={user?.email}
                   className="w-full rounded-2xl border border-border bg-card px-4 py-3 text-sm outline-none transition-colors focus:border-gold"
                 />
                 <input
                   type="tel"
                   name="phone"
-                  placeholder="Phone / WhatsApp (optional)"
-                  aria-label="Phone or WhatsApp"
+                  placeholder={copy.phonePlaceholder}
+                  aria-label={copy.phoneLabel}
                   defaultValue={user?.phone}
                   className="w-full rounded-2xl border border-border bg-card px-4 py-3 text-sm outline-none transition-colors focus:border-gold"
                 />
                 <input
                   type="date"
                   name="date"
-                  aria-label="Preferred start date"
+                  aria-label={copy.dateLabel}
                   className="w-full rounded-2xl border border-border bg-card px-4 py-3 text-sm outline-none transition-colors focus:border-gold"
                 />
                 <textarea
                   name="message"
                   rows={3}
                   required
-                  placeholder="Tell us about your trip…"
-                  aria-label="Trip notes"
+                  placeholder={copy.messagePlaceholder}
+                  aria-label={copy.messageLabel}
                   className="w-full rounded-2xl border border-border bg-card px-4 py-3 text-sm outline-none transition-colors focus:border-gold"
                 />
                 <label className="flex items-start gap-3 text-xs text-muted-foreground">
@@ -587,9 +481,7 @@ function DestinationDetail() {
                     name="marketingOptIn"
                     className="mt-0.5"
                   />
-                  <span>
-                    Send me Nepal travel inspiration, offers and trip updates.
-                  </span>
+                  <span>{copy.checkboxText}</span>
                 </label>
                 {submitError ? (
                   <p className="text-sm text-destructive">{submitError}</p>
@@ -599,12 +491,12 @@ function DestinationDetail() {
                   disabled={submitting}
                   className="bg-gold-gradient w-full rounded-2xl px-6 py-4 text-sm font-bold text-gold-foreground transition-transform hover:scale-[1.02] disabled:opacity-60"
                 >
-                  {submitting ? "Submitting…" : "Request itinerary"}
+                  {submitting ? "Submitting…" : copy.buttonText}
                 </button>
               </form>
             )}
             <p className="mt-4 text-center text-xs text-muted-foreground">
-              No deposit required to enquire.
+              {copy.linkText}
             </p>
           </div>
         </aside>
@@ -625,8 +517,8 @@ function DestinationDetail() {
 
       <div className="container-lux py-20 text-center">
         <Link
-            to="/destinations"
-            className="text-sm font-bold text-primary hover:text-gold"
+          to="/destinations"
+          className="text-sm font-bold text-primary hover:text-gold"
         >
           ← Back to all destinations
         </Link>
@@ -634,77 +526,60 @@ function DestinationDetail() {
 
       {/* Destination gallery image preview */}
       {activeGalleryImage ? (
-          <div
-              role="dialog"
-              aria-modal="true"
-              aria-label={
-                  activeGalleryImage.title ||
-                  activeGalleryImage.alt ||
-                  "Destination gallery preview"
-              }
-              className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-4 backdrop-blur-sm sm:p-6"
-              onClick={() =>
-                  setGalleryPreviewId(null)
-              }
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={
+            activeGalleryImage.title ||
+            activeGalleryImage.alt ||
+            "Destination gallery preview"
+          }
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-4 backdrop-blur-sm sm:p-6"
+          onClick={() => setGalleryPreviewId(null)}
+        >
+          <figure
+            className="relative max-h-[92vh] max-w-6xl overflow-hidden rounded-2xl bg-black shadow-2xl"
+            onClick={(event) => event.stopPropagation()}
           >
-            <figure
-                className="relative max-h-[92vh] max-w-6xl overflow-hidden rounded-2xl bg-black shadow-2xl"
-                onClick={(event) =>
-                    event.stopPropagation()
-                }
-            >
-              <div className="relative flex max-h-[92vh] items-center justify-center">
+            <div className="relative flex max-h-[92vh] items-center justify-center">
+              {/* Large preview image */}
+              <img
+                src={activeGalleryImage.image}
+                alt={activeGalleryImage.alt}
+                className="max-h-[92vh] max-w-full object-contain"
+              />
 
-                {/* Large preview image */}
-                <img
-                    src={activeGalleryImage.image}
-                    alt={activeGalleryImage.alt}
-                    className="max-h-[92vh] max-w-full object-contain"
-                />
+              {/* Close button */}
+              <button
+                type="button"
+                onClick={() => setGalleryPreviewId(null)}
+                className="absolute right-4 top-4 z-20 grid h-10 w-10 place-items-center rounded-full border border-white/25 bg-black/50 text-white backdrop-blur-md transition-colors hover:border-gold hover:text-gold"
+              >
+                <span className="sr-only">Close image preview</span>
 
-                {/* Close button */}
-                <button
-                    type="button"
-                    onClick={() =>
-                        setGalleryPreviewId(null)
-                    }
-                    className="absolute right-4 top-4 z-20 grid h-10 w-10 place-items-center rounded-full border border-white/25 bg-black/50 text-white backdrop-blur-md transition-colors hover:border-gold hover:text-gold"
-                >
-          <span className="sr-only">
-            Close image preview
-          </span>
+                <X className="h-5 w-5" aria-hidden />
+              </button>
 
-                  <X
-                      className="h-5 w-5"
-                      aria-hidden
-                  />
-                </button>
+              {/* Title + caption overlay */}
+              {activeGalleryImage.title || activeGalleryImage.caption ? (
+                <figcaption className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/95 via-black/60 to-transparent px-5 pb-5 pt-20 sm:px-6 sm:pb-6">
+                  {activeGalleryImage.title ? (
+                    <p className="text-sm font-semibold text-white">
+                      {activeGalleryImage.title}
+                    </p>
+                  ) : null}
 
-                {/* Title + caption overlay */}
-                {activeGalleryImage.title ||
-                activeGalleryImage.caption ? (
-                    <figcaption className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/95 via-black/60 to-transparent px-5 pb-5 pt-20 sm:px-6 sm:pb-6">
-
-                      {activeGalleryImage.title ? (
-                          <p className="text-sm font-semibold text-white">
-                            {activeGalleryImage.title}
-                          </p>
-                      ) : null}
-
-                      {activeGalleryImage.caption ? (
-                          <p className="mt-1 max-w-3xl text-xs leading-relaxed text-white/75">
-                            {activeGalleryImage.caption}
-                          </p>
-                      ) : null}
-
-                    </figcaption>
-                ) : null}
-
-              </div>
-            </figure>
-          </div>
+                  {activeGalleryImage.caption ? (
+                    <p className="mt-1 max-w-3xl text-xs leading-relaxed text-white/75">
+                      {activeGalleryImage.caption}
+                    </p>
+                  ) : null}
+                </figcaption>
+              ) : null}
+            </div>
+          </figure>
+        </div>
       ) : null}
-
     </>
   );
 }

@@ -11,12 +11,16 @@ import type { Package } from "@/lib/content.types";
 import { useAuth } from "@/lib/auth";
 import { createCheckoutIntentFn } from "@/lib/booking.functions";
 import { countryName } from "@/lib/countries";
+import { getPublicBookingPageFn } from "@/lib/cms-page-content.functions";
 
 export const Route = createFileRoute("/book/$slug")({
   loader: async ({ params }) => {
-    const pkg = await getPackageBySlugFn({ data: { slug: params.slug } });
+    const [pkg, page] = await Promise.all([
+      getPackageBySlugFn({ data: { slug: params.slug } }),
+      getPublicBookingPageFn(),
+    ]);
     if (!pkg) throw notFound();
-    return { pkg };
+    return { pkg, page };
   },
   component: CheckoutPage,
 });
@@ -27,7 +31,7 @@ type CheckoutResult = Extract<
 >["checkout"];
 
 function CheckoutPage() {
-  const { pkg } = Route.useLoaderData();
+  const { pkg, page } = Route.useLoaderData();
   const { user, ready } = useAuth();
   const navigate = useNavigate();
   const [travellers, setTravellers] = useState(2);
@@ -116,24 +120,24 @@ function CheckoutPage() {
     <section className="container-lux py-14 lg:py-24">
       <div className="mx-auto max-w-5xl">
         <div className="mb-10">
-          <p className="eyebrow text-gold">Prepare your journey</p>
+          <p className="eyebrow text-gold">{page.subtitle}</p>
           <h1 className="mt-3 font-[family-name:var(--font-display)] text-4xl font-semibold text-primary">
-            {pkg.title}
+            {page.title}
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            {pkg.days} days · {pkg.destination}
+            {page.description} {pkg.title} · {pkg.days} days · {pkg.destination}
           </p>
         </div>
         <div className="mb-8 grid grid-cols-2 rounded-2xl bg-accent p-1 text-sm font-semibold">
           <div
             className={`rounded-xl px-4 py-3 text-center ${step === 1 ? "bg-card shadow-sm" : "text-muted-foreground"}`}
           >
-            1. Traveller details
+            {page.travellerStepText}
           </div>
           <div
             className={`rounded-xl px-4 py-3 text-center ${step === 2 ? "bg-card shadow-sm" : "text-muted-foreground"}`}
           >
-            2. Review & payment choice
+            {page.reviewStepText}
           </div>
         </div>
 
@@ -143,7 +147,7 @@ function CheckoutPage() {
             className="grid gap-8 lg:grid-cols-[1fr_20rem]"
           >
             <div className="rounded-3xl border border-border bg-card p-7">
-              <h2 className="text-2xl font-semibold">Traveller information</h2>
+              <h2 className="text-2xl font-semibold">{page.formTitle}</h2>
               <div className="mt-6 grid gap-4 sm:grid-cols-2">
                 <ProfileField label="Full name" value={user.name} />
                 <ProfileField label="Email" value={user.email} />
@@ -234,7 +238,7 @@ function CheckoutPage() {
               >
                 {preparing
                   ? "Preparing secure checkout…"
-                  : "Continue to review"}
+                  : page.continueButtonText}
               </button>
             </div>
             <PackageSummary

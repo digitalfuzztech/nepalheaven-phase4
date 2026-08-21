@@ -1,4 +1,4 @@
-const marks = [
+const defaultMarks = [
   "Nepal Tourism Board licensed",
   "TAAN member",
   "NMA certified guides",
@@ -9,10 +9,13 @@ const marks = [
   "Carbon-offset flights",
 ];
 
-export function TrustMarquee() {
+export function TrustMarquee({ marks = defaultMarks }: { marks?: string[] }) {
   return (
     <div className="mask-fade-x relative overflow-hidden border-y border-border/60 bg-card/40 py-4 backdrop-blur-sm">
-      <ul className="animate-marquee flex w-max items-center gap-12 pr-12" aria-hidden>
+      <ul
+        className="animate-marquee flex w-max items-center gap-12 pr-12"
+        aria-hidden
+      >
         {[...marks, ...marks].map((m, i) => (
           <li
             key={`${m}-${i}`}

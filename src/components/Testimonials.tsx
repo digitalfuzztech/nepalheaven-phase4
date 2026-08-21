@@ -3,7 +3,11 @@ import { ChevronLeft, ChevronRight, Quote, Star } from "lucide-react";
 import type { Testimonial } from "@/lib/content.types";
 import { cn } from "@/lib/utils";
 
-export function Testimonials({ testimonials }: { testimonials: Testimonial[] }) {
+export function Testimonials({
+  testimonials,
+}: {
+  testimonials: Testimonial[];
+}) {
   const [index, setIndex] = useState(0);
   const active = testimonials[index];
 
@@ -14,9 +18,15 @@ export function Testimonials({ testimonials }: { testimonials: Testimonial[] }) 
 
   return (
     <div className="glass-card relative overflow-hidden rounded-[2rem] p-8 sm:p-12">
-      <Quote className="absolute -right-4 -top-4 h-32 w-32 text-gold/10" aria-hidden />
+      <Quote
+        className="absolute -right-4 -top-4 h-32 w-32 text-gold/10"
+        aria-hidden
+      />
       <div key={index} className="animate-reveal relative">
-        <div className="flex items-center gap-1 text-gold" aria-label={`${active.rating} out of 5 stars`}>
+        <div
+          className="flex items-center gap-1 text-gold"
+          aria-label={`${active.rating} out of 5 stars`}
+        >
           {Array.from({ length: active.rating }).map((_, i) => (
             <Star key={i} className="h-4 w-4 fill-current" aria-hidden />
           ))}
@@ -25,11 +35,21 @@ export function Testimonials({ testimonials }: { testimonials: Testimonial[] }) 
           “{active.quote}”
         </blockquote>
         <div className="mt-8 flex flex-wrap items-center gap-4">
-          <span className="bg-summit grid h-12 w-12 shrink-0 place-items-center rounded-full font-semibold text-primary-foreground">
-            {active.name.charAt(0)}
-          </span>
+          {active.avatar ? (
+            <img
+              src={active.avatar}
+              alt=""
+              className="h-12 w-12 shrink-0 rounded-full object-cover"
+            />
+          ) : (
+            <span className="bg-summit grid h-12 w-12 shrink-0 place-items-center rounded-full font-semibold text-primary-foreground">
+              {active.name.charAt(0)}
+            </span>
+          )}
           <div className="min-w-0">
-            <p className="truncate font-semibold text-foreground">{active.name}</p>
+            <p className="truncate font-semibold text-foreground">
+              {active.name}
+            </p>
             <p className="truncate text-sm text-muted-foreground">
               {active.country} · {active.trip}
             </p>
@@ -48,7 +68,9 @@ export function Testimonials({ testimonials }: { testimonials: Testimonial[] }) 
                 onClick={() => setIndex(i)}
                 className={cn(
                   "h-1.5 rounded-full transition-all duration-500",
-                  i === index ? "w-8 bg-gold" : "w-3 bg-border hover:bg-muted-foreground",
+                  i === index
+                    ? "w-8 bg-gold"
+                    : "w-3 bg-border hover:bg-muted-foreground",
                 )}
               />
             </li>

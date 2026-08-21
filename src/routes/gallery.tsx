@@ -6,7 +6,11 @@ import {
   getPublicGalleryItemsFn,
   getPublicSiteSettingsFn,
 } from "@/lib/content.functions";
-import { getPublicGalleryPageFn } from "@/lib/cms-page-content.functions";
+import {
+  getPublicGalleryPageFn,
+  getPublicSeoPageFn,
+} from "@/lib/cms-page-content.functions";
+import { staticSeo } from "@/lib/public-seo";
 
 import { PageHero } from "@/components/PageHero";
 import { Reveal } from "@/components/Reveal";
@@ -71,51 +75,62 @@ export const Route = createFileRoute("/gallery")({
    * The URL simply initializes the Category + Associated To filters.
    */
   loader: async ({ deps }) => {
-    const [settings, galleryItems, page] = await Promise.all([
+    const [settings, galleryItems, page, seo] = await Promise.all([
       getPublicSiteSettingsFn(),
       getPublicGalleryItemsFn({ data: { documentMode: deps.documentMode } }),
       getPublicGalleryPageFn(),
+      getPublicSeoPageFn({ data: "/gallery" }),
     ]);
 
     return {
       ...settings,
       galleryItems,
       page,
+      seo,
     };
   },
 
-  head: () => ({
-    meta: [
-      {
-        title:
+  head: ({ loaderData }) =>
+    loaderData?.seo
+      ? staticSeo(
+          loaderData.seo,
           "Nepal Photo Gallery — Mountains, Culture & Wildlife | Nepal Heaven",
-      },
-      {
-        name: "description",
-        content:
           "A curated gallery of Nepal: Himalayan summits, Newari heritage, Terai wildlife, alpine lakes and festivals.",
-      },
-      {
-        property: "og:title",
-        content: "Nepal Photo Gallery | Nepal Heaven",
-      },
-      {
-        property: "og:description",
-        content: "Photographs from our guides across every region of Nepal.",
-      },
-      {
-        property: "og:url",
-        content: "/gallery",
-      },
-    ],
+          "/gallery",
+        )
+      : {
+          meta: [
+            {
+              title:
+                "Nepal Photo Gallery — Mountains, Culture & Wildlife | Nepal Heaven",
+            },
+            {
+              name: "description",
+              content:
+                "A curated gallery of Nepal: Himalayan summits, Newari heritage, Terai wildlife, alpine lakes and festivals.",
+            },
+            {
+              property: "og:title",
+              content: "Nepal Photo Gallery | Nepal Heaven",
+            },
+            {
+              property: "og:description",
+              content:
+                "Photographs from our guides across every region of Nepal.",
+            },
+            {
+              property: "og:url",
+              content: "/gallery",
+            },
+          ],
 
-    links: [
-      {
-        rel: "canonical",
-        href: "/gallery",
-      },
-    ],
-  }),
+          links: [
+            {
+              rel: "canonical",
+              href: "/gallery",
+            },
+          ],
+        },
 
   component: GalleryPage,
 });

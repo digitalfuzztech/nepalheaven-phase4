@@ -42,6 +42,7 @@ import {
 import { media } from "@/db/schema/media";
 import { cmsOtherSettingsOptions } from "@/db/schema/cms-other-settings";
 import { resolveAssetReference } from "@/lib/asset-resolver";
+import { countryName } from "@/lib/countries";
 import type {
   Activity,
   Company,
@@ -222,6 +223,7 @@ export async function getDestinations(): Promise<Destination[]> {
   );
 
   return rows.map((row) => ({
+    id: row.id,
     slug: row.slug,
     name: row.name,
     region: row.region ?? "",
@@ -806,18 +808,61 @@ export async function getBlogPostBySlug(slug: string): Promise<Post | null> {
 export async function getTestimonials(): Promise<Testimonial[]> {
   const database = requireDb();
   const rows = await database
-    .select()
+    .select({
+      testimonial: testimonials,
+      destinationSlug: destinations.slug,
+      destinationStatus: destinations.status,
+      destinationName: destinations.name,
+      packageSlug: packages.slug,
+      packageStatus: packages.status,
+      packageName: packages.title,
+      experienceSlug: experienceCategories.slug,
+      experienceStatus: experienceCategories.status,
+      experienceName: experienceCategories.name,
+    })
     .from(testimonials)
+    .leftJoin(destinations, eq(testimonials.destinationId, destinations.id))
+    .leftJoin(packages, eq(testimonials.packageId, packages.id))
+    .leftJoin(
+      experienceCategories,
+      eq(testimonials.experienceId, experienceCategories.id),
+    )
     .where(eq(testimonials.status, "published"))
     .orderBy(asc(testimonials.sortOrder));
-  return rows.map((row) => ({
-    name: row.name,
-    country: row.location ?? "",
-    trip: row.tripName ?? "",
-    quote: row.content,
-    rating: Number(row.rating ?? 0),
-    ...(row.avatarUrl ? { avatar: resolveAssetReference(row.avatarUrl) } : {}),
-  }));
+  return rows.map((joined) => {
+    const row = joined.testimonial;
+    const trip =
+      joined.destinationName ??
+      joined.packageName ??
+      joined.experienceName ??
+      row.tripName ??
+      "";
+    const associationHref =
+      row.associationType === "destination" &&
+      joined.destinationStatus &&
+      joined.destinationSlug
+        ? `/destinations/${joined.destinationSlug}`
+        : row.associationType === "package" &&
+            joined.packageStatus &&
+            joined.packageSlug
+          ? `/packages/${joined.packageSlug}`
+          : row.associationType === "experience" &&
+              joined.experienceStatus &&
+              joined.experienceSlug
+            ? `/experiences/${joined.experienceSlug}`
+            : undefined;
+    return {
+      name: row.name,
+      country: countryName(row.countryCode) ?? row.location ?? "",
+      trip,
+      quote: row.content,
+      rating: Number(row.rating ?? 0),
+      ...(row.avatarUrl
+        ? { avatar: resolveAssetReference(row.avatarUrl) }
+        : {}),
+      ...(associationHref ? { associationHref } : {}),
+    };
+  });
 }
 
 export async function getFaqs(): Promise<FaqGroup[]> {
@@ -1198,6 +1243,7 @@ export async function getPublicGalleryItems(
    */
   const mediaRows = await database
     .select({
+      id: media.id,
       type: media.type,
 
       url: media.url,
@@ -1429,6 +1475,7 @@ export async function getPublicGalleryItems(
 
     return [
       {
+        id: item.id,
         type: item.type,
 
         ...(item.type === "image"

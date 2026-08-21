@@ -12,11 +12,21 @@ import {
   cmsContactPageSchema,
   cmsExperienceListingSchema,
   cmsGalleryPageSchema,
+  cmsHomePageSchema,
+  cmsAuthenticationSchema,
+  cmsFormsSchema,
+  cmsBookingPageSchema,
+  cmsSeoSchema,
   type CmsAboutPageInput,
   type CmsBlogListingInput,
   type CmsContactPageInput,
   type CmsExperienceListingInput,
   type CmsGalleryPageInput,
+  type CmsHomePageInput,
+  type CmsAuthenticationInput,
+  type CmsFormsInput,
+  type CmsBookingPageInput,
+  type CmsSeoInput,
 } from "@/lib/cms-page-content.schema";
 
 type PageDataMap = {
@@ -25,7 +35,131 @@ type PageDataMap = {
   about: CmsAboutPageInput;
   contact: CmsContactPageInput;
   gallery: CmsGalleryPageInput;
+  home: CmsHomePageInput;
+  authentication: CmsAuthenticationInput;
+  forms: CmsFormsInput;
+  booking: CmsBookingPageInput;
+  seo: CmsSeoInput;
 };
+
+function authDefaults(
+  leftSubtitle: string,
+  leftTitle: string,
+  rightTitle: string,
+) {
+  return {
+    leftSubtitle,
+    leftTitle,
+    leftDescription: "Manage your Nepal Heaven journey securely.",
+    rightSubtitle: leftSubtitle,
+    rightTitle,
+    rightDescription: "Enter your details to continue.",
+    emailLabel: "Email address",
+    emailPlaceholder: "you@example.com",
+    passwordLabel: "Password",
+    passwordPlaceholder: "••••••••",
+    submitText: "Continue",
+    linkText: "Forgot password?",
+    bottomText: "Need another option?",
+    secondaryLinkText: "Go back",
+    successText: "Your request was successful.",
+    genericError: "Something went wrong. Please try again.",
+  };
+}
+function makeAuthenticationDefaults(): CmsAuthenticationInput {
+  return {
+    customerLogin: {
+      ...authDefaults(
+        "Welcome back",
+        "Your next Nepal journey starts here.",
+        "Welcome back",
+      ),
+      submitText: "Sign in",
+      secondaryLinkText: "Create an account",
+      bottomText: "Don't have an account?",
+    },
+    registration: {
+      ...authDefaults(
+        "Join Nepal Heaven",
+        "Keep your journeys together.",
+        "Start exploring",
+      ),
+      submitText: "Create traveller account",
+      secondaryLinkText: "Sign in",
+      bottomText: "Already registered?",
+      namePlaceholder: "Full name",
+      phonePlaceholder: "Contact number",
+      countryLabel: "Nationality",
+      birthDateLabel: "Date of birth",
+      confirmPasswordPlaceholder: "Confirm password",
+      passwordRequirementsError:
+        "Password must be at least 8 characters and include uppercase, lowercase and a number.",
+      passwordMismatchError: "Passwords do not match.",
+    },
+    forgotPassword: {
+      ...authDefaults(
+        "Account recovery",
+        "Get back to your journeys.",
+        "Reset your password",
+      ),
+      submitText: "Prepare reset",
+      secondaryLinkText: "Back to sign in",
+    },
+    verification: {
+      ...authDefaults(
+        "Email verification",
+        "Confirm your traveller email.",
+        "Verify your email",
+      ),
+      submitText: "Verify Email",
+      secondaryLinkText: "Back to sign in",
+      codeLabel: "Verification code",
+      codePlaceholder: "6-digit code",
+      resendText: "Resend Code",
+    },
+    adminLogin: {
+      ...authDefaults(
+        "Secure administration",
+        "Run Nepal Heaven from one place.",
+        "Admin sign in",
+      ),
+      submitText: "Sign in to admin",
+      emailPlaceholder: "admin@nepalheaven.com",
+    },
+    adminForgotPassword: {
+      ...authDefaults(
+        "Administrator recovery",
+        "Recover secure admin access.",
+        "Forgot admin password",
+      ),
+      submitText: "Send reset instructions",
+      emailPlaceholder: "Administrator email",
+      secondaryLinkText: "Back to admin sign in",
+    },
+  };
+}
+function makeFormDefaults(title: string, subtitle: string) {
+  return {
+    subtitle,
+    title,
+    description: "Tell our Kathmandu team what you have in mind.",
+    nameLabel: "Full name",
+    namePlaceholder: "Full name",
+    emailLabel: "Email address",
+    emailPlaceholder: "Email address",
+    phoneLabel: "Phone / WhatsApp",
+    phonePlaceholder: "Phone / WhatsApp (optional)",
+    dateLabel: "Preferred date",
+    messageLabel: "Message",
+    messagePlaceholder: "Tell us about the journey you have in mind…",
+    checkboxText: "Send me Nepal travel inspiration, offers and trip updates.",
+    buttonText: title,
+    linkText: "Ask on WhatsApp",
+    thankYouTitle: "Thank you",
+    thankYouDescription: "Your request is safely with our Kathmandu team.",
+    genericError: "Please check your details and try again.",
+  };
+}
 
 const defaults: PageDataMap = {
   experiences: {
@@ -110,6 +244,177 @@ const defaults: PageDataMap = {
     heroDescription:
       "A field archive from our guides: summits at dawn, monastery courtyards, jungle rivers and the people who make every journey memorable.",
   } satisfies CmsGalleryPageInput,
+  home: {
+    heroMediaId: null,
+    heroSubtitle: "Nepal · Since 2011",
+    heroTitle: "Heaven on Earth Awaits.",
+    heroDescription:
+      "Discover unforgettable adventures across Nepal with expertly crafted journeys — led by Sherpa guides who have walked these valleys their whole lives.",
+    heroStats: [
+      { value: "4.9/5", text: "1,000+ traveller reviews" },
+      { value: "250+", text: "Curated Himalayan journeys" },
+      { value: "24/7", text: "Kathmandu support desk" },
+    ],
+    floatingTitle: "Kala Patthar, 05:41",
+    floatingSubtitle: "Group of 6 · first light on Everest",
+    floatingDescription:
+      "Twelve days of walking and then the whole range turns gold at once. Nobody said a word.",
+    aboutSubtitle: "Our story",
+    aboutTitle: "A country best understood at walking pace",
+    aboutDescription:
+      "Nepal Heaven began with two Sherpa brothers and a single teahouse route. Fifteen years later we still write every itinerary by hand, walk them ourselves and answer the phone at 3 a.m.",
+    aboutCards: [
+      {
+        icon: "compass",
+        title: "Written, not templated",
+        description:
+          "Every route is drafted for your pace, season and altitude tolerance.",
+      },
+      {
+        icon: "mountain",
+        title: "Walked in advance",
+        description:
+          "Our guides re-scout each trail before departure season opens.",
+      },
+      {
+        icon: "heart-pulse",
+        title: "Altitude-first safety",
+        description:
+          "Oximeters, satellite comms and evacuation cover on every trek.",
+      },
+      {
+        icon: "headphones",
+        title: "One person, start to end",
+        description:
+          "A named Kathmandu planner stays with you from enquiry to homecoming.",
+      },
+    ],
+    aboutBigMediaId: null,
+    aboutBigTitle: "15 yrs",
+    aboutBigSubtitle: "In the Himalaya",
+    aboutSmallMediaId: null,
+    destinationsSubtitle: "Where to go",
+    destinationsTitle: "Eight regions that define Nepal",
+    destinationsDescription:
+      "From the glacier theatre of the Khumbu to the near-empty shoreline of Rara, each region has its own season, altitude and rhythm.",
+    primaryDestinationId: null,
+    secondaryDestinationIds: [],
+    destinationsLinkText: "All destinations",
+    expertText:
+      "There is a moment, usually around the fourth morning, when the mountains stop being scenery and start being",
+    expertHighlightedText: "the reason you came.",
+    expertName: "Pemba Sherpa",
+    expertPosition: "Head of mountain operations",
+    toursSubtitle: "Signature journeys",
+    toursTitle: "Top tour packages this season",
+    toursDescription:
+      "Fixed departures and private itineraries, all fully permitted, guided and insured.",
+    primaryPackageIds: [],
+    secondaryPackageIds: [],
+    toursLinkText: "See all journeys",
+    adventuresSubtitle: "Adventure activities",
+    adventuresTitle: "Choose your altitude of adrenaline",
+    adventuresDescription:
+      "Add any of these to an itinerary, or build an entire trip around one.",
+    adventures: [],
+    whySubtitle: "Why Nepal Heaven",
+    whyTitle: "The difference is in who takes you there",
+    whyDescription:
+      "Locally owned in Kathmandu, staffed by career mountain professionals, and answerable to you at every hour.",
+    whyCards: [],
+    testimonialsSubtitle: "Traveller reviews",
+    testimonialsTitle: "Fifteen years of people coming home changed",
+    testimonialsDescription:
+      "Every review is from a traveller who booked with our Kathmandu team.",
+    aboutCounterIndex: 0,
+    gallerySubtitle: "From the field",
+    galleryTitle: "Photographed on our journeys",
+    galleryDescription: "A curated glimpse of Nepal through our journeys.",
+    galleryMediaIds: [],
+    galleryLinkText: "Open gallery",
+    journalSubtitle: "The journal",
+    journalTitle: "Latest travel stories",
+    journalDescription:
+      "Route notes, seasonal advice and dispatches written by the guides who lead them.",
+    blogIds: [],
+    trustTexts: [
+      "Rated 4.9 on Tripadvisor",
+      "Nepal Tourism Board licensed",
+      "TAAN member",
+      "NMA certified guides",
+    ],
+    newsletterSubtitle: "The Nepal Heaven journal",
+    newsletterTitle: "A considered note from Nepal",
+    newsletterDescription:
+      "Seasonal route advice, thoughtful travel inspiration and occasional offers.",
+    ctaSubtitle: "Your journey",
+    ctaTitle: "Heaven on Earth awaits",
+    ctaDescription: "Plan a private Nepal journey with our Kathmandu team.",
+    ctaMediaId: null,
+    ctaMainText: "Plan my trip",
+    ctaMainLink: "/contact",
+    ctaSecondaryText: "Explore packages",
+    ctaSecondaryLink: "/packages",
+  } satisfies CmsHomePageInput,
+  authentication: makeAuthenticationDefaults(),
+  forms: {
+    destination: makeFormDefaults(
+      "Request an itinerary",
+      "Plan this destination",
+    ),
+    experience: makeFormDefaults(
+      "Ask about this experience",
+      "Shape this around you",
+    ),
+    package: {
+      priceLabel: "From",
+      originalPriceLabel: "Original price",
+      perPersonText: "per person, twin share",
+      bookButtonText: "Book this trip",
+      contactButtonText: "Speak to a specialist",
+      whatsappText: "Ask on WhatsApp",
+      helperText: "",
+    },
+  } satisfies CmsFormsInput,
+  booking: {
+    subtitle: "Prepare your journey",
+    title: "Complete your booking",
+    description: "Review traveller details and choose your payment option.",
+    formTitle: "Traveller information",
+    travellerStepText: "Traveller details",
+    reviewStepText: "Review & payment choice",
+    continueButtonText: "Continue to review",
+    confirmationSubtitle: "Payment successful",
+    confirmationTitle: "Booking confirmed",
+    confirmationDescription: "Your booking has been confirmed.",
+    nextStepsText:
+      "Our Kathmandu team will contact you with the next preparation steps.",
+    viewBookingText: "View my booking",
+    exploreText: "Explore more trips",
+  } satisfies CmsBookingPageInput,
+  seo: {
+    pages: Object.fromEntries(
+      [
+        "/",
+        "/destinations",
+        "/packages",
+        "/experiences",
+        "/blog",
+        "/gallery",
+        "/about",
+        "/contact",
+      ].map((path) => [
+        path,
+        {
+          metaTitle: "",
+          metaDescription: "",
+          ogTitle: "",
+          ogDescription: "",
+          ogMediaId: null,
+        },
+      ]),
+    ),
+  } satisfies CmsSeoInput,
 };
 
 type PageKind = keyof PageDataMap;
@@ -119,6 +424,11 @@ const schemaByKind = {
   about: cmsAboutPageSchema,
   contact: cmsContactPageSchema,
   gallery: cmsGalleryPageSchema,
+  home: cmsHomePageSchema,
+  authentication: cmsAuthenticationSchema,
+  forms: cmsFormsSchema,
+  booking: cmsBookingPageSchema,
+  seo: cmsSeoSchema,
 };
 const routeByKind = {
   experiences: "/experiences",
@@ -126,6 +436,11 @@ const routeByKind = {
   about: "/about",
   contact: "/contact",
   gallery: "/gallery",
+  home: "/",
+  authentication: "/login",
+  forms: "/contact",
+  booking: "/book",
+  seo: "/",
 };
 
 function database() {
@@ -268,6 +583,32 @@ async function save<K extends PageKind>(kind: K, input: PageDataMap[K]) {
       "team",
     );
   }
+  if (kind === "home") {
+    const home = data as CmsHomePageInput;
+    await validateGeneralMedia(
+      [
+        home.heroMediaId,
+        home.aboutBigMediaId,
+        home.aboutSmallMediaId,
+        home.ctaMediaId,
+      ],
+      "website-media",
+    );
+    const publicGallery = await (
+      await import("@/lib/content.server")
+    ).getPublicGalleryItems();
+    const allowedIds = new Set(
+      publicGallery.flatMap((item) => (item.id ? [item.id] : [])),
+    );
+    if (home.galleryMediaIds.some((id) => !allowedIds.has(id)))
+      throw new Error("Homepage Gallery can only use public Gallery media.");
+  }
+  if (kind === "seo") {
+    await validateGeneralMedia(
+      Object.values((data as CmsSeoInput).pages).map((page) => page.ogMediaId),
+      "website-media",
+    );
+  }
   let [page] = await database()
     .select({ id: cmsPages.id })
     .from(cmsPages)
@@ -329,6 +670,21 @@ export async function updateCmsContactPage(input: CmsContactPageInput) {
 export async function updateCmsGalleryPage(input: CmsGalleryPageInput) {
   return save("gallery", input);
 }
+export async function updateCmsHomePage(input: CmsHomePageInput) {
+  return save("home", input);
+}
+export async function updateCmsAuthentication(input: CmsAuthenticationInput) {
+  return save("authentication", input);
+}
+export async function updateCmsForms(input: CmsFormsInput) {
+  return save("forms", input);
+}
+export async function updateCmsBookingPage(input: CmsBookingPageInput) {
+  return save("booking", input);
+}
+export async function updateCmsSeo(input: CmsSeoInput) {
+  return save("seo", input);
+}
 export async function getPublicExperienceListing() {
   const data = await read("experiences");
   return { ...data, heroImageUrl: await mediaUrl(data.heroMediaId) };
@@ -364,4 +720,28 @@ export async function getPublicContactPage() {
 export async function getPublicGalleryPage() {
   const data = await read("gallery");
   return { ...data, heroImageUrl: await mediaUrl(data.heroMediaId) };
+}
+export async function getPublicHomePage() {
+  const data = await read("home");
+  return {
+    ...data,
+    heroImageUrl: await mediaUrl(data.heroMediaId),
+    aboutBigImageUrl: await mediaUrl(data.aboutBigMediaId),
+    aboutSmallImageUrl: await mediaUrl(data.aboutSmallMediaId),
+    ctaImageUrl: await mediaUrl(data.ctaMediaId),
+  };
+}
+export async function getPublicAuthentication() {
+  return read("authentication");
+}
+export async function getPublicForms() {
+  return read("forms");
+}
+export async function getPublicBookingPage() {
+  return read("booking");
+}
+export async function getPublicSeoPage(path: string) {
+  const data = await read("seo");
+  const page = data.pages[path];
+  return page ? { ...page, ogImageUrl: await mediaUrl(page.ogMediaId) } : null;
 }

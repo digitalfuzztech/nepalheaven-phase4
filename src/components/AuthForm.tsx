@@ -3,17 +3,20 @@ import { Link } from "@tanstack/react-router";
 import { Eye, EyeOff, LoaderCircle, LockKeyhole, Mail } from "lucide-react";
 import { useAuth, type UserRole } from "@/lib/auth";
 import { safeReturnPath } from "@/lib/safe-redirect";
+import type { CmsAuthenticationInput } from "@/lib/cms-page-content.schema";
 
 export function AuthForm({
   role,
   title,
   subtitle,
   returnTo,
+  copy,
 }: {
   role: UserRole;
   title: string;
   subtitle: string;
   returnTo?: string;
+  copy: CmsAuthenticationInput["customerLogin"];
 }) {
   const { login } = useAuth();
   const [email, setEmail] = useState("");
@@ -51,7 +54,7 @@ export function AuthForm({
             : "unverified_login_cooldown",
         );
         window.location.assign(`${target.pathname}${target.search}`);
-      } else setError(result.message);
+      } else setError(copy.genericError);
       return;
     }
     // Perform a clean navigation after the server creates the HttpOnly session cookie.
@@ -66,9 +69,7 @@ export function AuthForm({
   return (
     <div>
       <div className="mb-8">
-        <p className="eyebrow text-gold">
-          {role === "admin" ? "Administrator access" : "Traveller account"}
-        </p>
+        <p className="eyebrow text-gold">{copy.rightSubtitle}</p>
         <h2 className="mt-3 font-[family-name:var(--font-display)] text-4xl font-semibold text-primary">
           {title}
         </h2>
@@ -89,7 +90,7 @@ export function AuthForm({
       <form onSubmit={submit} className="space-y-5">
         <label className="block">
           <span className="mb-2 block text-sm font-semibold">
-            Email address
+            {copy.emailLabel}
           </span>
           <span className="flex items-center gap-3 rounded-2xl border border-border bg-card px-4 focus-within:border-gold">
             <Mail className="h-4 w-4 text-muted-foreground" />
@@ -100,22 +101,20 @@ export function AuthForm({
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="h-12 w-full bg-transparent text-sm outline-none"
-              placeholder={
-                role === "admin" ? "admin@nepalheaven.com" : "you@example.com"
-              }
+              placeholder={copy.emailPlaceholder}
             />
           </span>
         </label>
 
         <label className="block">
           <div className="mb-2 flex items-center justify-between">
-            <span className="text-sm font-semibold">Password</span>
+            <span className="text-sm font-semibold">{copy.passwordLabel}</span>
             {role === "customer" ? (
               <Link
                 to="/forgot-password"
                 className="text-xs font-semibold text-primary hover:text-gold"
               >
-                Forgot password?
+                {copy.linkText}
               </Link>
             ) : (
               <Link
@@ -123,7 +122,7 @@ export function AuthForm({
                 search={{ redirect: returnTo || "/admin/dashboard" }}
                 className="text-xs font-semibold text-primary hover:text-gold"
               >
-                Forgot password?
+                {copy.linkText}
               </Link>
             )}
           </div>
@@ -136,7 +135,7 @@ export function AuthForm({
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="h-12 w-full bg-transparent text-sm outline-none"
-              placeholder="••••••••"
+              placeholder={copy.passwordPlaceholder}
             />
             <button
               type="button"
@@ -158,25 +157,25 @@ export function AuthForm({
           className="bg-gold-gradient flex h-12 w-full items-center justify-center gap-2 rounded-2xl px-6 text-sm font-bold text-gold-foreground transition-transform hover:scale-[1.01] disabled:opacity-60"
         >
           {busy ? <LoaderCircle className="h-4 w-4 animate-spin" /> : null}
-          {role === "admin" ? "Sign in to admin" : "Sign in"}
+          {copy.submitText}
         </button>
       </form>
 
       {role === "customer" ? (
         <p className="mt-7 text-center text-sm text-muted-foreground">
-          New to Nepal Heaven?{" "}
+          {copy.bottomText}{" "}
           <Link
             to="/registration"
             className="font-bold text-primary hover:text-gold"
           >
-            Create an account
+            {copy.secondaryLinkText}
           </Link>
         </p>
       ) : (
         <p className="mt-7 text-center text-xs text-muted-foreground">
-          Customer accounts use{" "}
+          {copy.bottomText}{" "}
           <Link to="/login" className="font-semibold text-primary">
-            customer login
+            {copy.secondaryLinkText}
           </Link>
           .
         </p>

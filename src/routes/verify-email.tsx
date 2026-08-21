@@ -6,6 +6,8 @@ import {
   verifyEmailCodeFn,
 } from "@/lib/email-verification.functions";
 import { useAuth } from "@/lib/auth";
+import { getPublicAuthenticationFn } from "@/lib/cms-page-content.functions";
+import { getPublicSiteSettingsFn } from "@/lib/content.functions";
 
 export const Route = createFileRoute("/verify-email")({
   validateSearch: (search: Record<string, unknown>) => ({
@@ -13,30 +15,32 @@ export const Route = createFileRoute("/verify-email")({
     address: typeof search["address"] === "string" ? search["address"] : "",
     notice: typeof search["notice"] === "string" ? search["notice"] : "",
   }),
+  loader: async () => {
+    const [content, settings] = await Promise.all([
+      getPublicAuthenticationFn(),
+      getPublicSiteSettingsFn(),
+    ]);
+    return { content: content.verification, branding: settings.branding };
+  },
+  head: () => ({
+    meta: [
+      { title: "Verify email | Nepal Heaven" },
+      { name: "robots", content: "noindex,nofollow" },
+    ],
+  }),
   component: VerifyEmailPage,
 });
 
 function VerifyEmailPage() {
+  const { content, branding } = Route.useLoaderData();
   const { token, address, notice } = Route.useSearch();
   const { refresh } = useAuth();
   const [activeToken, setActiveToken] = useState(token);
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
-  const [message, setMessage] = useState(() => {
-    if (notice === "unverified_login_sent")
-      return "Your email hasn't been verified yet. We're sending you a new verification code.";
-    if (notice === "unverified_login_cooldown")
-      return "Your email hasn't been verified yet. Check your inbox for the current code or use Resend Code when available.";
-    if (notice === "pending_registration_sent")
-      return "An account with this email is awaiting verification. We're sending you a new verification code.";
-    if (notice === "pending_registration_cooldown")
-      return "An account with this email is awaiting verification. Check your inbox for the current code or use Resend Code when available.";
-    if (notice === "send_failed")
-      return "Your account was created, but we couldn't send the verification email. Please use Resend Code.";
-    if (notice === "sent")
-      return "We're sending a verification code to your email.";
-    return "";
-  });
+  const [message, setMessage] = useState(() =>
+    notice ? content.successText : "",
+  );
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -62,7 +66,7 @@ function VerifyEmailPage() {
       },
     });
     setBusy(false);
-    if (!result.ok) return setError(result.message);
+    if (!result.ok) return setError(content.genericError);
     window.sessionStorage.removeItem("nepalheaven_verification_email");
     await refresh();
     window.location.assign("/account");
@@ -78,7 +82,7 @@ function VerifyEmailPage() {
       },
     });
     setBusy(false);
-    setMessage(result.message);
+    setMessage(content.successText);
     setCode("");
     const next = new URL(
       result.verificationPath,
@@ -89,13 +93,14 @@ function VerifyEmailPage() {
 
   return (
     <AuthShell
-      eyebrow="Email verification"
-      title="Confirm your traveller email."
-      description="Enter the six-digit code sent by Nepal Heaven. Opening this page alone does not activate your account."
+      eyebrow={content.leftSubtitle}
+      title={content.leftTitle}
+      description={content.leftDescription}
+      branding={branding}
     >
       <div>
         <h2 className="font-[family-name:var(--font-display)] text-3xl font-semibold">
-          Verify your email
+          {content.rightTitle}
         </h2>
         {address ? (
           <p className="mt-3 text-sm text-muted-foreground">
@@ -124,14 +129,14 @@ function VerifyEmailPage() {
               onChange={(event) =>
                 setCode(event.target.value.replace(/\D/g, ""))
               }
-              placeholder="6-digit code"
+              placeholder={content.codePlaceholder}
               className="h-12 w-full rounded-2xl border border-border px-4 text-center text-xl tracking-[0.35em]"
             />
             <button
               disabled={busy}
               className="bg-gold-gradient h-12 w-full rounded-2xl font-bold text-gold-foreground disabled:opacity-60"
             >
-              {busy ? "Verifying..." : "Verify Email"}
+              {busy ? "Verifying..." : content.submitText}
             </button>
           </form>
         ) : (
@@ -149,11 +154,11 @@ function VerifyEmailPage() {
           onClick={() => void resend()}
           className="mt-4 w-full text-sm font-bold text-primary disabled:opacity-50"
         >
-          Resend Code
+          {content.resendText}
         </button>
         <p className="mt-6 text-center text-sm">
           <Link to="/login" className="font-bold text-primary">
-            Back to sign in
+            {content.linkText}
           </Link>
         </p>
       </div>

@@ -26,6 +26,12 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { getHomeContentFn } from "@/lib/content.functions";
+import {
+  getPublicAboutPageFn,
+  getPublicHomePageFn,
+  getPublicSeoPageFn,
+} from "@/lib/cms-page-content.functions";
+import { staticSeo } from "@/lib/public-seo";
 import { Reveal } from "@/components/Reveal";
 import { SectionHeading } from "@/components/SectionHeading";
 import { DestinationCard } from "@/components/DestinationCard";
@@ -39,6 +45,7 @@ import { ImmersiveBand } from "@/components/ImmersiveBand";
 import { NewsletterForm } from "@/components/NewsletterForm";
 import { useParallax } from "@/components/Parallax";
 import { WhatsAppLink } from "@/components/WhatsAppLink";
+import { homeIcon } from "@/lib/home-icons";
 
 const iconMap: Record<string, LucideIcon> = {
   ShieldCheck,
@@ -58,19 +65,33 @@ const iconMap: Record<string, LucideIcon> = {
 };
 
 export const Route = createFileRoute("/")({
-  loader: () => getHomeContentFn(),
+  loader: async () => {
+    const [content, page, about, seo] = await Promise.all([
+      getHomeContentFn(),
+      getPublicHomePageFn(),
+      getPublicAboutPageFn(),
+      getPublicSeoPageFn({ data: "/" }),
+    ]);
+    return { ...content, page, about, seo };
+  },
 
   head: ({ loaderData }) => {
+    if (loaderData?.seo)
+      return staticSeo(
+        loaderData.seo,
+        loaderData.branding.defaultSeoTitle,
+        loaderData.branding.defaultSeoDescription,
+        "/",
+      );
     const title =
-        loaderData?.branding.defaultSeoTitle ||
-        "Nepal Heaven — Heaven on Earth Awaits | Luxury Nepal Travel";
+      loaderData?.branding.defaultSeoTitle ||
+      "Nepal Heaven — Heaven on Earth Awaits | Luxury Nepal Travel";
 
     const description =
-        loaderData?.branding.defaultSeoDescription ||
-        "Discover unforgettable adventures across Nepal with expertly crafted journeys — Everest, Annapurna, Mustang, Chitwan and beyond.";
+      loaderData?.branding.defaultSeoDescription ||
+      "Discover unforgettable adventures across Nepal with expertly crafted journeys — Everest, Annapurna, Mustang, Chitwan and beyond.";
 
-    const ogImage =
-        loaderData?.branding.defaultOgImageUrl;
+    const ogImage = loaderData?.branding.defaultOgImageUrl;
 
     return {
       meta: [
@@ -109,7 +130,7 @@ export const Route = createFileRoute("/")({
         },
 
         ...(ogImage
-            ? [
+          ? [
               {
                 property: "og:image",
                 content: ogImage,
@@ -120,7 +141,7 @@ export const Route = createFileRoute("/")({
                 content: ogImage,
               },
             ]
-            : []),
+          : []),
       ],
 
       links: [
@@ -136,10 +157,11 @@ export const Route = createFileRoute("/")({
 });
 
 function Home() {
+  const { page } = Route.useLoaderData();
   return (
     <>
       <Hero />
-      <TrustMarquee />
+      <TrustMarquee marks={page.trustTexts} />
       <SearchBand />
       <StoryIntro />
       <PopularDestinations />
@@ -152,24 +174,33 @@ function Home() {
       <Stories />
       <NewsletterBand />
       <div className="pt-24">
-        <CtaBanner />
+        <CtaBanner
+          image={page.ctaImageUrl || undefined}
+          subtitle={page.ctaSubtitle}
+          title={page.ctaTitle}
+          description={page.ctaDescription}
+          mainText={page.ctaMainText}
+          mainLink={page.ctaMainLink}
+          secondaryText={page.ctaSecondaryText}
+          secondaryLink={page.ctaSecondaryLink}
+        />
       </div>
     </>
   );
 }
 
 function NewsletterBand() {
+  const { page } = Route.useLoaderData();
   return (
     <section className="bg-sand py-20">
       <div className="container-lux mx-auto grid max-w-4xl gap-8 rounded-[2rem] border border-gold/20 bg-card p-8 md:grid-cols-[1fr_22rem] md:items-center md:p-12">
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.18em] text-gold">
-            The Nepal Heaven journal
+            {page.newsletterSubtitle}
           </p>
-          <h2 className="mt-3 text-3xl">A considered note from Nepal</h2>
+          <h2 className="mt-3 text-3xl">{page.newsletterTitle}</h2>
           <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-            Seasonal route advice, thoughtful travel inspiration and occasional
-            offers. Unsubscribe whenever you wish.
+            {page.newsletterDescription}
           </p>
         </div>
         <NewsletterForm source="homepage" />
@@ -179,7 +210,7 @@ function NewsletterBand() {
 }
 
 function Hero() {
-  const { images , company } = Route.useLoaderData();
+  const { images, page } = Route.useLoaderData();
   const [offset, setOffset] = useState(0);
 
   useEffect(() => {
@@ -191,7 +222,7 @@ function Hero() {
   return (
     <section className="grain relative isolate flex min-h-[100svh] items-center overflow-hidden">
       <img
-        src={images.heroEverest}
+        src={page.heroImageUrl || images.heroEverest}
         alt="Mount Everest at sunrise above a sea of clouds"
         width={1920}
         height={1088}
@@ -207,20 +238,18 @@ function Hero() {
 
       <div className="container-lux relative grid gap-14 pb-40 pt-40 lg:grid-cols-[1.15fr_0.85fr] lg:items-end">
         <div>
-          <p className="animate-reveal eyebrow">Nepal · Since 2011</p>
+          <p className="animate-reveal eyebrow">{page.heroSubtitle}</p>
           <h1
             className="animate-reveal mt-6 max-w-4xl text-[2.6rem] leading-[1.02] text-primary-foreground sm:text-6xl lg:text-[5.2rem]"
             style={{ animationDelay: "120ms" }}
           >
-            Heaven on Earth <span className="text-gradient-gold">Awaits.</span>
+            {page.heroTitle}
           </h1>
           <p
             className="animate-reveal mt-7 max-w-xl text-lg leading-relaxed text-primary-foreground/85"
             style={{ animationDelay: "240ms" }}
           >
-            Discover unforgettable adventures across Nepal with expertly crafted
-            journeys — led by Sherpa guides who have walked these valleys their
-            whole lives.
+            {page.heroDescription}
           </p>
           <div
             className="animate-reveal mt-10 flex flex-wrap gap-4"
@@ -252,17 +281,13 @@ function Hero() {
             className="animate-reveal glass-dark mt-14 inline-flex flex-wrap gap-x-12 gap-y-6 rounded-3xl px-8 py-6"
             style={{ animationDelay: "480ms" }}
           >
-            {[
-              { k: "4.9/5", v: "1,000+ traveller reviews" },
-              { k: "250+", v: "Curated Himalayan journeys" },
-              { k: "24/7", v: "Kathmandu support desk" },
-            ].map((s) => (
-              <div key={s.k}>
+            {page.heroStats.map((s) => (
+              <div key={`${s.value}-${s.text}`}>
                 <dt className="font-[family-name:var(--font-display)] text-2xl font-semibold text-gold">
-                  {s.k}
+                  {s.value}
                 </dt>
                 <dd className="mt-1 text-xs uppercase tracking-[0.18em] text-primary-foreground/70">
-                  {s.v}
+                  {s.text}
                 </dd>
               </div>
             ))}
@@ -281,17 +306,16 @@ function Hero() {
               </span>
               <div>
                 <p className="text-sm font-semibold text-primary-foreground">
-                  Kala Patthar, 05:41
+                  {page.floatingTitle}
                 </p>
                 <p className="text-xs text-primary-foreground/65">
-                  Group of 6 · first light on Everest
+                  {page.floatingSubtitle}
                 </p>
               </div>
             </div>
             <div className="mt-5 h-px w-full bg-primary-foreground/15" />
             <p className="mt-5 text-sm leading-relaxed text-primary-foreground/80">
-              “Twelve days of walking and then the whole range turns gold at
-              once. Nobody said a word.”
+              {page.floatingDescription}
             </p>
           </div>
 
@@ -341,7 +365,7 @@ function SearchBand() {
 }
 
 function StoryIntro() {
-  const { images } = Route.useLoaderData();
+  const { images, page } = Route.useLoaderData();
   const { ref, progress } = useParallax<HTMLDivElement>();
 
   return (
@@ -353,7 +377,7 @@ function StoryIntro() {
             style={{ transform: `translate3d(0, ${progress * 26}px, 0)` }}
           >
             <img
-              src={images.destAnnapurna}
+              src={page.aboutBigImageUrl || images.destAnnapurna}
               alt="Annapurna range above terraced foothills"
               loading="lazy"
               className="aspect-[4/5] w-full object-cover"
@@ -364,7 +388,7 @@ function StoryIntro() {
             style={{ transform: `translate3d(0, ${progress * -34}px, 0)` }}
           >
             <img
-              src={images.destKathmandu}
+              src={page.aboutSmallImageUrl || images.destKathmandu}
               alt="Kathmandu courtyard temple at dusk"
               loading="lazy"
               className="aspect-square w-full object-cover"
@@ -372,57 +396,35 @@ function StoryIntro() {
           </div>
           <div className="glass-card animate-float absolute -left-4 top-8 rounded-2xl px-5 py-4 sm:-left-8">
             <p className="font-[family-name:var(--font-display)] text-2xl font-semibold text-gold">
-              15 yrs
+              {page.aboutBigTitle}
             </p>
             <p className="mt-0.5 text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-              In the Himalaya
+              {page.aboutBigSubtitle}
             </p>
           </div>
         </div>
 
         <div>
           <SectionHeading
-            eyebrow="Our story"
-            title="A country best understood at walking pace"
-            description="Nepal Heaven began with two Sherpa brothers and a single teahouse route. Fifteen years later we still write every itinerary by hand, still walk them ourselves before a guest ever does, and still answer the phone at 3 a.m."
+            eyebrow={page.aboutSubtitle}
+            title={page.aboutTitle}
+            description={page.aboutDescription}
           />
           <div className="mt-10 grid gap-5 sm:grid-cols-2">
-            {[
-              {
-                icon: Compass,
-                title: "Written, not templated",
-                detail:
-                  "Every route is drafted for your pace, season and altitude tolerance.",
-              },
-              {
-                icon: Mountain,
-                title: "Walked in advance",
-                detail:
-                  "Our guides re-scout each trail before departure season opens.",
-              },
-              {
-                icon: HeartPulse,
-                title: "Altitude-first safety",
-                detail:
-                  "Oximeters, satellite comms and evacuation cover on every trek.",
-              },
-              {
-                icon: Headphones,
-                title: "One person, start to end",
-                detail:
-                  "A named Kathmandu planner stays with you from enquiry to homecoming.",
-              },
-            ].map((item, i) => (
-              <Reveal key={item.title} delay={i * 80}>
-                <div className="hairline hover-lift h-full rounded-2xl bg-card/70 p-6 backdrop-blur-sm">
-                  <item.icon className="h-5 w-5 text-gold" aria-hidden />
-                  <h3 className="mt-4 text-base">{item.title}</h3>
-                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                    {item.detail}
-                  </p>
-                </div>
-              </Reveal>
-            ))}
+            {page.aboutCards.map((item, i) => {
+            const Icon = homeIcon(item.icon, Compass);
+              return (
+                <Reveal key={item.title} delay={i * 80}>
+                  <div className="hairline hover-lift h-full rounded-2xl bg-card/70 p-6 backdrop-blur-sm">
+                    <Icon className="h-5 w-5 text-gold" aria-hidden />
+                    <h3 className="mt-4 text-base">{item.title}</h3>
+                    <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                      {item.description}
+                    </p>
+                  </div>
+                </Reveal>
+              );
+            })}
           </div>
         </div>
       </div>
@@ -431,23 +433,31 @@ function StoryIntro() {
 }
 
 function PopularDestinations() {
-  const { destinations } = Route.useLoaderData();
-  const [featured, ...rest] = destinations;
+  const { destinations, page } = Route.useLoaderData();
+  const featured =
+    destinations.find((item) => item.id === page.primaryDestinationId) ??
+    destinations[0];
+  const selectedSecondary = page.secondaryDestinationIds.flatMap(
+    (id) => destinations.find((item) => item.id === id) ?? [],
+  );
+  const rest = selectedSecondary.length
+    ? selectedSecondary
+    : destinations.filter((item) => item.id !== featured?.id);
 
   return (
     <section className="section-band py-24 lg:py-32">
       <div className="container-lux">
         <div className="flex flex-wrap items-end justify-between gap-8">
           <SectionHeading
-            eyebrow="Where to go"
-            title="Eight regions that define Nepal"
-            description="From the glacier theatre of the Khumbu to the near-empty shoreline of Rara, each region we operate in has its own season, altitude and rhythm."
+            eyebrow={page.destinationsSubtitle}
+            title={page.destinationsTitle}
+            description={page.destinationsDescription}
           />
           <Link
             to="/destinations"
             className="group inline-flex items-center gap-2 text-sm font-bold text-primary transition-colors hover:text-gold"
           >
-            All destinations
+            {page.destinationsLinkText}
             <ArrowRight
               className="h-4 w-4 transition-transform group-hover:translate-x-1"
               aria-hidden
@@ -517,7 +527,7 @@ function PopularDestinations() {
 }
 
 function MomentBand() {
-  const { images } = Route.useLoaderData();
+  const { images, page } = Route.useLoaderData();
   return (
     <ImmersiveBand
       image={images.destMustang}
@@ -526,12 +536,13 @@ function MomentBand() {
       <div className="max-w-3xl">
         <Quote className="h-10 w-10 text-gold" aria-hidden />
         <p className="mt-8 font-[family-name:var(--font-display)] text-3xl leading-[1.2] text-primary-foreground sm:text-4xl lg:text-[3.25rem]">
-          There is a moment, usually around the fourth morning, when the
-          mountains stop being scenery and start being{" "}
-          <span className="text-gradient-gold">the reason you came.</span>
+          {page.expertText}{" "}
+          <span className="text-gradient-gold">
+            {page.expertHighlightedText}
+          </span>
         </p>
         <p className="mt-8 text-sm font-semibold uppercase tracking-[0.24em] text-primary-foreground/70">
-          Pemba Sherpa · Head of mountain operations
+          {page.expertName} · {page.expertPosition}
         </p>
         <div className="mt-12 flex flex-wrap gap-4">
           <Link
@@ -554,7 +565,15 @@ function MomentBand() {
 }
 
 function TopPackages() {
-  const { packages } = Route.useLoaderData();
+  const { packages, page } = Route.useLoaderData();
+  const primary = page.primaryPackageIds.flatMap(
+    (id) => packages.find((item) => item.id === id) ?? [],
+  );
+  const secondary = page.secondaryPackageIds.flatMap(
+    (id) => packages.find((item) => item.id === id) ?? [],
+  );
+  const primaryTours = primary.length ? primary : packages.slice(0, 4);
+  const secondaryTours = secondary.length ? secondary : packages.slice(4);
   return (
     <section className="relative overflow-hidden py-24 lg:py-32">
       <div
@@ -563,18 +582,18 @@ function TopPackages() {
       />
       <div className="container-lux relative">
         <SectionHeading
-          eyebrow="Signature journeys"
-          title="Top tour packages this season"
-          description="Fixed departures and private itineraries, all fully permitted, guided and insured."
+          eyebrow={page.toursSubtitle}
+          title={page.toursTitle}
+          description={page.toursDescription}
           align="center"
         />
         <div className="mt-14 grid gap-6 lg:grid-cols-2">
-          {packages.slice(0, 4).map((p, i) => (
+          {primaryTours.map((p, i) => (
             <PackageCard key={p.slug} pkg={p} delay={i * 80} layout="row" />
           ))}
         </div>
         <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {packages.slice(4).map((p, i) => (
+          {secondaryTours.map((p, i) => (
             <PackageCard key={p.slug} pkg={p} delay={i * 80} />
           ))}
         </div>
@@ -584,7 +603,7 @@ function TopPackages() {
               to="/packages"
               className="group hairline inline-flex items-center gap-2 rounded-full bg-card px-8 py-4 text-sm font-bold text-primary shadow-[var(--shadow-soft)] transition-colors hover:text-gold"
             >
-              See all 250+ journeys
+              {page.toursLinkText}
               <ArrowRight
                 className="h-4 w-4 transition-transform group-hover:translate-x-1"
                 aria-hidden
@@ -598,18 +617,25 @@ function TopPackages() {
 }
 
 function Adventures() {
-  const { activities } = Route.useLoaderData();
+  const { activities, page } = Route.useLoaderData();
+  const items = page.adventures.length
+    ? page.adventures.map((item) => ({
+        name: item.title,
+        detail: item.description,
+        icon: item.icon,
+      }))
+    : activities;
   return (
     <section className="section-band py-24 lg:py-32">
       <div className="container-lux">
         <SectionHeading
-          eyebrow="Adventure activities"
-          title="Choose your altitude of adrenaline"
-          description="Add any of these to an itinerary, or build an entire trip around one."
+          eyebrow={page.adventuresSubtitle}
+          title={page.adventuresTitle}
+          description={page.adventuresDescription}
         />
         <ul className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {activities.map((a, i) => {
-            const Icon = iconMap[a.icon] ?? Mountain;
+          {items.map((a, i) => {
+            const Icon = iconMap[a.icon] ?? homeIcon(a.icon, Mountain);
             return (
               <Reveal key={a.name} as="li" delay={i * 60}>
                 <div className="hover-lift group relative h-full overflow-hidden rounded-3xl border border-border bg-card p-7 transition-colors hover:border-gold/50">
@@ -632,7 +658,14 @@ function Adventures() {
 }
 
 function WhyUs() {
-  const { whyUs: whyUsItems } = Route.useLoaderData();
+  const { whyUs, page } = Route.useLoaderData();
+  const whyUsItems = page.whyCards.length
+    ? page.whyCards.map((item) => ({
+        title: item.title,
+        detail: item.description,
+        icon: item.icon,
+      }))
+    : whyUs;
   return (
     <section className="bg-summit grain relative overflow-hidden py-24 lg:py-32">
       <div
@@ -645,15 +678,15 @@ function WhyUs() {
       />
       <div className="container-lux relative">
         <SectionHeading
-          eyebrow="Why Nepal Heaven"
-          title="The difference is in who takes you there"
-          description="Locally owned in Kathmandu, staffed by career mountain professionals, and answerable to you at every hour of the journey."
+          eyebrow={page.whySubtitle}
+          title={page.whyTitle}
+          description={page.whyDescription}
           tone="light"
           align="center"
         />
         <ul className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {whyUsItems.map((w, i) => {
-            const Icon = iconMap[w.icon] ?? ShieldCheck;
+            const Icon = iconMap[w.icon] ?? homeIcon(w.icon, ShieldCheck);
             return (
               <Reveal key={w.title} as="li" delay={i * 70}>
                 <div className="glass-dark h-full rounded-3xl p-8 transition-transform duration-500 hover:-translate-y-2">
@@ -675,18 +708,25 @@ function WhyUs() {
 }
 
 function ReviewsAndStats() {
-  const { stats, testimonials } = Route.useLoaderData();
+  const { stats, testimonials, page, about } = Route.useLoaderData();
+  const chosen =
+    page.aboutCounterIndex === null
+      ? null
+      : about.counters[page.aboutCounterIndex];
+  const visibleStats = chosen
+    ? [{ value: chosen.number, suffix: chosen.symbol, label: chosen.text }]
+    : stats;
   return (
     <section className="container-lux py-24 lg:py-32">
       <div className="grid gap-14 lg:grid-cols-[1fr_1.1fr] lg:items-center">
         <div>
           <SectionHeading
-            eyebrow="Traveller reviews"
-            title="Fifteen years of people coming home changed"
-            description="Every review below is from a traveller who booked a private itinerary with our Kathmandu team."
+            eyebrow={page.testimonialsSubtitle}
+            title={page.testimonialsTitle}
+            description={page.testimonialsDescription}
           />
           <dl className="mt-12 grid grid-cols-2 gap-4">
-            {stats.map((s, i) => (
+            {visibleStats.map((s, i) => (
               <Reveal key={s.label} delay={i * 90}>
                 <div className="hairline hover-lift rounded-2xl bg-card/70 p-6 backdrop-blur-sm">
                   <dt className="font-[family-name:var(--font-display)] text-4xl font-semibold text-primary sm:text-5xl">
@@ -709,21 +749,26 @@ function ReviewsAndStats() {
 }
 
 function GalleryPreview() {
-  const { galleryItems } = Route.useLoaderData();
+  const { galleryItems, page } = Route.useLoaderData();
+  const curated = page.galleryMediaIds.flatMap(
+    (id) => galleryItems.find((item) => item.id === id) ?? [],
+  );
+  const visible = curated.length ? curated : galleryItems.slice(0, 8);
   return (
     <section className="section-band py-24 lg:py-32">
       <div className="container-lux">
         <div className="flex flex-wrap items-end justify-between gap-8">
           <SectionHeading
-            eyebrow="From the field"
-            title="Photographed on our journeys"
+            eyebrow={page.gallerySubtitle}
+            title={page.galleryTitle}
+            description={page.galleryDescription}
           />
           <Link
             to="/gallery"
             search={{ category: undefined, associatedTo: undefined }}
             className="group inline-flex items-center gap-2 text-sm font-bold text-primary transition-colors hover:text-gold"
           >
-            Open gallery
+            {page.galleryLinkText}
             <ArrowRight
               className="h-4 w-4 transition-transform group-hover:translate-x-1"
               aria-hidden
@@ -731,16 +776,29 @@ function GalleryPreview() {
           </Link>
         </div>
         <ul className="mt-12 columns-2 gap-4 [column-fill:_balance] sm:columns-3 lg:columns-4">
-          {galleryItems.slice(0, 8).map((g, i) => (
-            <li key={g.title} className="mb-4 break-inside-avoid">
+          {visible.map((g, i) => (
+            <li
+              key={g.id ?? `${g.title}-${i}`}
+              className="mb-4 break-inside-avoid"
+            >
               <Reveal delay={i * 50}>
                 <figure className="zoom-media group relative overflow-hidden rounded-2xl">
-                  <img
-                    src={g.image}
-                    alt={g.title}
-                    loading="lazy"
-                    className="w-full object-cover"
-                  />
+                  {g.type === "video" ? (
+                    <video
+                      src={g.videoUrl}
+                      poster={g.thumbnail}
+                      controls
+                      preload="metadata"
+                      className="w-full object-cover"
+                    />
+                  ) : (
+                    <img
+                      src={g.image}
+                      alt={g.title}
+                      loading="lazy"
+                      className="w-full object-cover"
+                    />
+                  )}
                   <figcaption className="bg-veil absolute inset-x-0 bottom-0 p-4 text-xs font-semibold text-primary-foreground opacity-0 transition-opacity duration-500 group-hover:opacity-100">
                     {g.title}
                   </figcaption>
@@ -755,14 +813,18 @@ function GalleryPreview() {
 }
 
 function Stories() {
-  const { posts } = Route.useLoaderData();
+  const { posts, page } = Route.useLoaderData();
+  const selected = page.blogIds.flatMap(
+    (id) => posts.find((item) => item.id === id) ?? [],
+  );
+  const visiblePosts = selected.length ? selected : posts.slice(0, 3);
   return (
     <section className="container-lux py-24 lg:py-32">
       <div className="flex flex-wrap items-end justify-between gap-8">
         <SectionHeading
-          eyebrow="The journal"
-          title="Latest travel stories"
-          description="Route notes, seasonal advice and dispatches written by the guides who lead them."
+          eyebrow={page.journalSubtitle}
+          title={page.journalTitle}
+          description={page.journalDescription}
         />
         <Link
           to="/blog"
@@ -776,7 +838,7 @@ function Stories() {
         </Link>
       </div>
       <div className="mt-14 grid gap-6 md:grid-cols-3">
-        {posts.slice(0, 3).map((p, i) => (
+        {visiblePosts.map((p, i) => (
           <Reveal key={p.slug} as="article" delay={i * 80}>
             <Link
               to="/blog/$slug"
@@ -815,13 +877,21 @@ function Stories() {
 
       <Reveal className="mt-16">
         <div className="flex flex-wrap items-center justify-center gap-x-10 gap-y-4 rounded-3xl border border-border bg-card px-8 py-7 text-center">
-          <span className="inline-flex items-center gap-2 text-sm font-semibold text-foreground">
-            <Star className="h-4 w-4 fill-current text-gold" aria-hidden />
-            Rated 4.9 on Tripadvisor
-          </span>
-          <span className="text-sm text-muted-foreground">
-            Nepal Tourism Board licensed · TAAN member · NMA certified guides
-          </span>
+          {page.trustTexts.map((text, index) => (
+            <span
+              key={`${text}-${index}`}
+              className={
+                index === 0
+                  ? "inline-flex items-center gap-2 text-sm font-semibold text-foreground"
+                  : "text-sm text-muted-foreground"
+              }
+            >
+              {index === 0 ? (
+                <Star className="h-4 w-4 fill-current text-gold" aria-hidden />
+              ) : null}
+              {text}
+            </span>
+          ))}
         </div>
       </Reveal>
     </section>

@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { CheckCircle2, ShieldCheck } from "lucide-react";
 import { getBookingSummaryFn } from "@/lib/booking.functions";
+import { getPublicBookingPageFn } from "@/lib/cms-page-content.functions";
 
 export const Route = createFileRoute("/booking/success")({
   validateSearch: (search: Record<string, unknown>) => ({
@@ -8,13 +9,18 @@ export const Route = createFileRoute("/booking/success")({
       typeof search["reference"] === "string" ? search["reference"] : "",
   }),
   loaderDeps: ({ search }) => ({ reference: search.reference }),
-  loader: ({ deps }) =>
-    getBookingSummaryFn({ data: { reference: deps.reference } }),
+  loader: async ({ deps }) => {
+    const [result, page] = await Promise.all([
+      getBookingSummaryFn({ data: { reference: deps.reference } }),
+      getPublicBookingPageFn(),
+    ]);
+    return { result, page };
+  },
   component: BookingSuccessPage,
 });
 
 function BookingSuccessPage() {
-  const result = Route.useLoaderData();
+  const { result, page } = Route.useLoaderData();
   if (!result.ok)
     return (
       <section className="container-lux py-24 text-center">
@@ -37,13 +43,16 @@ function BookingSuccessPage() {
         <div className="mx-auto grid h-20 w-20 place-items-center rounded-full bg-forest/10 text-forest">
           <CheckCircle2 className="h-10 w-10" />
         </div>
-        <p className="eyebrow mt-8 text-gold">Payment successful</p>
+        <p className="eyebrow mt-8 text-gold">{page.confirmationSubtitle}</p>
         <h1 className="mt-3 font-[family-name:var(--font-display)] text-4xl font-semibold text-primary">
-          Booking confirmed
+          {page.confirmationTitle}
         </h1>
         <p className="mx-auto mt-4 max-w-lg text-sm leading-relaxed text-muted-foreground">
-          Your confirmed booking for <strong>{booking.packageTitle}</strong> has
-          reference <strong>{booking.reference}</strong>.
+          {page.confirmationDescription} <strong>{booking.packageTitle}</strong>{" "}
+          · <strong>{booking.reference}</strong>.
+        </p>
+        <p className="mx-auto mt-3 max-w-lg text-sm leading-relaxed text-muted-foreground">
+          {page.nextStepsText}
         </p>
         <div className="mt-8 grid gap-4 text-left sm:grid-cols-2">
           <Info
@@ -75,13 +84,13 @@ function BookingSuccessPage() {
             params={{ reference: booking.reference }}
             className="rounded-full bg-primary px-6 py-3 text-sm font-bold text-primary-foreground"
           >
-            View my booking
+            {page.viewBookingText}
           </Link>
           <Link
             to="/packages"
             className="rounded-full border border-border px-6 py-3 text-sm font-bold"
           >
-            Explore more trips
+            {page.exploreText}
           </Link>
         </div>
         <p className="mt-7 flex items-center justify-center gap-2 text-xs text-muted-foreground">

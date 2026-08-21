@@ -4,14 +4,32 @@ import { useState, type FormEvent } from "react";
 import { AuthShell } from "@/components/AuthShell";
 import { countryOptions } from "@/lib/countries";
 import { registerCustomerFn } from "@/lib/registration.functions";
+import { getPublicAuthenticationFn } from "@/lib/cms-page-content.functions";
+import { getPublicSiteSettingsFn } from "@/lib/content.functions";
 
 export const Route = createFileRoute("/registration")({
-  loader: () => countryOptions(),
+  loader: async () => {
+    const [content, settings] = await Promise.all([
+      getPublicAuthenticationFn(),
+      getPublicSiteSettingsFn(),
+    ]);
+    return {
+      nationalities: countryOptions(),
+      content: content.registration,
+      branding: settings.branding,
+    };
+  },
+  head: () => ({
+    meta: [
+      { title: "Create account | Nepal Heaven" },
+      { name: "robots", content: "noindex,nofollow" },
+    ],
+  }),
   component: RegistrationPage,
 });
 
 function RegistrationPage() {
-  const nationalities = Route.useLoaderData();
+  const { nationalities, content, branding } = Route.useLoaderData();
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -37,11 +55,9 @@ function RegistrationPage() {
       !/[a-z]/.test(form.password) ||
       !/[0-9]/.test(form.password)
     )
-      return setError(
-        "Password must be at least 8 characters and include uppercase, lowercase and a number.",
-      );
+      return setError(content.passwordRequirementsError);
     if (form.password !== form.confirm)
-      return setError("Passwords do not match.");
+      return setError(content.passwordMismatchError);
     setBusy(true);
     try {
       const result = await registerCustomerFn({
@@ -54,7 +70,7 @@ function RegistrationPage() {
           password: form.password,
         },
       });
-      if (!result.ok) return setError(result.message);
+      if (!result.ok) return setError(content.genericError);
       window.sessionStorage.setItem(
         "nepalheaven_verification_email",
         form.email.trim().toLowerCase(),
@@ -83,7 +99,7 @@ function RegistrationPage() {
       );
     } catch (registrationError) {
       console.error(registrationError);
-      setError("We couldn't create your account right now. Please try again.");
+      setError(content.genericError);
     } finally {
       setBusy(false);
     }
@@ -93,18 +109,18 @@ function RegistrationPage() {
     "h-12 w-full rounded-2xl border border-border bg-card px-4 text-sm outline-none focus:border-gold";
   return (
     <AuthShell
-      eyebrow="Join Nepal Heaven"
-      title="Keep your journeys together."
-      description="Create your traveller account to save trips, compare packages and manage future bookings."
+      eyebrow={content.leftSubtitle}
+      title={content.leftTitle}
+      description={content.leftDescription}
+      branding={branding}
     >
       <div>
-        <p className="eyebrow text-gold">Create account</p>
+        <p className="eyebrow text-gold">{content.rightSubtitle}</p>
         <h2 className="mt-3 font-[family-name:var(--font-display)] text-4xl font-semibold text-primary">
-          Start exploring
+          {content.rightTitle}
         </h2>
         <p className="mt-3 text-sm text-muted-foreground">
-          Your profile details help Nepal Heaven prepare accurate traveller and
-          permit information.
+          {content.rightDescription}
         </p>
         {error ? (
           <div
@@ -119,7 +135,7 @@ function RegistrationPage() {
             required
             value={form.name}
             onChange={(event) => update("name", event.target.value)}
-            placeholder="Full name"
+            placeholder={content.namePlaceholder}
             autoComplete="name"
             className={inputClass}
           />
@@ -128,7 +144,7 @@ function RegistrationPage() {
             type="email"
             value={form.email}
             onChange={(event) => update("email", event.target.value)}
-            placeholder="Email address"
+            placeholder={content.emailPlaceholder}
             autoComplete="email"
             className={inputClass}
           />
@@ -136,13 +152,13 @@ function RegistrationPage() {
             required
             value={form.phone}
             onChange={(event) => update("phone", event.target.value)}
-            placeholder="Contact number"
+            placeholder={content.phonePlaceholder}
             autoComplete="tel"
             className={inputClass}
           />
           <label className="block">
             <span className="mb-2 block text-sm font-semibold">
-              Nationality *
+              {content.countryLabel} *
             </span>
             <select
               required
@@ -161,7 +177,7 @@ function RegistrationPage() {
           </label>
           <label className="block">
             <span className="mb-2 block text-sm font-semibold">
-              Date of birth *
+              {content.birthDateLabel} *
             </span>
             <input
               required
@@ -178,7 +194,7 @@ function RegistrationPage() {
             type="password"
             value={form.password}
             onChange={(event) => update("password", event.target.value)}
-            placeholder="Password"
+            placeholder={content.passwordPlaceholder}
             autoComplete="new-password"
             className={inputClass}
           />
@@ -187,7 +203,7 @@ function RegistrationPage() {
             type="password"
             value={form.confirm}
             onChange={(event) => update("confirm", event.target.value)}
-            placeholder="Confirm password"
+            placeholder={content.confirmPasswordPlaceholder}
             autoComplete="new-password"
             className={inputClass}
           />
@@ -196,13 +212,13 @@ function RegistrationPage() {
             className="bg-gold-gradient flex h-12 w-full items-center justify-center gap-2 rounded-2xl text-sm font-bold text-gold-foreground disabled:opacity-60"
           >
             {busy ? <LoaderCircle className="h-4 w-4 animate-spin" /> : null}
-            {busy ? "Creating account..." : "Create traveller account"}
+            {busy ? "Creating account..." : content.submitText}
           </button>
         </form>
         <p className="mt-6 text-center text-sm text-muted-foreground">
-          Already registered?{" "}
+          {content.bottomText}{" "}
           <Link to="/login" className="font-bold text-primary hover:text-gold">
-            Sign in
+            {content.secondaryLinkText}
           </Link>
         </p>
       </div>
